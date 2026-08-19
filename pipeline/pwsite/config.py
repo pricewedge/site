@@ -61,9 +61,14 @@ TABLE1_XLSX = SOURCE.parents[1] / "Table 1.xlsx"
 # --------------------------------------------------------------------------
 OUT = Path(os.environ.get("PRICEWEDGE_OUT", Path(__file__).resolve().parents[2] / "data"))
 
-# Cloudflare Pages caps individual files at 25 MiB; stay well under it so the
-# same artefacts can be served from Pages or from R2 without changes.
-SHARD_MAX_BYTES = 18 * 1024 * 1024
+# Shard size is set by the *worst* case, not the best. Hosts that honour HTTP
+# range requests fetch only the ~8 KB record a security needs and the shard size
+# is irrelevant. Hosts that ignore the header -- Cloudflare Pages returns 200
+# with the whole file, despite advertising `accept-ranges: bytes` -- make the
+# client download an entire shard per security instead, so keeping shards near
+# 1 MiB bounds that fallback at roughly one megabyte rather than eighteen.
+# Immutable caching means repeat securities in the same shard are then free.
+SHARD_MAX_BYTES = 1 * 1024 * 1024
 PAGES_FILE_LIMIT = 25 * 1024 * 1024
 
 # The full firm panel does not fit under that cap, so the download bundles can

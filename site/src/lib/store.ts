@@ -55,16 +55,24 @@ export function loadSecurity(index: FirmIndex, permno: number): Promise<FirmReco
     headers: { Range: `bytes=${offset}-${offset + bytes - 1}` },
   })
     .then(failFast)
-    .then((r) => r.arrayBuffer())
-    .then((buffer) => {
-      if (buffer.byteLength < bytes) {
+    .then((response) => response.arrayBuffer().then((buffer) => ({ response, buffer })))
+    .then(({ response, buffer }) => {
+      // A host that honours the Range header replies 206 and the body begins at
+      // the record. A host that ignores it replies 200 with the whole shard --
+      // Cloudflare Pages does exactly that, despite advertising
+      // `accept-ranges: bytes` -- and then the record begins at `offset`.
+      // Assuming the former silently reads a *different* security's bytes and
+      // plots them without erroring, so the status is checked, never assumed.
+      const base = response.status === 206 ? 0 : offset;
+      if (buffer.byteLength < base + bytes) {
         throw new Error(
-          `Short read for PERMNO ${permno}: the host must honour HTTP range requests.`,
+          `Short read for PERMNO ${permno}: wanted ${bytes} bytes at ${base}, got a ` +
+            `${buffer.byteLength}-byte body (HTTP ${response.status}).`,
         );
       }
       const series = new Map<string, Float32Array>();
       index.series.forEach((meta, i) => {
-        series.set(meta.id, new Float32Array(buffer, i * width, span));
+        series.set(meta.id, new Float32Array(buffer, base + i * width, span));
       });
       return {
         permno,

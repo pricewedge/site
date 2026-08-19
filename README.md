@@ -56,10 +56,20 @@ Runtime is about a minute, most of it in the download bundles.
 | `portfolios.json` | Rebuilt portfolio wedges, all deciles, all horizons, both cash-flow treatments. |
 | `downloads/` | Versioned CSV and Parquet bundles plus a README. |
 
-The binary shards exist so the browser never downloads the panel. Selecting a
-security costs one range request of about 8 KB. **The host must honour HTTP
-range requests** — Cloudflare Pages, R2, S3 and nginx all do; the site raises a
-visible error if it gets a 200 with a full body instead of a 206.
+The binary shards exist so the browser never downloads the whole panel.
+
+On a host that honours HTTP range requests, selecting a security costs one
+request of about 8 KB. **Cloudflare Pages does not honour them** — it advertises
+`accept-ranges: bytes` and then returns 200 with the entire file — so the client
+checks the response status and, on a 200, indexes from the record's offset into
+the full body. Reading it as though the body started at the offset silently
+plots a *different* security's numbers, which is why the status is checked
+rather than assumed.
+
+Shards are therefore capped near 1 MiB rather than as large as the platform
+allows: that is the per-security cost on a host without range support, and
+immutable caching makes repeat securities in the same shard free. R2, S3 and
+nginx do support ranges and fall back to the 8 KB path automatically.
 
 ### Adding company names
 
@@ -89,19 +99,41 @@ requests.
 
 ```bash
 cd site && npm run build
-cp -R ../data dist/data          # or point VITE_DATA_BASE at a separate host
-npx wrangler pages deploy dist --project-name pricewedge
+
+# The download bundles live in a GitHub release, not on Pages: two of them
+# exceed the 25 MiB per-file cap. Ship only what the explorer reads.
+rm -rf dist/data && mkdir -p dist/data
+cp ../data/manifest.json ../data/portfolios.json dist/data/
+cp -R ../data/firms dist/data/firms
+
+npx wrangler pages project create pricewedge --production-branch=main   # first time only
+npx wrangler pages deploy dist --project-name pricewedge --branch main
 ```
+
+Rebuild the data with `PRICEWEDGE_DOWNLOAD_BASE` set to the release URL first,
+or the data page will link at files that are not deployed:
+
+```bash
+PRICEWEDGE_DOWNLOAD_BASE=https://github.com/pricewedge/data/releases/download/v1.0.0 \
+  python build.py
+```
+
+**Verify a redeploy by reading numbers off the page, not by trusting the deploy
+message.** A wrong-offset read renders plausible but incorrect estimates with no
+error. Apple (PERMNO 14593) should show a latest wedge of +10.9% for Dec 2017
+and a largest of +40.5% for Jan 2010 under the default specification.
 
 `site/public/_headers` sets immutable caching on the shards and downloads and a
 short TTL on the manifest. `site/public/_redirects` sends unknown paths to
 `index.html` so client-side routes survive a reload.
 
-Two constraints worth knowing about Pages: 25 MiB per file and 20,000 files per
-deployment. The pipeline caps shards at 18 MiB, and the current vintage is nine
-shards, so both are comfortable. When the panel grows past that, move `data/`
-to Cloudflare R2 behind `data.pricewedge.com` and set `VITE_DATA_BASE` — nothing
-else changes.
+Constraints worth knowing about Pages: 25 MiB per file, 20,000 files per
+deployment, and no HTTP range support. The current vintage is 151 shards of
+1 MiB plus about 50 site assets, so the file limits are comfortable.
+
+Moving `data/` to Cloudflare R2 behind `data.pricewedge.com` and setting
+`VITE_DATA_BASE` restores real range requests and drops the per-security cost
+from ~1 MB to ~8 KB. Nothing else changes.
 
 ## Updating the estimates
 
