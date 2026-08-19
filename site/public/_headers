@@ -1,0 +1,9 @@
+/data/firms/*
+  Accept-Ranges: bytes
+  Cache-Control: public, max-age=31536000, immutable
+
+/data/downloads/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/data/manifest.json
+  Cache-Control: public, max-age=300

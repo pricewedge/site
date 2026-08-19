@@ -1,0 +1,22 @@
+# Generated artefacts — published as releases, not committed
+data/
+
+# Node
+node_modules/
+site/dist/
+site/tsconfig.tsbuildinfo
+*.log
+
+# Local convenience symlink to the generated data/ directory. Recreate with:
+#   ln -s ../../data site/public/data
+site/public/data
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Licensed identifier overlay (see README)
+pipeline/overlays/permno_names.csv
+
+.DS_Store

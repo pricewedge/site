@@ -1,0 +1,124 @@
+.wrap {
+  position: relative;
+  width: 100%;
+}
+
+.svg {
+  display: block;
+  overflow: visible;
+}
+
+.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  border: 1px dashed var(--rule);
+  border-radius: var(--radius-sm);
+}
+
+/* Grid and axes stay recessive: the data is the only thing with weight. */
+.grid {
+  stroke: var(--rule);
+  stroke-width: 1;
+  shape-rendering: crispEdges;
+}
+
+.tick {
+  stroke: var(--rule-strong);
+  stroke-width: 1;
+}
+
+.baseline {
+  stroke: var(--rule-strong);
+  stroke-width: 1.5;
+}
+
+.axisLabel {
+  font-family: var(--font-sans);
+  font-size: 0.6875rem;
+  font-variant-numeric: tabular-nums;
+  fill: var(--text-muted);
+}
+
+.axisTitle {
+  font-family: var(--font-sans);
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  fill: var(--text-muted);
+}
+
+.recession {
+  fill: var(--text-primary);
+  opacity: 0.05;
+}
+
+.directLabel {
+  font-family: var(--font-sans);
+  font-size: 0.6875rem;
+  font-weight: 550;
+  fill: var(--text-secondary);
+}
+
+.crosshair {
+  stroke: var(--text-muted);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+
+.marker {
+  stroke: var(--surface-1);
+  stroke-width: 2;
+}
+
+.tooltip {
+  position: absolute;
+  top: 6px;
+  pointer-events: none;
+  min-width: 150px;
+  padding: 0.5rem 0.625rem;
+  background: var(--surface-1);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-card);
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  z-index: 3;
+}
+
+.tooltipMonth {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.3rem;
+  letter-spacing: 0.01em;
+}
+
+.tooltipRow {
+  display: grid;
+  grid-template-columns: 9px 1fr auto;
+  gap: 0.45rem;
+  align-items: center;
+  line-height: 1.65;
+}
+
+.swatch {
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+}
+
+.tooltipLabel {
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 15ch;
+}
+
+.tooltipValue {
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}

@@ -1,0 +1,133 @@
+/* Design tokens.
+ *
+ * Light is defined on bare :root; dark redefines only what changes, once under
+ * prefers-color-scheme (for the OS setting) and once under [data-theme="dark"]
+ * (for the in-page toggle), so the toggle wins in both directions.
+ *
+ * The categorical series ramp is the validated eight-slot order: it clears the
+ * lightness band, chroma floor, adjacent-pair CVD separation (worst ΔE 9.1
+ * light / 8.4 dark) and the normal-vision floor (19.6 / 19.3) on both surfaces.
+ * Three light-mode slots sit below 3:1 against the surface, so every chart that
+ * uses them also ships direct labels and a table view.
+ */
+
+:root {
+  color-scheme: light;
+
+  /* Surfaces and ink */
+  --surface-page: #f7f6f3;
+  --surface-1: #fcfcfb;
+  --surface-2: #f2f1ed;
+  --surface-sunken: #edece7;
+  --rule: #e0ded7;
+  --rule-strong: #c9c6bc;
+
+  --text-primary: #14140f;
+  --text-secondary: #52514e;
+  --text-muted: #7b7a73;
+
+  --accent: #1c5cab;
+  --accent-soft: #e8f0fb;
+
+  /* Diverging pair for the signed price wedge: red = overpriced, blue = underpriced */
+  --pole-over: #e34948;
+  --pole-under: #2a78d6;
+  --pole-over-fill: rgba(227, 73, 72, 0.14);
+  --pole-under-fill: rgba(42, 120, 214, 0.14);
+
+  /* Categorical series, fixed slot order — never cycled, never reassigned */
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --series-4: #eda100;
+  --series-5: #e87ba4;
+  --series-6: #008300;
+  --series-7: #4a3aa7;
+  --series-8: #e34948;
+
+  --focus-ring: #2a78d6;
+  --shadow-card: 0 1px 2px rgba(20, 20, 15, 0.05), 0 6px 20px -12px rgba(20, 20, 15, 0.18);
+
+  /* Type */
+  --font-serif: "Source Serif 4", "Iowan Old Style", Georgia, serif;
+  --font-sans: "Inter Variable", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, monospace;
+
+  /* Rhythm */
+  --measure: 68ch;
+  --page-max: 1180px;
+  --radius: 10px;
+  --radius-sm: 6px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --surface-page: #131312;
+    --surface-1: #1a1a19;
+    --surface-2: #212120;
+    --surface-sunken: #0f0f0e;
+    --rule: #2e2e2b;
+    --rule-strong: #43423e;
+
+    --text-primary: #f5f4ef;
+    --text-secondary: #c3c2b7;
+    --text-muted: #8e8d84;
+
+    --accent: #6da7ec;
+    --accent-soft: #16233a;
+
+    --pole-over: #e66767;
+    --pole-under: #3987e5;
+    --pole-over-fill: rgba(230, 103, 103, 0.18);
+    --pole-under-fill: rgba(57, 135, 229, 0.18);
+
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
+    --series-4: #c98500;
+    --series-5: #d55181;
+    --series-6: #008300;
+    --series-7: #9085e9;
+    --series-8: #e66767;
+
+    --focus-ring: #6da7ec;
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 6px 20px -12px rgba(0, 0, 0, 0.7);
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --surface-page: #131312;
+  --surface-1: #1a1a19;
+  --surface-2: #212120;
+  --surface-sunken: #0f0f0e;
+  --rule: #2e2e2b;
+  --rule-strong: #43423e;
+
+  --text-primary: #f5f4ef;
+  --text-secondary: #c3c2b7;
+  --text-muted: #8e8d84;
+
+  --accent: #6da7ec;
+  --accent-soft: #16233a;
+
+  --pole-over: #e66767;
+  --pole-under: #3987e5;
+  --pole-over-fill: rgba(230, 103, 103, 0.18);
+  --pole-under-fill: rgba(57, 135, 229, 0.18);
+
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --series-4: #c98500;
+  --series-5: #d55181;
+  --series-6: #008300;
+  --series-7: #9085e9;
+  --series-8: #e66767;
+
+  --focus-ring: #6da7ec;
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 6px 20px -12px rgba(0, 0, 0, 0.7);
+}

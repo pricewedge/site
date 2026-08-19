@@ -1,0 +1,135 @@
+.root {
+  padding-top: 3rem;
+}
+
+.root h1 {
+  margin-bottom: 0.75rem;
+  max-width: 22ch;
+}
+
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2.5rem;
+  margin: 2rem 0 2.5rem;
+  padding: 1.25rem 0;
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.statValue {
+  font-family: var(--font-serif);
+  font-size: 1.75rem;
+  font-weight: 600;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.statLabel {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.dataset {
+  margin-bottom: 2.75rem;
+  max-width: var(--measure);
+}
+
+.dataset h2 {
+  font-size: 1.25rem;
+  margin-bottom: 0.4rem;
+}
+
+.dataset p {
+  color: var(--text-secondary);
+  font-size: 0.9375rem;
+}
+
+.fileList {
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.file {
+  display: grid;
+  grid-template-columns: 72px 1fr auto;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.65rem 0.9rem;
+  background: var(--surface-1);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  color: var(--text-primary);
+}
+
+.file:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.fileFormat {
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.fileName {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fileMeta {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.cite {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  line-height: 1.6;
+  padding: 1rem;
+  background: var(--surface-sunken);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  overflow-x: auto;
+}
+
+.authors {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1rem;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.authors li {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+}
+
+.authors span {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}

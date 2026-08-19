@@ -1,0 +1,84 @@
+.wrap {
+  min-width: 0;
+}
+
+.label {
+  display: block;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 0.35rem;
+}
+
+.groups {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.toggle {
+  display: inline-flex;
+  padding: 2px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+}
+
+.toggleButton {
+  padding: 0.3rem 0.6rem;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.toggleButton:hover {
+  color: var(--text-primary);
+}
+
+.toggleButton[aria-pressed="true"] {
+  background: var(--surface-1);
+  color: var(--text-primary);
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.note {
+  margin: 0.5rem 0 0;
+  font-size: 0.6875rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+  max-width: 46ch;
+}
+
+.dates {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.dateField {
+  display: inline-flex;
+}
+
+.dateInput {
+  font: inherit;
+  font-size: 0.75rem;
+  padding: 0.28rem 0.4rem;
+  color: var(--text-primary);
+  background: var(--surface-1);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.dateSep {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
