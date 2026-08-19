@@ -22,10 +22,15 @@ pip install -r requirements.txt
 python build.py
 ```
 
-The pipeline looks for the replication package at
-`../../Project Folders/JFE/JFE_final/ReplicationPackage`. Point it elsewhere
-with `PRICEWEDGE_SOURCE`, and change the output directory with
-`PRICEWEDGE_OUT` or `--out`.
+The replication package is licensed CRSP-derived data and is not in this
+repository. Tell the pipeline where it is, once per machine:
+
+```bash
+echo "/path/to/JFE_final/ReplicationPackage" > pipeline/.source-path
+```
+
+`PRICEWEDGE_SOURCE` in the environment overrides that file. Change the output
+directory with `PRICEWEDGE_OUT` or `--out`.
 
 It refuses to write anything unless two sets of checks pass:
 

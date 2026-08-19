@@ -25,7 +25,27 @@ _DEFAULT_SOURCE = (
     / "ReplicationPackage"
 )
 
-SOURCE = Path(os.environ.get("PRICEWEDGE_SOURCE", _DEFAULT_SOURCE))
+# The replication package is licensed CRSP-derived data and lives outside this
+# repository — typically in Dropbox alongside the paper, while the repository
+# itself lives wherever you keep code. Resolution order:
+#   1. PRICEWEDGE_SOURCE in the environment
+#   2. pipeline/.source-path, a one-line gitignored file holding the path
+#   3. the historical layout, three directories up from the package
+_SOURCE_POINTER = Path(__file__).resolve().parents[1] / ".source-path"
+
+
+def _resolve_source() -> Path:
+    from_env = os.environ.get("PRICEWEDGE_SOURCE")
+    if from_env:
+        return Path(from_env).expanduser()
+    if _SOURCE_POINTER.exists():
+        recorded = _SOURCE_POINTER.read_text().strip()
+        if recorded:
+            return Path(recorded).expanduser()
+    return _DEFAULT_SOURCE
+
+
+SOURCE = _resolve_source()
 
 PW_SHARE = SOURCE / "PWshare.mat"          # firm-level price wedges (Dec 2023 vintage)
 CRSP = SOURCE / "DataIN" / "crsp.mat"      # market/rf series, alpha signs, portfolio mkt caps
