@@ -6,6 +6,7 @@ import { TimeSeriesChart, type ChartSeries } from "../components/TimeSeriesChart
 import { SecurityPicker } from "../components/SecurityPicker";
 import { SpecPicker, specNote } from "../components/SpecPicker";
 import { RangePicker } from "../components/RangePicker";
+import { RangeBrush } from "../components/RangeBrush";
 import { SeriesTable } from "../components/SeriesTable";
 import {
   formatMarketCap,
@@ -312,6 +313,16 @@ export function Explorer({ manifest }: PageProps) {
                 yLabel="Price wedge"
                 yFormat={(v) => `${(v * 100).toFixed(0)}%`}
               />
+
+              {dataRange && activeRange && (
+                <RangeBrush
+                  bounds={dataRange}
+                  value={activeRange}
+                  onChange={setRange}
+                  series={wedgeSeries}
+                  diverging={single}
+                />
+              )}
             </figure>
 
             {single && (
