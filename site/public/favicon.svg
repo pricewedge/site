@@ -1,8 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
   <rect width="32" height="32" rx="7" fill="#14140f"/>
-  <g transform="translate(1.2 2.4) scale(0.98)">
-    <path d="M2.6 20 L5.08 14.67 L7.56 18.22 L10.04 12.69 L12.52 15.85 L15 9.53 L17.48 13.09 L19.96 6.77 L22.44 10.12 L24.92 4 L27.4 7.16 L27.4 5.58 L24.92 6.92 L22.44 8.27 L19.96 9.61 L17.48 10.95 L15 12.3 L12.52 13.64 L10.04 14.98 L7.56 16.33 L5.08 17.67 L2.6 19.01 Z" fill="#ffffff" opacity="0.16"/>
-    <path d="M2.6 19.01 L5.08 17.67 L7.56 16.33 L10.04 14.98 L12.52 13.64 L15 12.3 L17.48 10.95 L19.96 9.61 L22.44 8.27 L24.92 6.92 L27.4 5.58" fill="none" stroke="#3987e5" stroke-width="1.7" stroke-dasharray="2.6 1.9" stroke-linecap="round"/>
-    <path d="M2.6 20 L5.08 14.67 L7.56 18.22 L10.04 12.69 L12.52 15.85 L15 9.53 L17.48 13.09 L19.96 6.77 L22.44 10.12 L24.92 4 L27.4 7.16" fill="none" stroke="#e66767" stroke-width="2.1" stroke-linejoin="round" stroke-linecap="round"/>
+  <g transform="translate(1.0 2.6) scale(1.0)">
+    <path d="M2.60 13.98 L2.60 5.94 L5.08 7.78 L7.56 7.46 L10.04 10.71 L12.52 13.98 L15.00 12.05 L17.48 13.13 L19.96 6.60 L22.44 4.00 L24.92 4.63 L27.40 9.70 L27.40 13.98 Z" fill="#e66767" opacity="0.9"/>
+    <path d="M10.04 13.98 L12.52 20.00 L15.00 13.98 Z" fill="#3987e5" opacity="0.9"/>
+    <line x1="2.6" y1="13.98" x2="27.4" y2="13.98" stroke="#5b5a55" stroke-width="1.2"/>
+    <path d="M2.60 5.94 L5.08 7.78 L7.56 7.46 L10.04 10.71 L12.52 20.00 L15.00 12.05 L17.48 13.13 L19.96 6.60 L22.44 4.00 L24.92 4.63 L27.40 9.70" fill="none" stroke="#ffffff" stroke-width="2.0" stroke-linejoin="round" stroke-linecap="round"/>
   </g>
 </svg>
