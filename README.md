@@ -1,5 +1,8 @@
 # pricewedge.com
 
+**Live at [pricewedge.com](https://pricewedge.com).** Data releases at
+[github.com/pricewedge/data](https://github.com/pricewedge/data/releases).
+
 Price wedge estimates from Binsbergen, Boons, Opp and Tamoni, "Dynamic Asset
 (Mis)Pricing: Build-up versus Resolution Anomalies" (*Journal of Financial
 Economics*), published as an interactive explorer and as bulk downloads.
@@ -134,6 +137,33 @@ deployment, and no HTTP range support. The current vintage is 151 shards of
 Moving `data/` to Cloudflare R2 behind `data.pricewedge.com` and setting
 `VITE_DATA_BASE` restores real range requests and drops the per-security cost
 from ~1 MB to ~8 KB. Nothing else changes.
+
+## Operational notes
+
+Things that were not obvious the first time and cost real time:
+
+- **Cloudflare Pages ignores HTTP range requests** (see above). This is the one
+  that silently corrupts output rather than failing loudly.
+- **`wrangler pages deploy` does not create the project.** Run
+  `wrangler pages project create` once first.
+- **Adding a custom domain through the API does not create the DNS record.**
+  The dashboard does both; the API only registers the domain with the project.
+  Add `CNAME @ -> pricewedge.pages.dev` and `CNAME www -> pricewedge.pages.dev`,
+  both proxied, by hand.
+- **Delete the registrar's old records** when importing a zone. An `A` record
+  left at the apex silently wins over the CNAME you meant to use, and the site
+  keeps serving the old host.
+- **Your own resolver will lie to you** for up to an hour after a DNS change.
+  Verify with `curl --resolve pricewedge.com:443:<cloudflare-ip>` rather than
+  trusting a plain request.
+
+## Still to do
+
+- `www` -> apex redirect rule (Cloudflare dashboard; both hostnames currently
+  serve the site, with `rel=canonical` pointing search engines at the apex)
+- SPF / DMARC / null-MX records, so the domain cannot be used to spoof mail
+- Re-enable DNSSEC on Cloudflare's keys
+- Optionally move `data/` to R2 for true range requests
 
 ## Updating the estimates
 

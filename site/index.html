@@ -3,16 +3,120 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+
     <title>Price Wedges — mispricing estimates for US equities</title>
     <meta
       name="description"
       content="Monthly estimates of the price wedge — the log deviation of a firm's market value from its informationally efficient value — for 19,476 US stocks, 1964–2017. From Binsbergen, Boons, Opp and Tamoni, Journal of Financial Economics."
     />
+
+    <!-- Both pricewedge.com and www.pricewedge.com serve this site, so every
+         route declares the apex as canonical. App.tsx keeps this in step as the
+         client-side router changes pages. -->
+    <link rel="canonical" href="https://pricewedge.com/" />
+
     <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#f7f6f3" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#131312" media="(prefers-color-scheme: dark)" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="PriceWedge" />
+    <meta property="og:url" content="https://pricewedge.com/" />
+    <meta property="og:title" content="How far is a stock's price from its efficient value?" />
+    <meta
+      property="og:description"
+      content="Monthly mispricing estimates for 19,476 US stocks, 1964–2017. Explore any firm's price wedge, or download the full panel."
+    />
+    <meta property="og:image" content="https://pricewedge.com/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="The price wedge of Apple from 1982 to 2017, filled red where overpriced and blue where underpriced."
+    />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="How far is a stock's price from its efficient value?" />
+    <meta
+      name="twitter:description"
+      content="Monthly mispricing estimates for 19,476 US stocks, 1964–2017."
+    />
+    <meta name="twitter:image" content="https://pricewedge.com/og-image.png" />
+
+    <!-- Dataset markup so the estimates are discoverable through Google Dataset
+         Search, alongside the article they come from. -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org/",
+        "@type": "Dataset",
+        "name": "Price wedge estimates for US equities, 1964–2017",
+        "description": "Monthly firm-level and portfolio-level price wedges: the log deviation of a security's market value from its informationally efficient value. Firm-level estimates cover 19,476 US stocks under eight specifications; portfolio-level estimates cover ten decile portfolios for each of 57 characteristic sorts. Securities are identified by CRSP PERMNO.",
+        "url": "https://pricewedge.com",
+        "sameAs": "https://github.com/pricewedge/data",
+        "temporalCoverage": "1964-07/2017-12",
+        "spatialCoverage": "United States",
+        "keywords": [
+          "asset pricing",
+          "mispricing",
+          "market efficiency",
+          "anomalies",
+          "price wedge",
+          "Tobin's q",
+          "CRSP"
+        ],
+        "variableMeasured": {
+          "@type": "PropertyValue",
+          "name": "Price wedge",
+          "description": "Log deviation of market value from informationally efficient value. Positive means overpriced."
+        },
+        "creator": [
+          { "@type": "Person", "name": "Jules H. van Binsbergen" },
+          { "@type": "Person", "name": "Martijn Boons" },
+          { "@type": "Person", "name": "Christian C. Opp" },
+          { "@type": "Person", "name": "Andrea Tamoni" }
+        ],
+        "distribution": [
+          {
+            "@type": "DataDownload",
+            "name": "Firm-level price wedges (Parquet)",
+            "encodingFormat": "application/vnd.apache.parquet",
+            "contentUrl": "https://github.com/pricewedge/data/releases/download/v1.0.0/pricewedge_firm_2017-12_v1.0.0.parquet"
+          },
+          {
+            "@type": "DataDownload",
+            "name": "Firm-level price wedges (CSV)",
+            "encodingFormat": "text/csv",
+            "contentUrl": "https://github.com/pricewedge/data/releases/download/v1.0.0/pricewedge_firm_2017-12_v1.0.0.csv.gz"
+          },
+          {
+            "@type": "DataDownload",
+            "name": "Portfolio price wedges (CSV)",
+            "encodingFormat": "text/csv",
+            "contentUrl": "https://github.com/pricewedge/data/releases/download/v1.0.0/pricewedge_portfolio_2017-12_v1.0.0.csv.gz"
+          }
+        ],
+        "citation": {
+          "@type": "ScholarlyArticle",
+          "name": "Dynamic Asset (Mis)Pricing: Build-up versus Resolution Anomalies",
+          "author": [
+            { "@type": "Person", "name": "Jules H. van Binsbergen" },
+            { "@type": "Person", "name": "Martijn Boons" },
+            { "@type": "Person", "name": "Christian C. Opp" },
+            { "@type": "Person", "name": "Andrea Tamoni" }
+          ],
+          "isPartOf": { "@type": "Periodical", "name": "Journal of Financial Economics" }
+        }
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
+    <noscript>
+      This site plots precomputed price wedge estimates and needs JavaScript. The
+      underlying data is available without it at
+      <a href="https://github.com/pricewedge/data/releases">github.com/pricewedge/data</a>.
+    </noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

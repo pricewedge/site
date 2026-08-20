@@ -1,0 +1,28 @@
+cff-version: 1.2.0
+title: Price wedge estimates for US equities
+message: If you use these estimates, please cite the article below.
+type: dataset
+authors:
+  - given-names: Jules H.
+    family-names: van Binsbergen
+  - given-names: Martijn
+    family-names: Boons
+  - given-names: Christian C.
+    family-names: Opp
+  - given-names: Andrea
+    family-names: Tamoni
+url: https://pricewedge.com
+repository-code: https://github.com/pricewedge/site
+preferred-citation:
+  type: article
+  title: "Dynamic Asset (Mis)Pricing: Build-up versus Resolution Anomalies"
+  journal: Journal of Financial Economics
+  authors:
+    - given-names: Jules H.
+      family-names: van Binsbergen
+    - given-names: Martijn
+      family-names: Boons
+    - given-names: Christian C.
+      family-names: Opp
+    - given-names: Andrea
+      family-names: Tamoni

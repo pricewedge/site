@@ -14,6 +14,48 @@ const ROUTES = {
   "/about": About,
 } as const;
 
+/** Client-side routes need their own titles and canonicals; a single-page app
+ *  otherwise reports every page as the home page to search engines and to
+ *  anything that unfurls a link. The canonical always names the apex, since
+ *  www.pricewedge.com serves the same content. */
+const META: Record<keyof typeof ROUTES, { title: string; description: string }> = {
+  "/": {
+    title: "Price Wedges — mispricing estimates for US equities",
+    description:
+      "Explore the price wedge of any of 19,476 US stocks, 1964–2017: the log deviation of market value from informationally efficient value.",
+  },
+  "/data": {
+    title: "Download the estimates — PriceWedge",
+    description:
+      "Firm-level and portfolio-level price wedge estimates as Parquet and CSV, versioned by vintage with permanent URLs.",
+  },
+  "/methodology": {
+    title: "How a price wedge is estimated — PriceWedge",
+    description:
+      "How portfolio price wedges are estimated from fifteen years of post-formation cash flows, and mapped to individual firms through their characteristics.",
+  },
+  "/about": {
+    title: "About — PriceWedge",
+    description:
+      "Price wedge estimates from Binsbergen, Boons, Opp and Tamoni, Journal of Financial Economics.",
+  },
+};
+
+const SITE = "https://pricewedge.com";
+
+function applyMeta(route: keyof typeof ROUTES) {
+  const meta = META[route];
+  document.title = meta.title;
+
+  const set = (selector: string, attr: string, value: string) => {
+    const el = document.head.querySelector(selector);
+    if (el) el.setAttribute(attr, value);
+  };
+  set('link[rel="canonical"]', "href", `${SITE}${route === "/" ? "/" : route}`);
+  set('meta[name="description"]', "content", meta.description);
+  set('meta[property="og:url"]', "content", `${SITE}${route === "/" ? "/" : route}`);
+}
+
 export type Route = keyof typeof ROUTES;
 
 function currentRoute(): Route {
@@ -25,6 +67,10 @@ export function App() {
   const [route, setRoute] = useState<Route>(currentRoute);
   const [manifest, setManifest] = useState<Manifest | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    applyMeta(route);
+  }, [route]);
 
   useEffect(() => {
     const onPop = () => setRoute(currentRoute());
