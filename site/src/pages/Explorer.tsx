@@ -133,12 +133,11 @@ export function Explorer({ manifest }: PageProps) {
     }));
   }, [loaded, specId, colorFor, labelFor]);
 
-  // Both series are expressed as a percentage of the efficient value, so the
-  // vertical gap between the lines *is* the mispricing: a 40% overpriced firm
-  // sits 40% above its efficient value. Plotting the two in dollars instead is
-  // honest but useless here -- a firm that grew 880x over the sample compresses
-  // a 1.4x wedge into a few percent of the plot height, which is why the gap
-  // looked negligible.
+  // Natural logs of both values, as in Fig. 7 Panel B of the paper. The vertical
+  // gap between the two lines is the price wedge exactly -- ln(P) - ln(P-tilde)
+  // = PW -- but a firm that grew 1054x over the sample needs seven log units of
+  // axis, so a 0.40 gap is under 6% of the plot height. Hence the shaded band:
+  // the identity is what it is, and the fill is what makes it readable.
   const valueSeries: ChartSeries[] = useMemo(() => {
     if (!specId || !single) return [];
     const rec = loaded[0];
@@ -146,12 +145,12 @@ export function Explorer({ manifest }: PageProps) {
     const wedge = rec.series.get(specId);
     if (!cap || !wedge) return [];
 
-    const market = new Float32Array(cap.length);
-    const efficient = new Float32Array(cap.length);
+    const lnMarket = new Float32Array(cap.length);
+    const lnEfficient = new Float32Array(cap.length);
     for (let i = 0; i < cap.length; i += 1) {
-      const w = wedge[i];
-      market[i] = Number.isFinite(w) ? 100 * Math.exp(w) : NaN;
-      efficient[i] = Number.isFinite(w) ? 100 : NaN;
+      const usable = cap[i] > 0 && Number.isFinite(wedge[i]);
+      lnMarket[i] = usable ? Math.log(cap[i]) : NaN;
+      lnEfficient[i] = usable ? Math.log(cap[i]) - wedge[i] : NaN;
     }
 
     return [
@@ -160,20 +159,17 @@ export function Explorer({ manifest }: PageProps) {
         label: "Market value",
         color: "var(--series-1)",
         months: rec.months,
-        values: market,
+        values: lnMarket,
         format: (v: number, i: number) =>
-          cap[i] > 0 ? `${formatMarketCap(cap[i])} · ${v.toFixed(0)}%` : `${v.toFixed(0)}%`,
+          `${formatMarketCap(cap[i])} · ln ${v.toFixed(2)} · ${formatWedge(wedge[i])}`,
       },
       {
         key: "efficient",
         label: "Efficient value",
         color: "var(--series-2)",
         months: rec.months,
-        values: efficient,
-        format: (_v: number, i: number) =>
-          cap[i] > 0 && Number.isFinite(wedge[i])
-            ? `${formatMarketCap(cap[i] * Math.exp(-wedge[i]))} · 100%`
-            : "100%",
+        values: lnEfficient,
+        format: (v: number) => `${formatMarketCap(Math.exp(v))} · ln ${v.toFixed(2)}`,
         dashed: true,
       },
     ];
@@ -315,23 +311,28 @@ export function Explorer({ manifest }: PageProps) {
                   open={showValue}
                   onToggle={() => setShowValue((v) => !v)}
                   title="Market value versus efficient value"
-                  hint="% of efficient value"
+                  hint="natural logs"
                 >
                   <Legend items={valueSeries.map((s) => ({ label: s.label, color: s.color }))} />
                   <TimeSeriesChart
-                    ariaLabel="Market value relative to efficient value"
+                    ariaLabel="Log market value and log efficient value"
                     series={valueSeries}
                     domain={activeRange ?? undefined}
-                    height={220}
-                    baseline={100}
-                    yLabel="% of efficient value"
-                    yFormat={(v) => `${v.toFixed(0)}%`}
+                    height={240}
+                    marginLeft={62}
+                    bandBetween
+                    yLabel="ln(value, $m)"
+                    yFormat={(v) => v.toFixed(1)}
                   />
                   <p className={styles.note}>
-                    Efficient value is the market value scaled by exp(−PW) and is held at 100
-                    here, so the vertical gap between the lines is the mispricing itself: a
-                    line at 140 means the firm is worth 40% more than the efficient value
-                    implies. Hover for the market capitalisation in dollars.
+                    Natural logs of the market value and of the efficient value, which is the
+                    market value scaled by exp(−PW). In logs the vertical gap between the two
+                    lines <em>is</em> the price wedge: 0.40 log units when the firm is 40%
+                    overpriced. The band is shaded red where the market value sits above the
+                    efficient value and blue where it sits below. Because a firm can grow a
+                    thousandfold over the sample while the wedge stays under 50%, the gap is
+                    a small share of the plot height — narrowing the time window above
+                    enlarges it. Hover for values in dollars.
                   </p>
                 </Disclosure>
 

@@ -57,6 +57,11 @@ interface Props {
   showRecessions?: boolean;
   /** Pad the y domain so the zero line is centred. Used by the wedge panel. */
   symmetric?: boolean;
+  /** Fill the gap between the first two series, red where the first is above
+   *  the second and blue where it is below. In log levels that gap is the price
+   *  wedge exactly, but it is only a few percent of the plot height when the
+   *  series spans decades of growth, so it needs the fill to be legible. */
+  bandBetween?: boolean;
   ariaLabel: string;
 }
 
@@ -83,6 +88,7 @@ export function TimeSeriesChart({
   baseline = null,
   showRecessions = true,
   symmetric = false,
+  bandBetween = false,
   ariaLabel,
 }: Props) {
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -147,9 +153,12 @@ export function TimeSeriesChart({
       ? scaleLinear()
           .domain([-1, 1].map((s) => s * Math.max(Math.abs(lo), Math.abs(hi)) * 1.08) as [number, number])
           .range([plotHeight, 0])
-      : scaleLinear()
-          .domain([lo - (hi - lo) * 0.08, hi + (hi - lo) * 0.08])
-          .nice(5)
+      : // Deliberately not .nice(): rounding the domain outward can add a
+        // quarter of empty plot height, and on the log-value panel that
+        // directly shrinks the gap the chart exists to show. d3 still picks
+        // round tick values inside the fitted domain.
+        scaleLinear()
+          .domain([lo - (hi - lo) * 0.06, hi + (hi - lo) * 0.06])
           .range([plotHeight, 0]);
 
     return { points: visible, x, y, xExtent };
@@ -269,6 +278,10 @@ export function TimeSeriesChart({
               <DivergingArea data={points[0]} x={x} y={y} width={plotWidth} />
             ) : null}
 
+            {bandBetween && points[0] && points[1] ? (
+              <GapBand upper={points[0]} lower={points[1]} x={x} y={y} />
+            ) : null}
+
             {points.map((ps, i) => (
               <path
                 key={series[i].key}
@@ -370,6 +383,43 @@ export function TimeSeriesChart({
         </div>
       )}
     </div>
+  );
+}
+
+/** Fill the gap between two series that share an x grid, coloured by sign.
+ *  Both arms are drawn over the full span with a zero-height baseline outside
+ *  their own regime, which avoids splitting the polygon at every crossing. */
+function GapBand({
+  upper,
+  lower,
+  x,
+  y,
+}: {
+  upper: { ordinal: number; value: number; i: number }[];
+  lower: { ordinal: number; value: number; i: number }[];
+  x: (v: number) => number;
+  y: (v: number) => number;
+}) {
+  const byOrdinal = new Map(lower.map((p) => [p.ordinal, p.value]));
+  const paired = upper
+    .filter((p) => byOrdinal.has(p.ordinal))
+    .map((p) => ({ ordinal: p.ordinal, a: p.value, b: byOrdinal.get(p.ordinal)! }));
+  if (paired.length < 2) return null;
+
+  const over = d3area<{ ordinal: number; a: number; b: number }>()
+    .x((p) => x(p.ordinal))
+    .y0((p) => y(p.b))
+    .y1((p) => Math.min(y(p.a), y(p.b)));
+  const under = d3area<{ ordinal: number; a: number; b: number }>()
+    .x((p) => x(p.ordinal))
+    .y0((p) => y(p.b))
+    .y1((p) => Math.max(y(p.a), y(p.b)));
+
+  return (
+    <g>
+      <path d={over(paired) ?? undefined} fill="var(--pole-over-fill)" />
+      <path d={under(paired) ?? undefined} fill="var(--pole-under-fill)" />
+    </g>
   );
 }
 
