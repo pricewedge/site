@@ -29,8 +29,10 @@ export interface ChartSeries {
   color: string;
   months: number[];
   values: Float32Array | number[];
-  /** Rendered in the tooltip; defaults to a plain number. */
-  format?: (value: number) => string;
+  /** Rendered in the tooltip. Receives the index into `months`/`values`, so a
+   *  series can show something the plotted value alone does not carry -- the
+   *  value panel plots percentages but reports dollars. */
+  format?: (value: number, index: number) => string;
   dashed?: boolean;
 }
 
@@ -65,7 +67,7 @@ const LABEL_PITCH = 13;
 interface Hover {
   ordinal: number;
   x: number;
-  points: { series: ChartSeries; value: number; y: number }[];
+  points: { series: ChartSeries; value: number; y: number; index: number }[];
 }
 
 export function TimeSeriesChart({
@@ -109,7 +111,7 @@ export function TimeSeriesChart({
   const geom = useMemo(() => {
     const points = series.map((s) =>
       s.months
-        .map((m, i) => ({ ordinal: monthOrdinal(m), value: Number(s.values[i]) }))
+        .map((m, i) => ({ ordinal: monthOrdinal(m), value: Number(s.values[i]), i }))
         .filter((p) => Number.isFinite(p.value)),
     );
 
@@ -168,7 +170,12 @@ export function TimeSeriesChart({
           if (Math.abs(p.ordinal - target) < Math.abs(best.ordinal - target)) best = p;
         }
         if (Math.abs(best.ordinal - target) <= 6) {
-          points.push({ series: series[i], value: best.value, y: geom.y(best.value) });
+          points.push({
+            series: series[i],
+            value: best.value,
+            y: geom.y(best.value),
+            index: best.i,
+          });
         }
       });
       if (!points.length) {
@@ -197,7 +204,7 @@ export function TimeSeriesChart({
   const zero = y.domain()[0] <= 0 && y.domain()[1] >= 0 ? y(0) : null;
   const directLabels = series.length <= 4 && !narrow;
 
-  const path = d3line<{ ordinal: number; value: number }>()
+  const path = d3line<{ ordinal: number; value: number; i: number }>()
     .x((p) => x(p.ordinal))
     .y((p) => y(p.value))
     .curve(curveLinear);
@@ -356,7 +363,7 @@ export function TimeSeriesChart({
               />
               <span className={styles.tooltipLabel}>{p.series.label}</span>
               <span className={styles.tooltipValue}>
-                {(p.series.format ?? ((v: number) => v.toFixed(3)))(p.value)}
+                {(p.series.format ?? ((v: number) => v.toFixed(3)))(p.value, p.index)}
               </span>
             </div>
           ))}
@@ -394,17 +401,17 @@ function DivergingArea({
   y,
   width,
 }: {
-  data: { ordinal: number; value: number }[];
+  data: { ordinal: number; value: number; i: number }[];
   x: (v: number) => number;
   y: (v: number) => number;
   width: number;
 }) {
   const zero = y(0);
-  const above = d3area<{ ordinal: number; value: number }>()
+  const above = d3area<{ ordinal: number; value: number; i: number }>()
     .x((p) => x(p.ordinal))
     .y0(zero)
     .y1((p) => Math.min(y(p.value), zero));
-  const below = d3area<{ ordinal: number; value: number }>()
+  const below = d3area<{ ordinal: number; value: number; i: number }>()
     .x((p) => x(p.ordinal))
     .y0(zero)
     .y1((p) => Math.max(y(p.value), zero));

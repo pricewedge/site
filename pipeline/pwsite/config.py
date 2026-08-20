@@ -197,8 +197,8 @@ MAPPING_NOTES = {
         "Portfolio-level price wedges are projected on the first three principal "
         "components of rank-normalised portfolio characteristics; a firm's price "
         "wedge is that mapping evaluated at its own characteristic percentiles. "
-        "Requires all 57 characteristics to be observed, so coverage is roughly "
-        "20% thinner than the FF5 mapping."
+        "Requires all 57 characteristics to be observed, so it covers about 20% "
+        "fewer firm-months than the FF5 mapping."
     ),
     "ff5": (
         "Portfolio-level price wedges are projected on the five Fama-French "
@@ -209,12 +209,12 @@ MAPPING_NOTES = {
 
 LEVEL_NOTES = {
     "equity": (
-        "The log deviation of a firm's market equity from its informationally "
-        "efficient value. Positive means overpriced."
+        "The estimate is the log deviation of the firm's market equity from its "
+        "informationally efficient value; positive means overpriced."
     ),
     "firm": (
-        "The equity price wedge carried over to total firm value under the "
-        "assumption that debt is correctly priced (Eq. 9): "
+        "The estimate carries the equity price wedge over to total firm value "
+        "under the assumption that debt is correctly priced (Eq. 9): "
         "log[E/(E+D)·exp(-PW) + D/(E+D)], sign-aligned with the equity wedge. "
         "Leverage damps the wedge, so magnitudes are smaller."
     ),

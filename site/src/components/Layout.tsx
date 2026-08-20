@@ -116,13 +116,32 @@ export function Layout({
   );
 }
 
-/** A wedge: the gap between the observed price and the efficient one. */
+/** The mark is the object itself: two paths leaving a common point — the market
+ *  price and the efficient value — with the widening gap between them filled.
+ *  That gap is the price wedge. */
 function Wordmark() {
   return (
     <>
-      <svg width="26" height="20" viewBox="0 0 26 20" aria-hidden="true" className={styles.mark}>
-        <path d="M1 18 L25 4" fill="none" stroke="var(--pole-over)" strokeWidth="2.2" strokeLinecap="round" />
-        <path d="M1 18 L25 16" fill="none" stroke="var(--pole-under)" strokeWidth="2.2" strokeLinecap="round" />
+      <svg width="30" height="24" viewBox="0 0 30 24" aria-hidden="true" className={styles.mark}>
+        <path
+          d="M3.6 19.4 C 11 19 17 15.5 26.4 5.6 L26.4 15.6 C 17 18.2 11 19.1 3.6 19.4 Z"
+          className={styles.markFill}
+        />
+        <path
+          d="M3.6 19.4 C 11 19 17 15.5 26.4 5.6"
+          fill="none"
+          stroke="var(--pole-over)"
+          strokeWidth="2.1"
+          strokeLinecap="round"
+        />
+        <path
+          d="M3.6 19.4 C 11 19.1 17 18.2 26.4 15.6"
+          fill="none"
+          stroke="var(--pole-under)"
+          strokeWidth="2.1"
+          strokeLinecap="round"
+        />
+        <circle cx="3.6" cy="19.4" r="1.7" className={styles.markPivot} />
       </svg>
       <span className={styles.brandText}>
         Price<span className={styles.brandAccent}>Wedge</span>

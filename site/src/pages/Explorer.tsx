@@ -133,30 +133,47 @@ export function Explorer({ manifest }: PageProps) {
     }));
   }, [loaded, specId, colorFor, labelFor]);
 
+  // Both series are expressed as a percentage of the efficient value, so the
+  // vertical gap between the lines *is* the mispricing: a 40% overpriced firm
+  // sits 40% above its efficient value. Plotting the two in dollars instead is
+  // honest but useless here -- a firm that grew 880x over the sample compresses
+  // a 1.4x wedge into a few percent of the plot height, which is why the gap
+  // looked negligible.
   const valueSeries: ChartSeries[] = useMemo(() => {
     if (!specId || !single) return [];
     const rec = loaded[0];
     const cap = rec.series.get("mktcap");
     const wedge = rec.series.get(specId);
     if (!cap || !wedge) return [];
+
+    const market = new Float32Array(cap.length);
     const efficient = new Float32Array(cap.length);
-    for (let i = 0; i < cap.length; i += 1) efficient[i] = cap[i] * Math.exp(-wedge[i]);
+    for (let i = 0; i < cap.length; i += 1) {
+      const w = wedge[i];
+      market[i] = Number.isFinite(w) ? 100 * Math.exp(w) : NaN;
+      efficient[i] = Number.isFinite(w) ? 100 : NaN;
+    }
+
     return [
       {
         key: "observed",
         label: "Market value",
         color: "var(--series-1)",
         months: rec.months,
-        values: Array.from(cap, (v) => (v > 0 ? Math.log(v) : NaN)),
-        format: (v) => formatMarketCap(Math.exp(v)),
+        values: market,
+        format: (v: number, i: number) =>
+          cap[i] > 0 ? `${formatMarketCap(cap[i])} · ${v.toFixed(0)}%` : `${v.toFixed(0)}%`,
       },
       {
         key: "efficient",
         label: "Efficient value",
         color: "var(--series-2)",
         months: rec.months,
-        values: Array.from(efficient, (v) => (v > 0 ? Math.log(v) : NaN)),
-        format: (v) => formatMarketCap(Math.exp(v)),
+        values: efficient,
+        format: (_v: number, i: number) =>
+          cap[i] > 0 && Number.isFinite(wedge[i])
+            ? `${formatMarketCap(cap[i] * Math.exp(-wedge[i]))} · 100%`
+            : "100%",
         dashed: true,
       },
     ];
@@ -184,16 +201,18 @@ export function Explorer({ manifest }: PageProps) {
     <div className={styles.root}>
       <section className={`page ${styles.intro}`}>
         <div>
-          <p className="eyebrow">Firm-level mispricing</p>
+          <p className="eyebrow">Stock mispricing estimates</p>
           <h1 className={styles.title}>
-            How far is a stock’s price from its efficient value?
+            Price Wedges:
+            <br />
+            Firm-Level Mispricing
           </h1>
         </div>
         <div className={styles.introSide}>
           <p className="lede">
             The price wedge is the log gap between a firm’s market value and its
-            informationally efficient value. Positive means overpriced, negative means
-            underpriced, and zero means the market has it right.
+            informationally efficient value. Positive estimates indicate that the stock is
+            overpriced; negative estimates indicate that it is underpriced.
           </p>
           <p className={styles.introMeta}>
             {manifest ? manifest.firm.securities.toLocaleString("en-US") : "19,476"} US stocks ·
@@ -296,21 +315,23 @@ export function Explorer({ manifest }: PageProps) {
                   open={showValue}
                   onToggle={() => setShowValue((v) => !v)}
                   title="Market value versus efficient value"
-                  hint="log dollars"
+                  hint="% of efficient value"
                 >
                   <Legend items={valueSeries.map((s) => ({ label: s.label, color: s.color }))} />
                   <TimeSeriesChart
-                    ariaLabel="Market value and efficient value"
+                    ariaLabel="Market value relative to efficient value"
                     series={valueSeries}
                     domain={activeRange ?? undefined}
                     height={220}
-                    marginLeft={64}
-                    yTicks={decadeTicks}
-                    yFormat={(v) => formatMarketCap(Math.exp(v))}
+                    baseline={100}
+                    yLabel="% of efficient value"
+                    yFormat={(v) => `${v.toFixed(0)}%`}
                   />
                   <p className={styles.note}>
-                    Efficient value is the market value scaled by exp(−PW), so the gap between
-                    the two lines <em>is</em> the price wedge.
+                    Efficient value is the market value scaled by exp(−PW) and is held at 100
+                    here, so the vertical gap between the lines is the mispricing itself: a
+                    line at 140 means the firm is worth 40% more than the efficient value
+                    implies. Hover for the market capitalisation in dollars.
                   </p>
                 </Disclosure>
 
@@ -358,22 +379,6 @@ export function Explorer({ manifest }: PageProps) {
       </section>
     </div>
   );
-}
-
-/** Ticks at 1, 3, 10, 30 … dollars. The value panel plots logs, so evenly
- *  spaced ticks would land on values like "$2.0bn, $3.0bn, $12.8bn" — round in
- *  log space, meaningless in dollars. */
-function decadeTicks([lo, hi]: [number, number]): number[] {
-  const ticks: number[] = [];
-  const start = Math.floor(lo / Math.LN10);
-  const end = Math.ceil(hi / Math.LN10);
-  for (let decade = start; decade <= end; decade += 1) {
-    for (const mantissa of [1, 3]) {
-      const value = Math.log(mantissa) + decade * Math.LN10;
-      if (value >= lo && value <= hi) ticks.push(value);
-    }
-  }
-  return ticks.length >= 3 ? ticks : [lo, (lo + hi) / 2, hi];
 }
 
 function Headline({

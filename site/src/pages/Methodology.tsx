@@ -26,6 +26,24 @@ export function Methodology({ manifest }: PageProps) {
           from fundamental value rather than correcting an existing gap.
         </p>
 
+        <h2>What else this is called</h2>
+        <p>
+          The same object goes by different names depending on which literature you come
+          from. A price wedge is a <em>price dislocation</em>, a <em>mispricing</em>, a{" "}
+          <em>pricing error</em>, a <em>valuation gap</em>, or the deviation of price from{" "}
+          <em>fundamental</em> or <em>intrinsic value</em>. A positive wedge means the stock
+          is overpriced — overvalued relative to what its own cash flows justify. A negative
+          wedge means it is underpriced, or undervalued. Sorting firms by their wedge at a
+          given date ranks them from the most overpriced to the most underpriced stocks in
+          the cross-section.
+        </p>
+        <p>
+          What distinguishes these estimates from a valuation model is that nothing here is
+          forecast from fundamentals. The wedge is identified from realised post-formation
+          cash flows discounted at a stochastic discount factor calibrated so that the
+          aggregate market is priced correctly by construction.
+        </p>
+
         <h2>Step 1 — portfolio wedges</h2>
         <p>
           Stocks are sorted into deciles on each of 57 characteristics, and each decile

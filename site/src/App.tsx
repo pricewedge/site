@@ -20,19 +20,19 @@ const ROUTES = {
  *  www.pricewedge.com serves the same content. */
 const META: Record<keyof typeof ROUTES, { title: string; description: string }> = {
   "/": {
-    title: "Price Wedges — mispricing estimates for US equities",
+    title: "Price Wedges — stock mispricing estimates for US equities",
     description:
-      "Explore the price wedge of any of 19,476 US stocks, 1964–2017: the log deviation of market value from informationally efficient value.",
+      "How overpriced or underpriced is a stock? Explore the price wedge of any of 19,476 US stocks, 1964–2017: the gap between market value and informationally efficient value.",
   },
   "/data": {
-    title: "Download the estimates — PriceWedge",
+    title: "Download stock mispricing data — PriceWedge",
     description:
-      "Firm-level and portfolio-level price wedge estimates as Parquet and CSV, versioned by vintage with permanent URLs.",
+      "Firm-level and portfolio-level price wedge estimates for US stocks as Parquet and CSV, versioned by vintage with permanent URLs.",
   },
   "/methodology": {
-    title: "How a price wedge is estimated — PriceWedge",
+    title: "How stock mispricing is estimated — PriceWedge",
     description:
-      "How portfolio price wedges are estimated from fifteen years of post-formation cash flows, and mapped to individual firms through their characteristics.",
+      "How price wedges — price dislocations, pricing errors, valuation gaps — are estimated from fifteen years of post-formation cash flows and mapped to individual firms.",
   },
   "/about": {
     title: "About — PriceWedge",

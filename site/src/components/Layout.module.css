@@ -27,6 +27,15 @@
   flex: none;
 }
 
+.markFill {
+  fill: var(--text-primary);
+  opacity: 0.09;
+}
+
+.markPivot {
+  fill: var(--text-primary);
+}
+
 .brandText {
   font-family: var(--font-serif);
   font-size: 1.1875rem;
