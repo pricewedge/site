@@ -116,32 +116,39 @@ export function Layout({
   );
 }
 
-/** The mark is the object itself: two paths leaving a common point — the market
- *  price and the efficient value — with the widening gap between them filled.
- *  That gap is the price wedge. */
+// A sawtooth market price crossing a dashed fair value, with the gap between
+// them filled. Eleven segments is about the most that survives being drawn at
+// 24px — past that the zigzag turns to mush at header size.
+const PRICE_PATH =
+  "M2.6 20 L5.08 14.67 L7.56 18.22 L10.04 12.69 L12.52 15.85 L15 9.53 " +
+  "L17.48 13.09 L19.96 6.77 L22.44 10.12 L24.92 4 L27.4 7.16";
+const VALUE_PATH =
+  "M2.6 19.01 L5.08 17.67 L7.56 16.33 L10.04 14.98 L12.52 13.64 L15 12.3 " +
+  "L17.48 10.95 L19.96 9.61 L22.44 8.27 L24.92 6.92 L27.4 5.58";
+
+/** The mark is the object itself: an irregular market price wandering around a
+ *  smooth fair value, with the wedge between them shaded. */
 function Wordmark() {
   return (
     <>
       <svg width="30" height="24" viewBox="0 0 30 24" aria-hidden="true" className={styles.mark}>
+        <path d={`${PRICE_PATH} L27.4 5.58 ${VALUE_PATH.replace("M", "L")} Z`} className={styles.markFill} />
         <path
-          d="M3.6 19.4 C 11 19 17 15.5 26.4 5.6 L26.4 15.6 C 17 18.2 11 19.1 3.6 19.4 Z"
-          className={styles.markFill}
-        />
-        <path
-          d="M3.6 19.4 C 11 19 17 15.5 26.4 5.6"
-          fill="none"
-          stroke="var(--pole-over)"
-          strokeWidth="2.1"
-          strokeLinecap="round"
-        />
-        <path
-          d="M3.6 19.4 C 11 19.1 17 18.2 26.4 15.6"
+          d={VALUE_PATH}
           fill="none"
           stroke="var(--pole-under)"
-          strokeWidth="2.1"
+          strokeWidth="1.6"
+          strokeDasharray="2.4 1.8"
           strokeLinecap="round"
         />
-        <circle cx="3.6" cy="19.4" r="1.7" className={styles.markPivot} />
+        <path
+          d={PRICE_PATH}
+          fill="none"
+          stroke="var(--pole-over)"
+          strokeWidth="1.9"
+          strokeLinejoin="round"
+          strokeLinecap="round"
+        />
       </svg>
       <span className={styles.brandText}>
         Price<span className={styles.brandAccent}>Wedge</span>

@@ -1,7 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
   <rect width="32" height="32" rx="7" fill="#14140f"/>
-  <path d="M5.5 24 Q 15 22.6 28 8 L28 19.4 Q 18 21.8 5.5 24 Z" fill="#ffffff" opacity="0.14"/>
-  <path d="M5.5 24 Q 15 22.6 28 8" fill="none" stroke="#e34948" stroke-width="2.9" stroke-linecap="round"/>
-  <path d="M5.5 24 Q 18 21.8 28 19.4" fill="none" stroke="#2a78d6" stroke-width="2.9" stroke-linecap="round"/>
-  <circle cx="5.5" cy="24" r="2.3" fill="#ffffff"/>
+  <g transform="translate(1.2 2.4) scale(0.98)">
+    <path d="M2.6 20 L5.08 14.67 L7.56 18.22 L10.04 12.69 L12.52 15.85 L15 9.53 L17.48 13.09 L19.96 6.77 L22.44 10.12 L24.92 4 L27.4 7.16 L27.4 5.58 L24.92 6.92 L22.44 8.27 L19.96 9.61 L17.48 10.95 L15 12.3 L12.52 13.64 L10.04 14.98 L7.56 16.33 L5.08 17.67 L2.6 19.01 Z" fill="#ffffff" opacity="0.16"/>
+    <path d="M2.6 19.01 L5.08 17.67 L7.56 16.33 L10.04 14.98 L12.52 13.64 L15 12.3 L17.48 10.95 L19.96 9.61 L22.44 8.27 L24.92 6.92 L27.4 5.58" fill="none" stroke="#3987e5" stroke-width="1.7" stroke-dasharray="2.6 1.9" stroke-linecap="round"/>
+    <path d="M2.6 20 L5.08 14.67 L7.56 18.22 L10.04 12.69 L12.52 15.85 L15 9.53 L17.48 13.09 L19.96 6.77 L22.44 10.12 L24.92 4 L27.4 7.16" fill="none" stroke="#e66767" stroke-width="2.1" stroke-linejoin="round" stroke-linecap="round"/>
+  </g>
 </svg>
