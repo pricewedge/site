@@ -40,6 +40,7 @@ function ordinalSuffix(n: number): string {
 
 export function formatMarketCap(millions: number): string {
   if (!Number.isFinite(millions)) return "—";
+  if (millions === 0) return "$0";
   if (millions >= 1_000_000) return `$${(millions / 1_000_000).toFixed(2)}tn`;
   if (millions >= 1_000) return `$${(millions / 1_000).toFixed(1)}bn`;
   return `$${millions.toFixed(0)}m`;

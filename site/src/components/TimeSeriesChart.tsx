@@ -57,6 +57,10 @@ interface Props {
   showRecessions?: boolean;
   /** Pad the y domain so the zero line is centred. Used by the wedge panel. */
   symmetric?: boolean;
+  /** Anchor the y domain at zero. Heights above the axis then read as levels,
+   *  so two lines 1.49x apart in value are 1.49x apart on screen. Without it a
+   *  fitted axis exaggerates the gap. */
+  includeZero?: boolean;
   /** Fill the gap between the first two series, red where the first is above
    *  the second and blue where it is below. In log levels that gap is the price
    *  wedge exactly, but it is only a few percent of the plot height when the
@@ -88,6 +92,7 @@ export function TimeSeriesChart({
   baseline = null,
   showRecessions = true,
   symmetric = false,
+  includeZero = false,
   bandBetween = false,
   ariaLabel,
 }: Props) {
@@ -136,6 +141,7 @@ export function TimeSeriesChart({
 
     let lo = Math.min(...visibleFlat.map((p) => p.value));
     let hi = Math.max(...visibleFlat.map((p) => p.value));
+    if (includeZero) lo = Math.min(0, lo);
     if (lo === hi) {
       lo -= 0.5;
       hi += 0.5;
@@ -154,15 +160,19 @@ export function TimeSeriesChart({
           .domain([-1, 1].map((s) => s * Math.max(Math.abs(lo), Math.abs(hi)) * 1.08) as [number, number])
           .range([plotHeight, 0])
       : // Deliberately not .nice(): rounding the domain outward can add a
-        // quarter of empty plot height, and on the log-value panel that
-        // directly shrinks the gap the chart exists to show. d3 still picks
-        // round tick values inside the fitted domain.
+        // quarter of empty plot height, and on the value panel that directly
+        // shrinks the gap the chart exists to show. d3 still picks round tick
+        // values inside the fitted domain. A zero-anchored axis is never padded
+        // below, or the baseline stops meaning zero.
         scaleLinear()
-          .domain([lo - (hi - lo) * 0.06, hi + (hi - lo) * 0.06])
+          .domain([
+            includeZero ? lo : lo - (hi - lo) * 0.06,
+            hi + (hi - lo) * 0.06,
+          ])
           .range([plotHeight, 0]);
 
     return { points: visible, x, y, xExtent };
-  }, [series, domain, plotWidth, plotHeight, symmetric, fixedDomain]);
+  }, [series, domain, plotWidth, plotHeight, symmetric, includeZero, fixedDomain]);
 
   const handleMove = useCallback(
     (event: React.PointerEvent<SVGRectElement>) => {

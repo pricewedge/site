@@ -190,6 +190,19 @@
   border-radius: 2px;
 }
 
+.panelControls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.panelControls .legend {
+  margin-bottom: 0;
+}
+
 .optional {
   display: flex;
   flex-direction: column;

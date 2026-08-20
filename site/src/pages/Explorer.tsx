@@ -13,6 +13,7 @@ import {
   formatPercentile,
   formatWedge,
 } from "../lib/format";
+import toggleStyles from "../components/SpecPicker.module.css";
 import styles from "./Explorer.module.css";
 
 const MAX_SERIES = 8;
@@ -29,6 +30,7 @@ export function Explorer({ manifest }: PageProps) {
   const [specId, setSpecId] = useState<string | null>(null);
   const [range, setRange] = useState<[number, number] | null>(null);
   const [showValue, setShowValue] = useState(true);
+  const [valueScale, setValueScale] = useState<"dollars" | "logs">("dollars");
   const [showChars, setShowChars] = useState(false);
   const [showTable, setShowTable] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -133,11 +135,15 @@ export function Explorer({ manifest }: PageProps) {
     }));
   }, [loaded, specId, colorFor, labelFor]);
 
-  // Natural logs of both values, as in Fig. 7 Panel B of the paper. The vertical
-  // gap between the two lines is the price wedge exactly -- ln(P) - ln(P-tilde)
-  // = PW -- but a firm that grew 1054x over the sample needs seven log units of
-  // axis, so a 0.40 gap is under 6% of the plot height. Hence the shaded band:
-  // the identity is what it is, and the fill is what makes it readable.
+  // Two ways to show the same pair of series.
+  //
+  // dollars  levels on a zero-anchored linear axis. Heights read as values, so
+  //          a firm 40% overpriced has a market line exp(0.40) = 1.49x the
+  //          height of its efficient line. Early history compresses toward the
+  //          floor when the firm has grown by orders of magnitude.
+  // logs     ln of each, as in Fig. 7 Panel B of the paper. The vertical gap is
+  //          the price wedge by identity, ln(P) - ln(P-tilde) = PW, but it is a
+  //          small share of the height when the series spans decades of growth.
   const valueSeries: ChartSeries[] = useMemo(() => {
     if (!specId || !single) return [];
     const rec = loaded[0];
@@ -145,13 +151,17 @@ export function Explorer({ manifest }: PageProps) {
     const wedge = rec.series.get(specId);
     if (!cap || !wedge) return [];
 
-    const lnMarket = new Float32Array(cap.length);
-    const lnEfficient = new Float32Array(cap.length);
+    const market = new Float32Array(cap.length);
+    const efficient = new Float32Array(cap.length);
     for (let i = 0; i < cap.length; i += 1) {
       const usable = cap[i] > 0 && Number.isFinite(wedge[i]);
-      lnMarket[i] = usable ? Math.log(cap[i]) : NaN;
-      lnEfficient[i] = usable ? Math.log(cap[i]) - wedge[i] : NaN;
+      const eff = usable ? cap[i] * Math.exp(-wedge[i]) : NaN;
+      market[i] = usable ? (valueScale === "logs" ? Math.log(cap[i]) : cap[i]) : NaN;
+      efficient[i] = usable ? (valueScale === "logs" ? Math.log(eff) : eff) : NaN;
     }
+
+    const asDollars = (v: number) =>
+      valueScale === "logs" ? formatMarketCap(Math.exp(v)) : formatMarketCap(v);
 
     return [
       {
@@ -159,21 +169,20 @@ export function Explorer({ manifest }: PageProps) {
         label: "Market value",
         color: "var(--series-1)",
         months: rec.months,
-        values: lnMarket,
-        format: (v: number, i: number) =>
-          `${formatMarketCap(cap[i])} · ln ${v.toFixed(2)} · ${formatWedge(wedge[i])}`,
+        values: market,
+        format: (v: number, i: number) => `${asDollars(v)} · ${formatWedge(wedge[i])}`,
       },
       {
         key: "efficient",
         label: "Efficient value",
         color: "var(--series-2)",
         months: rec.months,
-        values: lnEfficient,
-        format: (v: number) => `${formatMarketCap(Math.exp(v))} · ln ${v.toFixed(2)}`,
+        values: efficient,
+        format: (v: number) => asDollars(v),
         dashed: true,
       },
     ];
-  }, [loaded, specId, single]);
+  }, [loaded, specId, single, valueScale]);
 
   const charSeries: ChartSeries[] = useMemo(() => {
     if (!manifest || !single) return [];
@@ -311,28 +320,55 @@ export function Explorer({ manifest }: PageProps) {
                   open={showValue}
                   onToggle={() => setShowValue((v) => !v)}
                   title="Market value versus efficient value"
-                  hint="natural logs"
+                  hint={valueScale === "dollars" ? "dollars" : "natural logs"}
                 >
-                  <Legend items={valueSeries.map((s) => ({ label: s.label, color: s.color }))} />
+                  <div className={styles.panelControls}>
+                    <Legend items={valueSeries.map((s) => ({ label: s.label, color: s.color }))} />
+                    <div className={toggleStyles.toggle}>
+                      {(["dollars", "logs"] as const).map((mode) => (
+                        <button
+                          key={mode}
+                          type="button"
+                          className={toggleStyles.toggleButton}
+                          aria-pressed={valueScale === mode}
+                          onClick={() => setValueScale(mode)}
+                        >
+                          {mode === "dollars" ? "Dollars" : "Natural logs"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                   <TimeSeriesChart
-                    ariaLabel="Log market value and log efficient value"
+                    ariaLabel="Market value and efficient value"
                     series={valueSeries}
                     domain={activeRange ?? undefined}
                     height={240}
-                    marginLeft={62}
+                    marginLeft={valueScale === "logs" ? 62 : 74}
                     bandBetween
-                    yLabel="ln(value, $m)"
-                    yFormat={(v) => v.toFixed(1)}
+                    includeZero={valueScale === "dollars"}
+                    yLabel={valueScale === "logs" ? "ln(value, $m)" : "market value"}
+                    yFormat={(v) => (valueScale === "logs" ? v.toFixed(1) : formatMarketCap(v))}
                   />
                   <p className={styles.note}>
-                    Natural logs of the market value and of the efficient value, which is the
-                    market value scaled by exp(−PW). In logs the vertical gap between the two
-                    lines <em>is</em> the price wedge: 0.40 log units when the firm is 40%
-                    overpriced. The band is shaded red where the market value sits above the
-                    efficient value and blue where it sits below. Because a firm can grow a
-                    thousandfold over the sample while the wedge stays under 50%, the gap is
-                    a small share of the plot height — narrowing the time window above
-                    enlarges it. Hover for values in dollars.
+                    {valueScale === "dollars" ? (
+                      <>
+                        Efficient value is the market value scaled by exp(−PW). The axis is
+                        anchored at zero, so heights read as levels: a firm 40% overpriced
+                        has a market line about 1.4 times the height of its efficient line.
+                        The band is shaded red where the market value sits above the
+                        efficient value and blue where it sits below. A firm that has grown
+                        by orders of magnitude will press its early history against the
+                        axis; switch to natural logs, or narrow the time window, to see it.
+                      </>
+                    ) : (
+                      <>
+                        Natural logs of both values, as in Fig. 7 of the paper. Here the
+                        vertical gap between the lines <em>is</em> the price wedge — 0.40 log
+                        units when the firm is 40% overpriced — and every era of the firm’s
+                        history is equally legible. The trade-off is that the gap is a small
+                        share of the plot height when the firm has grown a thousandfold.
+                      </>
+                    )}
                   </p>
                 </Disclosure>
 
