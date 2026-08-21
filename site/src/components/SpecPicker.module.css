@@ -59,23 +59,36 @@
 
 .dates {
   display: inline-flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 0.3rem;
+  max-width: 100%;
 }
 
 .dateField {
   display: inline-flex;
+  gap: 2px;
 }
 
-.dateInput {
+.dateSelect {
   font: inherit;
   font-size: 0.75rem;
-  padding: 0.28rem 0.4rem;
+  padding: 0.28rem 0.3rem 0.28rem 0.4rem;
   color: var(--text-primary);
   background: var(--surface-1);
   border: 1px solid var(--rule-strong);
   border-radius: var(--radius-sm);
   font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  max-width: 100%;
+}
+
+.dateSelect:hover {
+  border-color: var(--accent);
+}
+
+.dateYear {
+  font-feature-settings: "tnum";
 }
 
 .dateSep {

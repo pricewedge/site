@@ -84,6 +84,15 @@ export function RangePicker({
   );
 }
 
+const MONTHS = [
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+];
+
+/** A native <input type="month"> renders its own label -- "December 2017" -- in
+ *  a format the page cannot override, and that is wide enough to overflow the
+ *  control panel. Two small selects give the same precision in a third of the
+ *  width, with month names we control. */
 function MonthInput({
   label,
   value,
@@ -97,23 +106,43 @@ function MonthInput({
   max: number;
   onChange: (value: number) => void;
 }) {
-  const toIso = (yyyymm: number) =>
-    `${Math.floor(yyyymm / 100)}-${String(yyyymm % 100).padStart(2, "0")}`;
+  const year = Math.floor(value / 100);
+  const month = value % 100;
+  const years: number[] = [];
+  for (let y = Math.floor(min / 100); y <= Math.floor(max / 100); y += 1) years.push(y);
+
+  const clamp = (v: number) => Math.max(min, Math.min(max, v));
 
   return (
-    <label className={styles.dateField}>
+    <span className={styles.dateField}>
       <span className="visually-hidden">{label}</span>
-      <input
-        type="month"
-        className={styles.dateInput}
-        value={toIso(value)}
-        min={toIso(min)}
-        max={toIso(max)}
-        onChange={(e) => {
-          const [y, m] = e.target.value.split("-").map(Number);
-          if (y && m) onChange(y * 100 + m);
-        }}
-      />
-    </label>
+      <select
+        className={styles.dateSelect}
+        aria-label={`${label} month`}
+        value={month}
+        onChange={(e) => onChange(clamp(year * 100 + Number(e.target.value)))}
+      >
+        {MONTHS.map((name, i) => {
+          const candidate = year * 100 + i + 1;
+          return (
+            <option key={name} value={i + 1} disabled={candidate < min || candidate > max}>
+              {name}
+            </option>
+          );
+        })}
+      </select>
+      <select
+        className={`${styles.dateSelect} ${styles.dateYear}`}
+        aria-label={`${label} year`}
+        value={year}
+        onChange={(e) => onChange(clamp(Number(e.target.value) * 100 + month))}
+      >
+        {years.map((y) => (
+          <option key={y} value={y}>
+            {y}
+          </option>
+        ))}
+      </select>
+    </span>
   );
 }
