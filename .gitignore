@@ -1,6 +1,9 @@
 # Generated artefacts — published as releases, not committed
 data/
 
+# Raw CRSP/Compustat pulls. Licensed data; never commit.
+raw/
+
 # Node
 node_modules/
 site/dist/
