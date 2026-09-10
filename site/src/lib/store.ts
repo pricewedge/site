@@ -29,24 +29,31 @@ function failFast(response: Response): Response {
 }
 
 export function securityList(index: FirmIndex): SecurityRef[] {
-  return index.records.map(([permno, t0, t1]) => ({
-    permno,
-    ...index.names[String(permno)],
+  return index.records.map(([t0, t1], id) => ({
+    id,
+    ...(index.labels
+      ? { name: index.labels[id][0], ticker: index.labels[id][1] || undefined }
+      : { permno: index.permnos?.[id] }),
     start: index.months[t0],
     end: index.months[t1],
   }));
 }
 
+/** How a security is shown wherever there is no room for more. */
+export function securityLabel(ref: SecurityRef | undefined, id: number): string {
+  return ref?.name ?? ref?.ticker ?? (ref?.permno ? `PERMNO ${ref.permno}` : `#${id}`);
+}
+
 const recordCache = new Map<number, Promise<FirmRecord>>();
 
-export function loadSecurity(index: FirmIndex, permno: number): Promise<FirmRecord> {
-  const cached = recordCache.get(permno);
+export function loadSecurity(index: FirmIndex, id: number): Promise<FirmRecord> {
+  const cached = recordCache.get(id);
   if (cached) return cached;
 
-  const entry = index.records.find((r) => r[0] === permno);
-  if (!entry) return Promise.reject(new Error(`PERMNO ${permno} is not in the panel`));
+  const entry = index.records[id];
+  if (!entry) return Promise.reject(new Error(`Security ${id} is not in the panel`));
 
-  const [, t0, t1, shard, offset] = entry;
+  const [t0, t1, shard, offset] = entry;
   const span = t1 - t0 + 1;
   const width = span * index.bytesPerValue;
   const bytes = index.series.length * width;
@@ -66,7 +73,7 @@ export function loadSecurity(index: FirmIndex, permno: number): Promise<FirmReco
       const base = response.status === 206 ? 0 : offset;
       if (buffer.byteLength < base + bytes) {
         throw new Error(
-          `Short read for PERMNO ${permno}: wanted ${bytes} bytes at ${base}, got a ` +
+          `Short read for security ${id}: wanted ${bytes} bytes at ${base}, got a ` +
             `${buffer.byteLength}-byte body (HTTP ${response.status}).`,
         );
       }
@@ -75,32 +82,36 @@ export function loadSecurity(index: FirmIndex, permno: number): Promise<FirmReco
         series.set(meta.id, new Float32Array(buffer, base + i * width, span));
       });
       return {
-        permno,
-        ...index.names[String(permno)],
+        id,
+        ...(index.labels
+          ? { name: index.labels[id][0], ticker: index.labels[id][1] || undefined }
+          : { permno: index.permnos?.[id] }),
         months: index.months.slice(t0, t1 + 1),
         series,
       } satisfies FirmRecord;
     });
 
-  recordCache.set(permno, promise);
-  promise.catch(() => recordCache.delete(permno));
+  recordCache.set(id, promise);
+  promise.catch(() => recordCache.delete(id));
   return promise;
 }
 
-/** Rank securities for the search box. Exact PERMNO and ticker beat prefix beats substring. */
+/** Rank securities for the search box: exact ticker, then prefix, then substring.
+ *  PERMNO is matched only on local builds that have no company names, since it
+ *  is a licensed identifier and is not published otherwise. */
 export function searchSecurities(all: SecurityRef[], query: string, limit = 40): SecurityRef[] {
   const q = query.trim().toUpperCase();
   if (!q) return [];
 
   const scored: { ref: SecurityRef; score: number }[] = [];
   for (const ref of all) {
-    const permno = String(ref.permno);
     const ticker = ref.ticker ?? "";
     const name = (ref.name ?? "").toUpperCase();
+    const permno = ref.permno ? String(ref.permno) : "";
 
     let score = Infinity;
-    if (permno === q) score = 0;
-    else if (ticker && ticker === q) score = 1;
+    if (ticker && ticker === q) score = 0;
+    else if (permno && permno === q) score = 1;
     else if (ticker.startsWith(q)) score = 2;
     else if (name.startsWith(q)) score = 3;
     else if (permno.startsWith(q)) score = 4;
@@ -109,6 +120,6 @@ export function searchSecurities(all: SecurityRef[], query: string, limit = 40):
     if (score < Infinity) scored.push({ ref, score });
   }
 
-  scored.sort((a, b) => a.score - b.score || b.ref.end - a.ref.end || a.ref.permno - b.ref.permno);
+  scored.sort((a, b) => a.score - b.score || b.ref.end - a.ref.end || a.ref.id - b.ref.id);
   return scored.slice(0, limit).map((s) => s.ref);
 }

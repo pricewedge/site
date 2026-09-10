@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { PageProps } from "../App";
 import type { FirmIndex, FirmRecord, SecurityRef } from "../lib/types";
-import { loadFirmIndex, loadSecurity, securityList } from "../lib/store";
+import { loadFirmIndex, loadSecurity, securityLabel, securityList } from "../lib/store";
 import { TimeSeriesChart, type ChartSeries } from "../components/TimeSeriesChart";
 import { SecurityPicker } from "../components/SecurityPicker";
 import { SpecPicker, specNote } from "../components/SpecPicker";
@@ -21,7 +21,7 @@ const MAX_SERIES = 8;
 const SLOTS = [1, 2, 3, 4, 5, 6, 7, 8].map((i) => `var(--series-${i})`);
 
 /** Apple is the paper's worked example, so it is what the page opens on. */
-const SEED_PERMNO = 14593;
+const SEED_TICKER = "AAPL";
 
 export function Explorer({ manifest }: PageProps) {
   const [index, setIndex] = useState<FirmIndex | null>(null);
@@ -40,8 +40,10 @@ export function Explorer({ manifest }: PageProps) {
     loadFirmIndex().then(
       (idx) => {
         setIndex(idx);
-        setSecurities(securityList(idx));
-        if (idx.records.some((r) => r[0] === SEED_PERMNO)) setSelected([SEED_PERMNO]);
+        const list = securityList(idx);
+        setSecurities(list);
+        const seed = list.find((s) => s.ticker === SEED_TICKER && s.end === 201712);
+        if (seed) setSelected([seed.id]);
       },
       (e: Error) => setLoadError(e.message),
     );
@@ -55,10 +57,10 @@ export function Explorer({ manifest }: PageProps) {
 
   useEffect(() => {
     if (!index) return;
-    for (const permno of selected) {
-      if (records.has(permno)) continue;
-      loadSecurity(index, permno).then(
-        (rec) => setRecords((prev) => new Map(prev).set(permno, rec)),
+    for (const securityId of selected) {
+      if (records.has(securityId)) continue;
+      loadSecurity(index, securityId).then(
+        (rec) => setRecords((prev) => new Map(prev).set(securityId, rec)),
         (e: Error) => setLoadError(e.message),
       );
     }
@@ -68,26 +70,26 @@ export function Explorer({ manifest }: PageProps) {
   // that position is never reused, so removing a line cannot repaint the rest.
   const [slotOf, setSlotOf] = useState<Map<number, number>>(new Map());
   const colorFor = useCallback(
-    (permno: number) => SLOTS[(slotOf.get(permno) ?? 0) % SLOTS.length],
+    (securityId: number) => SLOTS[(slotOf.get(securityId) ?? 0) % SLOTS.length],
     [slotOf],
   );
 
-  const addSecurity = (permno: number) => {
-    setSelected((prev) => (prev.includes(permno) ? prev : [...prev, permno]));
+  const addSecurity = (securityId: number) => {
+    setSelected((prev) => (prev.includes(securityId) ? prev : [...prev, securityId]));
     setSlotOf((prev) => {
-      if (prev.has(permno)) return prev;
+      if (prev.has(securityId)) return prev;
       const taken = new Set(prev.values());
       let slot = 0;
       while (taken.has(slot) && slot < SLOTS.length) slot += 1;
-      return new Map(prev).set(permno, slot);
+      return new Map(prev).set(securityId, slot);
     });
   };
 
-  const removeSecurity = (permno: number) => {
-    setSelected((prev) => prev.filter((p) => p !== permno));
+  const removeSecurity = (securityId: number) => {
+    setSelected((prev) => prev.filter((p) => p !== securityId));
     setSlotOf((prev) => {
       const next = new Map(prev);
-      next.delete(permno);
+      next.delete(securityId);
       return next;
     });
   };
@@ -101,10 +103,7 @@ export function Explorer({ manifest }: PageProps) {
   }, [selected]);
 
   const labelFor = useCallback(
-    (permno: number) => {
-      const ref = securities.find((s) => s.permno === permno);
-      return ref?.name ?? ref?.ticker ?? `PERMNO ${permno}`;
-    },
+    (id: number) => securityLabel(securities[id], id),
     [securities],
   );
 
@@ -127,9 +126,9 @@ export function Explorer({ manifest }: PageProps) {
   const wedgeSeries: ChartSeries[] = useMemo(() => {
     if (!specId) return [];
     return loaded.map((rec) => ({
-      key: `${rec.permno}-wedge`,
-      label: labelFor(rec.permno),
-      color: colorFor(rec.permno),
+      key: `${rec.id}-wedge`,
+      label: labelFor(rec.id),
+      color: colorFor(rec.id),
       months: rec.months,
       values: rec.series.get(specId) ?? new Float32Array(),
       format: (v) => formatWedge(v),
@@ -207,11 +206,11 @@ export function Explorer({ manifest }: PageProps) {
     <div className={styles.root}>
       <section className={`page ${styles.intro}`}>
         <div>
-          <p className="eyebrow">Stock mispricing estimates</p>
+          <p className="eyebrow">Firm-level mispricing estimates</p>
           <h1 className={styles.title}>
             Price Wedges:
             <br />
-            Firm-Level Mispricing
+            Stock Mispricing
           </h1>
         </div>
         <div className={styles.introSide}>
@@ -238,7 +237,7 @@ export function Explorer({ manifest }: PageProps) {
               onAdd={addSecurity}
               onRemove={removeSecurity}
               max={MAX_SERIES}
-              hasNames={index?.hasNames ?? false}
+              hasNames={index?.identifiers === "names"}
             />
             {manifest && specId && (
               <SpecPicker manifest={manifest} specId={specId} onChange={setSpecId} />

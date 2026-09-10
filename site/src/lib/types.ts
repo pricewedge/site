@@ -12,10 +12,15 @@ export interface FirmIndex {
   series: SeriesMeta[];
   bytesPerValue: number;
   dtype: "float32-le";
-  recordFields: ["permno", "t0", "t1", "shard", "offset"];
-  records: [number, number, number, number, number][];
-  hasNames: boolean;
-  names: Record<string, { name?: string; ticker?: string }>;
+  recordFields: ["t0", "t1", "shard", "offset"];
+  /** A security is addressed by its position in this array. */
+  records: [number, number, number, number][];
+  /** "names" when company names are published, in which case PERMNO is absent
+   *  from every artefact the browser sees. "permno" only for local builds made
+   *  without a names file, where nothing else would be searchable. */
+  identifiers: "names" | "permno";
+  labels?: [string, string][];
+  permnos?: number[];
 }
 
 export interface SpecMeta {
@@ -79,9 +84,11 @@ export interface Manifest {
 
 /** One security's estimates, already trimmed to its observed window. */
 export interface FirmRecord {
-  permno: number;
+  /** Position in the index; the security's public identifier. */
+  id: number;
   name?: string;
   ticker?: string;
+  permno?: number;
   /** yyyymm for each column of every series. */
   months: number[];
   /** series id -> values aligned with `months`, NaN where unobserved. */
@@ -89,9 +96,10 @@ export interface FirmRecord {
 }
 
 export interface SecurityRef {
-  permno: number;
+  id: number;
   name?: string;
   ticker?: string;
+  permno?: number;
   start: number;
   end: number;
 }

@@ -12,10 +12,16 @@ Layout
    months in which *any* price wedge specification is observed for that
    security. So a chart never has to reason about which months exist.
 
-`firms/index.json`  one entry per security:
-       [permno, t0, t1, shard, byte_offset]
+`firms/index.json`  one entry per security, addressed by its position:
+       [t0, t1, shard, byte_offset]
    plus the series order and the month grid, so a client can compute the exact
    `Range` header for a single series without downloading anything else.
+
+   A security's public identifier is its position in that array. PERMNO is a
+   licensed CRSP identifier and is deliberately absent whenever company names
+   are available, so nothing published here can be joined back to CRSP through
+   it. Builds without a names file fall back to publishing PERMNO, since
+   otherwise nothing would be searchable -- that path is for local use.
 
 Each security costs one HTTP range request of `n_series * n_months * 4` bytes —
 about 3 KB for the median security, 40 KB for one observed since 1964.
@@ -207,6 +213,7 @@ def build(out_dir: Path) -> dict:
         stale.unlink()
 
     index: list[list] = []
+    permno_order: list[int] = []
     shard_no = 0
     offset = 0
     handle = (firms_dir / f"shard-{shard_no:02d}.bin").open("wb")
@@ -233,32 +240,32 @@ def build(out_dir: Path) -> dict:
             handle = (firms_dir / f"shard-{shard_no:02d}.bin").open("wb")
 
         handle.write(payload)
-        index.append([int(fw.permnos[col]), t0, t1, shard_no, offset])
+        index.append([t0, t1, shard_no, offset])
+        permno_order.append(int(fw.permnos[col]))
         offset += len(payload)
 
     handle.close()
 
-    # Names are optional, so they ride alongside the records rather than
-    # inflating every row with two nulls.
-    last_month = {permno: int(dates[t1]) for permno, _t0, t1, _s, _o in index}
+    last_month = {p: int(dates[r[1]]) for p, r in zip(permno_order, index)}
     resolved = _resolve_names(spells, last_month) if spells else {}
-    labels = {str(permno): resolved[permno] for permno, *_ in index if permno in resolved}
+    named = all(p in resolved for p in permno_order) and bool(resolved)
 
-    (firms_dir / "index.json").write_text(
-        json.dumps(
-            {
-                "months": [int(d) for d in dates],
-                "series": series,
-                "bytesPerValue": 4,
-                "dtype": "float32-le",
-                "recordFields": ["permno", "t0", "t1", "shard", "offset"],
-                "records": index,
-                "hasNames": bool(labels),
-                "names": labels,
-            },
-            separators=(",", ":"),
-        )
-    )
+    payload = {
+        "months": [int(d) for d in dates],
+        "series": series,
+        "bytesPerValue": 4,
+        "dtype": "float32-le",
+        "recordFields": ["t0", "t1", "shard", "offset"],
+        "records": index,
+        "identifiers": "names" if named else "permno",
+    }
+    if named:
+        payload["labels"] = [
+            [resolved[p]["name"], resolved[p].get("ticker", "")] for p in permno_order
+        ]
+    else:
+        payload["permnos"] = permno_order
+    (firms_dir / "index.json").write_text(json.dumps(payload, separators=(",", ":")))
 
     total_bytes = sum(
         (firms_dir / f"shard-{i:02d}.bin").stat().st_size for i in range(shard_no + 1)
@@ -268,14 +275,14 @@ def build(out_dir: Path) -> dict:
         "shards": shard_no + 1,
         "bytes": total_bytes,
         "series": [s["id"] for s in series],
-        "namesAttached": bool(labels),
+        "namesAttached": named,
     }
 
 
 def pack_struct_check(path: Path) -> None:  # pragma: no cover - dev helper
     """Assert the on-disk record for one security round-trips."""
     meta = json.loads((path / "firms" / "index.json").read_text())
-    permno, t0, t1, shard, off = meta["records"][0]
+    t0, t1, shard, off = meta["records"][0]
     span = t1 - t0 + 1
     n = len(meta["series"])
     with (path / "firms" / f"shard-{shard:02d}.bin").open("rb") as fh:

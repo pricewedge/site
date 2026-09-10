@@ -56,7 +56,11 @@ export function SeriesTable({
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `pricewedge_${record.permno}_${specId}.csv`;
+    const slug = (record.ticker ?? record.name ?? `security-${record.id}`)
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
+    a.download = `pricewedge_${slug}_${specId}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };

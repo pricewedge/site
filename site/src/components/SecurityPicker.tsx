@@ -7,10 +7,10 @@ import styles from "./SecurityPicker.module.css";
 interface Props {
   all: SecurityRef[];
   selected: number[];
-  colorFor: (permno: number) => string;
-  labelFor: (permno: number) => string;
-  onAdd: (permno: number) => void;
-  onRemove: (permno: number) => void;
+  colorFor: (securityId: number) => string;
+  labelFor: (securityId: number) => string;
+  onAdd: (securityId: number) => void;
+  onRemove: (securityId: number) => void;
   max: number;
   hasNames: boolean;
 }
@@ -31,7 +31,7 @@ export function SecurityPicker({
   const boxRef = useRef<HTMLDivElement>(null);
 
   const results = useMemo(
-    () => searchSecurities(all, query).filter((r) => !selected.includes(r.permno)),
+    () => searchSecurities(all, query).filter((r) => !selected.includes(r.id)),
     [all, query, selected],
   );
 
@@ -45,8 +45,8 @@ export function SecurityPicker({
     return () => document.removeEventListener("mousedown", onClick);
   }, []);
 
-  const commit = (permno: number) => {
-    onAdd(permno);
+  const commit = (securityId: number) => {
+    onAdd(securityId);
     setQuery("");
     setOpen(false);
   };
@@ -56,7 +56,7 @@ export function SecurityPicker({
   return (
     <div className={styles.wrap} ref={boxRef}>
       <label className={styles.label} htmlFor="security-search">
-        {hasNames ? "Company or PERMNO" : "CRSP PERMNO"}
+        {hasNames ? "Company or ticker" : "CRSP PERMNO"}
       </label>
 
       <div className={styles.inputRow}>
@@ -75,7 +75,7 @@ export function SecurityPicker({
             full
               ? `Remove a security to add another (max ${max})`
               : hasNames
-                ? "e.g. Apple, AAPL, 14593"
+                ? "e.g. Apple, AAPL"
                 : "e.g. 14593"
           }
           value={query}
@@ -93,7 +93,7 @@ export function SecurityPicker({
               setCursor((c) => Math.max(c - 1, 0));
             } else if (e.key === "Enter" && results[cursor]) {
               e.preventDefault();
-              commit(results[cursor].permno);
+              commit(results[cursor].id);
             } else if (e.key === "Escape") {
               setOpen(false);
             }
@@ -109,17 +109,17 @@ export function SecurityPicker({
         <ul className={styles.results} id="security-results" role="listbox">
           {results.length === 0 && <li className={styles.empty}>No match in the panel.</li>}
           {results.map((r, i) => (
-            <li key={r.permno}>
+            <li key={r.id}>
               <button
                 type="button"
                 role="option"
                 aria-selected={i === cursor}
                 className={`${styles.result} ${i === cursor ? styles.resultActive : ""}`}
                 onMouseEnter={() => setCursor(i)}
-                onClick={() => commit(r.permno)}
+                onClick={() => commit(r.id)}
               >
                 <span className={styles.resultName}>
-                  {r.name ?? `PERMNO ${r.permno}`}
+                  {r.name ?? `PERMNO ${r.id}`}
                   {r.ticker && <span className={styles.resultTicker}>{r.ticker}</span>}
                 </span>
                 <span className={styles.resultRange}>
@@ -133,15 +133,15 @@ export function SecurityPicker({
 
       {selected.length > 0 && (
         <ul className={styles.chips}>
-          {selected.map((permno) => (
-            <li key={permno} className={styles.chip}>
-              <span className={styles.chipDot} style={{ background: colorFor(permno) }} />
-              <span className={styles.chipLabel}>{labelFor(permno)}</span>
+          {selected.map((securityId) => (
+            <li key={securityId} className={styles.chip}>
+              <span className={styles.chipDot} style={{ background: colorFor(securityId) }} />
+              <span className={styles.chipLabel}>{labelFor(securityId)}</span>
               <button
                 type="button"
                 className={styles.chipRemove}
-                onClick={() => onRemove(permno)}
-                aria-label={`Remove ${labelFor(permno)}`}
+                onClick={() => onRemove(securityId)}
+                aria-label={`Remove ${labelFor(securityId)}`}
               >
                 ×
               </button>
