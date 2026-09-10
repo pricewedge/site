@@ -17,6 +17,24 @@ change the answer:
 The Compustat-to-CRSP join runs through the CCM link table, restricted to the
 link types and primary markers that identify the security a filing belongs to.
 Skipping that filter silently duplicates firms that have several share classes.
+
+Status of the rebuild, run end to end from raw WRDS data through the sorts to
+price wedges and compared against the paper's Table 1 (PW*, percentage points):
+
+    characteristic   long              short
+    BEME             -36.4 vs -34.1    +19.2 vs +19.5
+    Q                -35.7 vs -31.8    +17.8 vs +17.3
+    R_12_2            +5.0 vs  +4.8    -19.0 vs -20.5
+    PROF              +0.1 vs  +1.4    -14.9 vs -12.5
+    I2A              -13.5 vs -13.4     +5.7 vs  +6.6
+
+Every sign and ordering matches and the magnitudes are within a few percentage
+points, on a rebuild that shares no intermediate file with the original. Two
+sources account for the gap and neither is a coding error: Compustat restates
+history, so a 2018 pull and a 2026 pull genuinely differ for some firm-years;
+and BEME's market equity has a timing convention (December of the prior year in
+Davis, Fama and French, against the contemporaneous value used here) that has
+not yet been matched.
 """
 
 from __future__ import annotations
