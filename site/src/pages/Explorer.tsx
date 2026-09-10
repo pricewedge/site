@@ -7,11 +7,9 @@ import { SecurityPicker } from "../components/SecurityPicker";
 import { SpecPicker, specNote } from "../components/SpecPicker";
 import { RangePicker } from "../components/RangePicker";
 import { RangeBrush } from "../components/RangeBrush";
-import { SeriesTable } from "../components/SeriesTable";
 import {
   formatMarketCap,
   formatMonth,
-  formatPercentile,
   formatWedge,
 } from "../lib/format";
 import toggleStyles from "../components/SpecPicker.module.css";
@@ -32,8 +30,10 @@ export function Explorer({ manifest }: PageProps) {
   const [range, setRange] = useState<[number, number] | null>(null);
   const [showValue, setShowValue] = useState(true);
   const [valueScale, setValueScale] = useState<"dollars" | "logs">("dollars");
-  const [showChars, setShowChars] = useState(false);
-  const [showTable, setShowTable] = useState(false);
+  // Which security the value panel describes. It shows one firm at a time --
+  // two firms of different size share no useful axis -- so when several are
+  // selected the panel gets its own picker rather than disappearing.
+  const [detailId, setDetailId] = useState<number | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -121,7 +121,14 @@ export function Explorer({ manifest }: PageProps) {
   }, [loaded]);
 
   const activeRange = range ?? dataRange;
+  // The top chart still switches encoding on this: one signed series gets the
+  // diverging fill, several get categorical lines.
   const single = loaded.length === 1;
+
+  const detail = useMemo(
+    () => loaded.find((r) => r.id === detailId) ?? loaded[0] ?? null,
+    [loaded, detailId],
+  );
 
   const wedgeSeries: ChartSeries[] = useMemo(() => {
     if (!specId) return [];
@@ -145,8 +152,8 @@ export function Explorer({ manifest }: PageProps) {
   //          the price wedge by identity, ln(P) - ln(P-tilde) = PW, but it is a
   //          small share of the height when the series spans decades of growth.
   const valueSeries: ChartSeries[] = useMemo(() => {
-    if (!specId || !single) return [];
-    const rec = loaded[0];
+    if (!specId || !detail) return [];
+    const rec = detail;
     const cap = rec.series.get("mktcap");
     const wedge = rec.series.get(specId);
     if (!cap || !wedge) return [];
@@ -182,23 +189,7 @@ export function Explorer({ manifest }: PageProps) {
         dashed: true,
       },
     ];
-  }, [loaded, specId, single, valueScale]);
-
-  const charSeries: ChartSeries[] = useMemo(() => {
-    if (!manifest || !single) return [];
-    const rec = loaded[0];
-    return manifest.firm.characteristics
-      .slice(0, 4)
-      .map((c, i) => ({
-        key: c.id,
-        label: c.label,
-        color: SLOTS[i],
-        months: rec.months,
-        values: rec.series.get(c.id) ?? new Float32Array(),
-        format: formatPercentile,
-      }))
-      .filter((s) => Array.from(s.values).some(Number.isFinite));
-  }, [loaded, manifest, single]);
+  }, [detail, specId, valueScale]);
 
   const spec = manifest?.firm.specs.find((s) => s.id === specId) ?? null;
 
@@ -324,7 +315,7 @@ export function Explorer({ manifest }: PageProps) {
               )}
             </figure>
 
-            {single && (
+            {detail && (
               <div className={styles.optional}>
                 <Disclosure
                   open={showValue}
@@ -334,18 +325,36 @@ export function Explorer({ manifest }: PageProps) {
                 >
                   <div className={styles.panelControls}>
                     <Legend items={valueSeries.map((s) => ({ label: s.label, color: s.color }))} />
-                    <div className={toggleStyles.toggle}>
-                      {(["dollars", "logs"] as const).map((mode) => (
-                        <button
-                          key={mode}
-                          type="button"
-                          className={toggleStyles.toggleButton}
-                          aria-pressed={valueScale === mode}
-                          onClick={() => setValueScale(mode)}
-                        >
-                          {mode === "dollars" ? "Dollars" : "Natural logs"}
-                        </button>
-                      ))}
+                    <div className={styles.panelRight}>
+                      {loaded.length > 1 && (
+                        <label className={styles.detailPick}>
+                          <span>Showing</span>
+                          <select
+                            className={toggleStyles.dateSelect}
+                            value={detail.id}
+                            onChange={(e) => setDetailId(Number(e.target.value))}
+                          >
+                            {loaded.map((r) => (
+                              <option key={r.id} value={r.id}>
+                                {labelFor(r.id)}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                      )}
+                      <div className={toggleStyles.toggle}>
+                        {(["dollars", "logs"] as const).map((mode) => (
+                          <button
+                            key={mode}
+                            type="button"
+                            className={toggleStyles.toggleButton}
+                            aria-pressed={valueScale === mode}
+                            onClick={() => setValueScale(mode)}
+                          >
+                            {mode === "dollars" ? "Dollars" : "Natural logs"}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   </div>
                   <TimeSeriesChart
@@ -380,44 +389,6 @@ export function Explorer({ manifest }: PageProps) {
                       </>
                     )}
                   </p>
-                </Disclosure>
-
-                <Disclosure
-                  open={showChars}
-                  onToggle={() => setShowChars((v) => !v)}
-                  title="Characteristic percentiles"
-                  hint="cross-sectional rank"
-                >
-                  <Legend items={charSeries.map((s) => ({ label: s.label, color: s.color }))} />
-                  <TimeSeriesChart
-                    ariaLabel="Characteristic percentiles"
-                    series={charSeries}
-                    domain={activeRange ?? undefined}
-                    height={200}
-                    yLabel="percentile"
-                    yDomain={[0, 1]}
-                    yTicks={() => [0, 0.25, 0.5, 0.75, 1]}
-                    yFormat={(v) => `${(v * 100).toFixed(0)}`}
-                  />
-                  <p className={styles.note}>
-                    Rank of the firm within all sortable US stocks that month. These are the
-                    inputs the price wedge is built from — the wedge dated <em>t</em> uses
-                    characteristics dated <em>t</em>−1.
-                  </p>
-                </Disclosure>
-
-                <Disclosure
-                  open={showTable}
-                  onToggle={() => setShowTable((v) => !v)}
-                  title="Table view"
-                  hint="every observation"
-                >
-                  <SeriesTable
-                    record={loaded[0]}
-                    specId={specId!}
-                    manifest={manifest}
-                    range={activeRange}
-                  />
                 </Disclosure>
               </div>
             )}

@@ -48,6 +48,7 @@ def _series_order() -> list[dict]:
     order += [
         {"id": c["id"], "kind": "percentile", "label": c["label"], "decimals": 3}
         for c in C.RANK_CHARS
+        if c["id"] in C.PACKED_CHARS
     ]
     order += [{"id": s["id"], "kind": "level", "label": s["label"], "decimals": s["decimals"]} for s in C.LEVEL_SERIES]
     return order
@@ -228,7 +229,7 @@ def build(out_dir: Path) -> dict:
         for k, spec in enumerate(C.FIRM_SPECS):
             block[k] = wedge_stack[k, t0 : t1 + 1, col]
         k = len(C.FIRM_SPECS)
-        for meta in C.RANK_CHARS + C.LEVEL_SERIES:
+        for meta in [c for c in C.RANK_CHARS if c["id"] in C.PACKED_CHARS] + C.LEVEL_SERIES:
             block[k] = extra[meta["id"]][col, t0 : t1 + 1]
             k += 1
 

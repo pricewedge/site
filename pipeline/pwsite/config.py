@@ -249,9 +249,11 @@ DATA_FIXED_ORDER = [
     "BookDebt2",
 ]
 
-# Characteristics we rank-normalise cross-sectionally each month. SIZE is
-# market capitalisation, so it is derived from PORT_WEGHT rather than stored
-# separately.
+# Characteristics the pipeline can rank-normalise cross-sectionally each month.
+# NOT packed into the published shards: the site no longer shows a characteristic
+# panel, and a firm's historical book-to-market percentile is CRSP/Compustat
+# derived in a way a company name is not. Kept here because the code that builds
+# them is still useful for analysis; add ids to PACKED_CHARS to publish them.
 RANK_CHARS = [
     {"id": "BEME", "source": "BEME", "label": "Book-to-market", "group": "Value"},
     {"id": "R_12_2", "source": "R_12_2", "label": "Momentum (12-2)", "group": "Momentum"},
@@ -261,10 +263,13 @@ RANK_CHARS = [
     {"id": "Q", "source": "Q", "label": "Tobin's q", "group": "Value"},
 ]
 
-# Extra per-firm series carried alongside the wedges.
+PACKED_CHARS: list[str] = []
+
+# Extra per-firm series carried alongside the wedges. Market capitalisation is
+# what the value panel needs; nothing else is read by the site, and unread
+# series cost every visitor bandwidth on every shard.
 LEVEL_SERIES = [
     {"id": "mktcap", "label": "Market capitalisation ($m)", "decimals": 2},
-    {"id": "pindex", "label": "Cumulative capital-gain index", "decimals": 5},
 ]
 
 # --------------------------------------------------------------------------

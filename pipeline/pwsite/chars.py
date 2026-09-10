@@ -61,18 +61,13 @@ def compute_percentiles(month_index: np.ndarray) -> dict[str, np.ndarray]:
 
         result: dict[str, np.ndarray] = {}
         for spec in C.RANK_CHARS:
+            if spec["id"] not in C.PACKED_CHARS:
+                continue          # ranking every month is slow; skip what is unused
             src = needed[spec["source"]]
             result[spec["id"]] = _midrank(src[:, month_index], universe[:, month_index])
 
         mktcap = needed["PORT_WEGHT"][:, month_index].astype(np.float32)
         result["mktcap"] = mktcap
 
-        # Cumulative capital-gain index, based at 1.0 in each firm's first month
-        # with a price wedge. Built on the full grid so gaps do not restart it.
-        retx = needed["RetX_mb"]
-        gross = np.where(np.isfinite(retx), 1.0 + retx, 1.0)
-        idx = np.cumprod(gross, axis=1)
-        idx[~np.isfinite(retx).cumsum(axis=1).astype(bool)] = np.nan
-        result["pindex"] = idx[:, month_index].astype(np.float32)
 
     return result
