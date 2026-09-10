@@ -47,33 +47,127 @@ def _series_order() -> list[dict]:
     return order
 
 
-def _load_names_overlay() -> dict[int, dict]:
-    """Optional PERMNO -> company name/ticker map.
+ACRONYMS = {
+    "IBM", "AT&T", "3M", "USA", "US", "UK", "AMR", "BP", "CBS", "CSX", "CVS",
+    "DDR", "EMC", "GE", "GM", "HCA", "HP", "ITT", "JPM", "KLA", "LSI", "MGM",
+    "NCR", "NL", "PNC", "PPG", "RJR", "RPM", "SAIC", "SPX", "TRW", "UAL", "UPS",
+    "USG", "USX", "VF", "AES", "ADT", "AGCO", "AOL", "BJ", "DSW", "ETF", "REIT",
+}
+SUFFIXES = {
+    "INC", "CORP", "CO", "LTD", "LLC", "PLC", "LP", "TR", "FD", "GRP", "HLDGS",
+    "HLDG", "CP", "CL", "SA", "NV", "AG", "COS", "INTL", "MFG", "IND", "SVCS",
+    "TECH", "PHARM", "RES", "ENRGY", "COM", "NEW", "OLD", "DEL", "THE",
+}
 
-    CRSP identifiers are licensed, so none ship with the replication package.
-    Drop a CSV at `pipeline/overlays/permno_names.csv` with columns
-    `permno,name,ticker` and it is merged into the search index; without it the
-    site searches by PERMNO alone.
+
+def _titlecase(name: str) -> str:
+    """CRSP stores names in upper case, which reads as shouting on a web page.
+
+    Words are title-cased unless they look like an initialism: a known acronym,
+    or a short vowel-free token that is not a corporate suffix (so IBM and MMM
+    survive, LTD and CORP do not).
     """
-    path = Path(__file__).resolve().parents[1] / "overlays" / "permno_names.csv"
-    if not path.exists():
+    out = []
+    for word in name.split():
+        core = word.strip(".,")
+        upper = core.upper()
+        if upper in ACRONYMS:
+            out.append(upper)
+        elif (
+            upper not in SUFFIXES
+            and 2 <= len(core) <= 4
+            and not any(v in upper for v in "AEIOU")
+            and core.isalpha()
+        ):
+            out.append(upper)
+        elif core.isdigit() or (core and core[0].isdigit()):
+            out.append(upper)
+        else:
+            out.append(word.capitalize())
+    return " ".join(out)
+
+
+def _to_yyyymm(text: str) -> int | None:
+    text = (text or "").strip()
+    if len(text) >= 7 and text[4] == "-":
+        return int(text[:4]) * 100 + int(text[5:7])
+    if len(text) >= 6 and text[:6].isdigit():
+        return int(text[:6])
+    return None
+
+
+def _load_name_spells() -> dict[int, list[dict]]:
+    """Read a CRSP names export, if one has been placed in `overlays/`.
+
+    CRSP identifiers are licensed and none ship with this repository. Drop the
+    WRDS export in `pipeline/overlays/` under any filename; both the current
+    schema (`issuernm`, `secinfostartdt`) and the legacy one (`comnam`,
+    `namedt`) are recognised. Without a file the site searches by PERMNO alone.
+
+    Returns permno -> list of name spells, each with a start month.
+    """
+    folder = Path(__file__).resolve().parents[1] / "overlays"
+    files = sorted(
+        f for f in folder.glob("*")
+        if f.suffix.lower() in {".csv", ".txt"} and f.name != "README.md"
+    )
+    if not files:
         return {}
+
     import csv
 
-    out: dict[int, dict] = {}
-    with path.open(newline="", encoding="utf-8-sig") as fh:
-        for row in csv.DictReader(fh):
-            try:
-                permno = int(row["permno"])
-            except (KeyError, TypeError, ValueError):
+    spells: dict[int, list[dict]] = {}
+    for path in files:
+        with path.open(newline="", encoding="utf-8-sig", errors="replace") as fh:
+            reader = csv.DictReader(fh)
+            cols = {c.lower(): c for c in (reader.fieldnames or [])}
+            name_col = cols.get("issuernm") or cols.get("comnam") or cols.get("name")
+            start_col = cols.get("secinfostartdt") or cols.get("namedt")
+            tick_col = cols.get("ticker") or cols.get("tradingsymbol")
+            if "permno" not in cols or not name_col:
                 continue
-            entry = {}
-            if row.get("name"):
-                entry["name"] = row["name"].strip()
-            if row.get("ticker"):
-                entry["ticker"] = row["ticker"].strip().upper()
-            if entry:
-                out[permno] = entry
+            for row in reader:
+                try:
+                    permno = int(float(row[cols["permno"]]))
+                except (TypeError, ValueError):
+                    continue
+                raw = (row.get(name_col) or "").strip()
+                if not raw:
+                    continue
+                spells.setdefault(permno, []).append(
+                    {
+                        "name": _titlecase(raw),
+                        "ticker": (row.get(tick_col) or "").strip().upper() if tick_col else "",
+                        "start": _to_yyyymm(row.get(start_col, "")) if start_col else None,
+                    }
+                )
+    return spells
+
+
+def _resolve_names(spells: dict[int, list[dict]], last_month: dict[int, int]) -> dict[int, dict]:
+    """Pick the name each security carried in the last month we estimate for it.
+
+    The names file runs past the end of our sample, so taking the most recent
+    spell outright would label a 2017 chart with a name the firm only adopted
+    later. Preferring the spell in force at the security's final observation
+    keeps the label contemporaneous with the data.
+    """
+    out: dict[int, dict] = {}
+    for permno, options in spells.items():
+        cutoff = last_month.get(permno)
+        dated = [o for o in options if o["start"] is not None]
+        pick = None
+        if cutoff and dated:
+            eligible = [o for o in dated if o["start"] <= cutoff]
+            pick = max(eligible, key=lambda o: o["start"]) if eligible else min(
+                dated, key=lambda o: o["start"]
+            )
+        if pick is None:
+            pick = max(dated, key=lambda o: o["start"]) if dated else options[-1]
+        entry = {"name": pick["name"]}
+        if pick["ticker"]:
+            entry["ticker"] = pick["ticker"]
+        out[permno] = entry
     return out
 
 
@@ -105,7 +199,7 @@ def build(out_dir: Path) -> dict:
     first = np.argmax(observed, axis=0)
     last = n_months - 1 - np.argmax(observed[::-1], axis=0)
 
-    names_overlay = _load_names_overlay()
+    spells = _load_name_spells()
 
     firms_dir = out_dir / "firms"
     firms_dir.mkdir(parents=True, exist_ok=True)
@@ -144,13 +238,11 @@ def build(out_dir: Path) -> dict:
 
     handle.close()
 
-    # Names are optional and sparse, so they ride alongside the records rather
-    # than inflating every row with two nulls.
-    labels = {
-        str(permno): names_overlay[permno]
-        for permno, *_ in index
-        if permno in names_overlay
-    }
+    # Names are optional, so they ride alongside the records rather than
+    # inflating every row with two nulls.
+    last_month = {permno: int(dates[t1]) for permno, _t0, t1, _s, _o in index}
+    resolved = _resolve_names(spells, last_month) if spells else {}
+    labels = {str(permno): resolved[permno] for permno, *_ in index if permno in resolved}
 
     (firms_dir / "index.json").write_text(
         json.dumps(
@@ -176,7 +268,7 @@ def build(out_dir: Path) -> dict:
         "shards": shard_no + 1,
         "bytes": total_bytes,
         "series": [s["id"] for s in series],
-        "namesAttached": bool(names_overlay),
+        "namesAttached": bool(labels),
     }
 
 
