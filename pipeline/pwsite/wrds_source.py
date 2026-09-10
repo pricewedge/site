@@ -58,6 +58,51 @@ def connect(username: str | None = None):
 
 
 # ---------------------------------------------------------------------------
+# Schema, as confirmed against the live subscription
+# ---------------------------------------------------------------------------
+# CRSP's newer CIZ tables rename nearly everything and, usefully, precompute
+# several things the older schema made you derive:
+#
+#   mthret      already includes delisting returns. Checked against
+#               crsp.msedelist over 28,913 delisting events: 22,308 match dlret
+#               exactly and none is missing a monthly row, the remainder being
+#               months that also had partial-period trading. So no delisting
+#               merge is needed -- a step that is easy to get wrong and biases
+#               the tails when omitted.
+#   mthcap      market capitalisation, and mthprevcap its one-month lag, which
+#               is exactly the weight a sort needs at formation.
+#   mthprcvol   dollar volume.
+#
+# Exchange and share class move to letter codes: primaryexch N = NYSE (the
+# breakpoint universe), A = NYSE American, Q/R = Nasdaq; sharetype NS = ordinary
+# common shares and securitytype EQTY excludes funds.
+
+CIZ_MONTHLY = {
+    "date": "mthcaldt", "ret": "mthret", "retx": "mthretx", "prc": "mthprc",
+    "cap": "mthcap", "prevcap": "mthprevcap", "vol": "mthvol",
+    "dollar_volume": "mthprcvol", "shrout": "shrout", "exchange": "primaryexch",
+    "sharetype": "sharetype", "securitytype": "securitytype", "siccd": "siccd",
+}
+CIZ_DAILY = {
+    "date": "dlycaldt", "ret": "dlyret", "retx": "dlyretx", "prc": "dlyprc",
+    "cap": "dlycap", "vol": "dlyvol", "dollar_volume": "dlyprcvol",
+    "bid": "dlybid", "ask": "dlyask", "high": "dlyhigh", "low": "dlylow",
+    "shrout": "shrout",
+}
+NYSE = "N"
+COMMON_SHARES = ("NS",)
+EQUITY = ("EQTY",)
+
+# Quoted bid and ask are sparse before 2000 -- roughly 9% of daily rows in the
+# 1960s, 30% in the 1970s, 53% in the 1980s, 64% in the 1990s, then 96%+ from
+# 2000. SPREAD is the one characteristic of the 57 whose early history cannot be
+# built from quotes alone; dlyhigh/dlylow are better populated in the 1960s
+# (91%) and worse in the 1980s (45%), so neither source covers the sample on its
+# own. Flagged rather than silently patched.
+SPREAD_QUOTE_COVERAGE_WARNING = True
+
+
+# ---------------------------------------------------------------------------
 # Discovery
 # ---------------------------------------------------------------------------
 # CRSP has two schemas in circulation: the legacy one (msf, msenames, dsf) and
@@ -84,11 +129,21 @@ NEEDED_COMPUSTAT = [
     "pi", "ppegt", "ppent", "pstk", "pstkl", "pstkrv", "rect", "sale", "seq",
     "txdb", "txditc", "txp", "xsga",
 ]
-NEEDED_CRSP_MONTHLY = [
-    "permno", "permco", "date", "ret", "retx", "prc", "shrout", "vol",
-    "cfacpr", "cfacshr", "exchcd", "shrcd", "siccd",
+NEEDED_CRSP_MONTHLY = ["permno", "permco", "siccd", "shrout"] + [
+    v for k, v in {
+        "date": "mthcaldt", "ret": "mthret", "retx": "mthretx", "prc": "mthprc",
+        "cap": "mthcap", "prevcap": "mthprevcap", "vol": "mthvol",
+        "dollar_volume": "mthprcvol", "exchange": "primaryexch",
+        "sharetype": "sharetype", "securitytype": "securitytype",
+    }.items()
 ]
-NEEDED_CRSP_DAILY = ["permno", "date", "ret", "retx", "prc", "vol", "shrout", "askhi", "bidlo", "bid", "ask"]
+NEEDED_CRSP_DAILY = ["permno", "shrout"] + [
+    v for k, v in {
+        "date": "dlycaldt", "ret": "dlyret", "retx": "dlyretx", "prc": "dlyprc",
+        "vol": "dlyvol", "dollar_volume": "dlyprcvol", "bid": "dlybid",
+        "ask": "dlyask", "high": "dlyhigh", "low": "dlylow",
+    }.items()
+]
 
 
 @dataclass
@@ -204,19 +259,22 @@ def daily_month_moments(db, table: str, years: list[int]) -> pd.DataFrame:
             continue
         sql = f"""
             select permno,
-                   date_trunc('month', date)::date            as month,
-                   count(*)                                   as n,
-                   sum(ret)                                   as sum_ret,
-                   sum(ret * ret)                             as sum_ret2,
-                   max(ret)                                   as max_ret,
-                   sum(abs(prc) * vol)                        as sum_dvol,
-                   sum((abs(prc) * vol) ^ 2)                  as sum_dvol2,
-                   sum(vol / nullif(shrout * 1000, 0))        as sum_turn,
-                   sum((vol / nullif(shrout * 1000, 0)) ^ 2)  as sum_turn2
+                   date_trunc('month', dlycaldt)::date              as month,
+                   count(*)                                          as n,
+                   sum(dlyret)                                       as sum_ret,
+                   sum(dlyret * dlyret)                              as sum_ret2,
+                   max(dlyret)                                       as max_ret,
+                   sum(dlyprcvol)                                    as sum_dvol,
+                   sum(dlyprcvol * dlyprcvol)                        as sum_dvol2,
+                   sum(dlyvol / nullif(shrout * 1000.0, 0))          as sum_turn,
+                   sum((dlyvol / nullif(shrout * 1000.0, 0)) ^ 2)    as sum_turn2,
+                   count(dlybid)                                     as n_quote,
+                   sum(case when dlyask > 0 and dlybid > 0
+                            then 2 * (dlyask - dlybid) / (dlyask + dlybid) end) as sum_spread
             from {table}
-            where date >= '{year}-01-01' and date <= '{year}-12-31'
-              and ret is not null
-            group by permno, date_trunc('month', date)
+            where dlycaldt >= '{year}-01-01' and dlycaldt <= '{year}-12-31'
+              and dlyret is not null
+            group by permno, date_trunc('month', dlycaldt)
         """
         frame = db.raw_sql(sql, date_cols=["month"])
         path.parent.mkdir(parents=True, exist_ok=True)
