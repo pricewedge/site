@@ -22,4 +22,10 @@ pipeline/overlays/permno_names.csv
 # Machine-local path to the replication package (see pwsite/config.py)
 pipeline/.source-path
 
+# Anything dropped in overlays/ is licensed CRSP-derived data. Ignore every data
+# file there regardless of what the download happens to be called; only the
+# README is tracked.
+pipeline/overlays/*
+!pipeline/overlays/README.md
+
 .DS_Store
