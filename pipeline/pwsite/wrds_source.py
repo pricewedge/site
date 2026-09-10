@@ -281,3 +281,93 @@ def daily_month_moments(db, table: str, years: list[int]) -> pd.DataFrame:
         frame.to_parquet(path, index=False)
         frames.append(frame)
     return pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
+
+
+# ---------------------------------------------------------------------------
+# Daily moments for the trading-friction characteristics
+# ---------------------------------------------------------------------------
+# Nine of the 57 are built from daily data. Downloading it is out of the
+# question -- 110 million rows -- but each of the nine is a moment of the
+# month's daily observations, so the whole month collapses to a row of sums.
+#
+# RETVOL, sdDVOL and sdTURN are standard deviations, which need only n, the
+# sum and the sum of squares. MAXRET is a maximum. SPREAD is a mean. BETA_d,
+# IDIOV and SUV are least-squares fits, and a least-squares fit needs nothing
+# but the cross-product matrix of its regressors with the outcome, so those too
+# are sums the server can form. Only DTO resists: its 180-trading-day median
+# is not a moment, and it is left for a separate pass.
+#
+# The market and factor returns come from ff.factors_daily, joined in the query
+# rather than merged afterwards, so the cross-products with them are computed
+# in the same aggregation.
+
+DAILY_MOMENTS_SQL = """
+with f as (
+    select date, mktrf, smb, hml,
+           lag(mktrf) over (order by date) as mktrf_lag
+    from ff.factors_daily
+),
+d as (
+    select s.permno,
+           date_trunc('month', s.dlycaldt)::date as month,
+           s.dlyret                              as r,
+           s.dlyret - f.rf_                      as re,
+           s.dlyvol                              as v,
+           s.dlyprcvol                           as dv,
+           s.dlyvol / nullif(s.shrout * 1000.0, 0) as turn,
+           case when s.dlyask > 0 and s.dlybid > 0
+                then 2 * (s.dlyask - s.dlybid) / (s.dlyask + s.dlybid) end as spr,
+           f.mktrf, f.mktrf_lag, f.smb, f.hml,
+           greatest(s.dlyret, 0)                 as rpos,
+           abs(least(s.dlyret, 0))               as rneg
+    from {table} s
+    join (select date, mktrf, smb, hml, rf as rf_,
+                 lag(mktrf) over (order by date) as mktrf_lag
+          from ff.factors_daily) f
+      on f.date = s.dlycaldt
+    where s.dlycaldt >= '{y}-01-01' and s.dlycaldt <= '{y}-12-31'
+      and s.dlyret is not null
+)
+select permno, month,
+       count(*) as n,
+       sum(r) as s_r, sum(r*r) as s_rr, max(r) as max_r,
+       sum(re) as s_re, sum(re*re) as s_rere,
+       sum(v) as s_v, sum(v*v) as s_vv,
+       sum(dv) as s_dv, sum(dv*dv) as s_dvdv,
+       count(turn) as n_turn, sum(turn) as s_t, sum(turn*turn) as s_tt,
+       count(spr) as n_spr, sum(spr) as s_spr,
+       sum(mktrf) as s_m, sum(mktrf*mktrf) as s_mm,
+       sum(mktrf_lag) as s_ml, sum(mktrf_lag*mktrf_lag) as s_mlml,
+       sum(mktrf*mktrf_lag) as s_mml,
+       sum(re*mktrf) as s_rem, sum(re*mktrf_lag) as s_reml,
+       sum(smb) as s_s, sum(hml) as s_h,
+       sum(smb*smb) as s_ss, sum(hml*hml) as s_hh, sum(smb*hml) as s_sh,
+       sum(mktrf*smb) as s_ms, sum(mktrf*hml) as s_mh,
+       sum(re*smb) as s_res, sum(re*hml) as s_reh,
+       sum(rpos) as s_rp, sum(rneg) as s_rn,
+       sum(rpos*rpos) as s_rprp, sum(rneg*rneg) as s_rnrn, sum(rpos*rneg) as s_rprn,
+       sum(v*rpos) as s_vrp, sum(v*rneg) as s_vrn
+from d
+group by permno, month
+"""
+
+
+def daily_moments(db, years: list[int], table: str = "crsp.dsf_v2") -> pd.DataFrame:
+    """Per-firm-month sufficient statistics for the daily characteristics.
+
+    Cached by year like every other pull. The newest cached year is refetched,
+    since a year in progress is incomplete.
+    """
+    have = cached_years("daily_moments")
+    newest = max(have) if have else None
+    frames = []
+    for year in sorted(years):
+        path = _cache_path("daily_moments", year)
+        if path.exists() and year != newest:
+            frames.append(pd.read_parquet(path))
+            continue
+        frame = db.raw_sql(DAILY_MOMENTS_SQL.format(table=table, y=year), date_cols=["month"])
+        path.parent.mkdir(parents=True, exist_ok=True)
+        frame.to_parquet(path, index=False)
+        frames.append(frame)
+    return pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
