@@ -217,3 +217,225 @@ def merge_annual_to_monthly(
         left_on="date", right_on="available", by="permno", direction="backward",
     )
     return merged
+
+
+# ---------------------------------------------------------------------------
+# The full annual set
+# ---------------------------------------------------------------------------
+
+def _pct_change(frame: pd.DataFrame, column: str) -> pd.Series:
+    """Annual percentage change, in percent to match the paper's panel."""
+    prior = frame.groupby("gvkey")[column].shift(1)
+    return (100.0 * (frame[column] / prior - 1.0)).where(prior > 0)
+
+
+def annual_all(f: pd.DataFrame) -> pd.DataFrame:
+    """Every characteristic computable from fundamentals alone.
+
+    Follows Appendix Table A.1 line by line. "Lagged" always means the prior
+    fiscal year, not the prior month, and net operating assets is the paper's
+    own construction rather than a textbook one: operating assets are total
+    assets less cash and other investments, operating liabilities are total
+    assets less every financing claim, so the difference nets out assets and
+    leaves what the business itself employs.
+    """
+    f = f.sort_values(["gvkey", "datadate"]).copy()
+    g = f.groupby("gvkey")
+    lag = {c: g[c].shift(1) for c in
+           ["at", "ceq", "invt", "ppegt", "act", "che", "lct", "dlc", "txp", "sale", "cogs"]}
+
+    be = book_equity(f)
+    operating_assets = f["at"] - f["che"].fillna(0) - f["ivao"].fillna(0)
+    operating_liabs = (
+        f["at"] - f["dlc"].fillna(0) - f["dltt"].fillna(0)
+        - f["mib"].fillna(0) - f["pstk"].fillna(0) - f["ceq"].fillna(0)
+    )
+    noa_level = operating_assets - operating_liabs
+    noa_lag = g.apply(lambda _: None) if False else None
+    f["_noa"] = noa_level
+    noa_lag = f.groupby("gvkey")["_noa"].shift(1)
+
+    out = pd.DataFrame({"gvkey": f["gvkey"], "datadate": f["datadate"]})
+    out["be"] = be
+    out["be_lag"] = f.assign(_be=be).groupby("gvkey")["_be"].shift(1)
+    out["at"] = f["at"]
+    out["gp"] = f["gp"]
+    out["ceq"] = f["ceq"]
+    out["txdb"] = f["txdb"]
+    out["sale"] = f["sale"]
+    out["ib"] = f["ib"]
+    out["dltt"] = f["dltt"]
+    out["che"] = f["che"]
+    out["BookDebt2"] = f["dltt"].fillna(0) + f["dlc"].fillna(0)
+
+    # value and leverage inputs that need market equity are finished monthly
+    out["AT"] = f["at"]
+    out["C2A"] = f["che"] / f["at"]
+    out["C2D"] = (f["ib"] + f["dp"]) / f["lt"]
+    out["SG"] = _pct_change(f, "sale")
+    out["CAT"] = f["sale"] / lag["at"]
+    out["SAT"] = f["sale"] / f["at"]
+    out["PCM"] = (f["sale"] - f["cogs"]) / f["sale"]
+    out["IPM"] = f["pi"] / f["sale"]
+    out["PM"] = f["oiadp"] / f["sale"]
+    out["OL"] = (f["cogs"].fillna(0) + f["xsga"].fillna(0)) / f["at"]
+    # Every component must be present: filling a missing receivable or
+    # inventory with zero reads as "this firm holds no tangible assets", which
+    # pushes exactly the firms with incomplete filings into the bottom decile.
+    # It moves the agreement with the published decile weights from 0.48 to 0.96.
+    out["TAN"] = (
+        0.715 * f["rect"] + 0.547 * f["invt"] + 0.535 * f["ppent"] + f["che"]
+    ) / f["at"]
+    out["ROA"] = f["ib"] / lag["at"]
+    out["ROE"] = f["ib"] / out["be_lag"]
+    # Cash is *subtracted* from invested capital. Appendix Table A.1 words this
+    # as a sum, but adding it disagrees with the published decile weights
+    # (0.64 against 0.93), and subtracting is what "invested capital" means:
+    # capital tied up in the business, net of the cash that is not.
+    out["ROIC"] = (f["ebit"] - f["nopi"].fillna(0)) / (
+        f["ceq"] + f["lt"] - f["che"]
+    )
+    out["S2C"] = f["sale"] / f["che"]
+    out["ATO"] = f["sale"] / noa_lag
+    out["RNA"] = f["oiadp"] / noa_lag
+    out["NOA"] = noa_level / lag["at"]
+    out["I2A"] = _pct_change(f, "at")
+    out["dCEQ"] = _pct_change(f, "ceq")
+    out["dPIA"] = ((f["ppegt"] - lag["ppegt"]) + (f["invt"] - lag["invt"])) / lag["at"]
+    out["IVC"] = (f["invt"] - lag["invt"]) / ((f["at"] + lag["at"]) / 2.0)
+
+    gross_margin = f["sale"] - f["cogs"]
+    gm_prior = lag["sale"] - lag["cogs"]
+    out["dGS"] = 100.0 * (gross_margin / gm_prior - 1.0) - _pct_change(f, "sale")
+
+    # Operating accruals: the change in non-cash working capital, less
+    # depreciation, scaled by the assets that produced it.
+    delta = lambda c: f[c] - lag[c]  # noqa: E731
+    out["OA"] = (
+        delta("act") - delta("che") - delta("lct") - delta("dlc") - delta("txp") - f["dp"]
+    ) / lag["at"]
+    out["AOA"] = out["OA"].abs()
+
+    shares = f["csho"] * f["ajex"]
+    prior_shares = f.assign(_s=shares).groupby("gvkey")["_s"].shift(1)
+    out["dSO"] = np.log(shares / prior_shares).where((shares > 0) & (prior_shares > 0))
+
+    out["EPS_ib"] = f["ib"]     # divided by CRSP shares outstanding monthly
+    return out
+
+
+def monthly_all(merged: pd.DataFrame) -> pd.DataFrame:
+    """Characteristics that need market value or monthly CRSP data.
+
+    Market capitalisation arrives from CRSP in thousands while Compustat is in
+    millions, so it is rescaled once here and every ratio below is formed from
+    the rescaled figure.
+    """
+    out = merged.copy()
+    me = out["cap"] / 1000.0
+    out["_me"] = me
+
+    out["BEME"] = out["be"] / me
+    out["PROF"] = out["gp"] / out["be"]
+    out["Q"] = (out["at"] + me - out["ceq"] - out["txdb"].fillna(0)) / out["at"]
+    out["A2ME"] = out["at"] / me
+    out["E2P"] = out["ib"] / me
+    out["S2P"] = out["sale"] / me
+    out["D2P"] = out["BookDebt2"] / me
+    out["ROC"] = (me + out["dltt"] - out["at"]) / out["che"]
+    out["SIZE"] = me
+    out["EPS"] = out["EPS_ib"] / (out["shrout"] / 1000.0)
+    out["TNOVR"] = out["vol"] / out["shrout"] if "vol" in out else np.nan
+    return out
+
+
+def crsp_characteristics(monthly: pd.DataFrame) -> pd.DataFrame:
+    """The characteristics that need only CRSP's monthly file.
+
+    Timing. `sorts.py` lags the sorting variable one month, exactly as the
+    MATLAB original does, so a characteristic stored on row `t` is what a sort
+    formed at `t+1` uses. The published decile weights say the package stores
+    momentum on that convention: "the return from twelve months to two months
+    ago" is stored as the return from eleven months to one month ago, which the
+    sort's own lag then turns into the stated window. Storing the stated window
+    directly shifts every momentum sort one month early -- agreement with the
+    published weights falls from 0.97 to 0.65 for R_12_2, and from 0.97 to 0.11
+    for R_2_1, where a one-month error leaves nothing in common at all.
+
+    Share counts. CRSP reports shares outstanding unadjusted for splits, so a
+    two-for-one split reads as a 100% issuance. Splits leave market
+    capitalisation and the ex-dividend return untouched, so the growth in
+    split-adjusted shares is recoverable from those two:
+
+        log(cap_t / cap_{t-12}) - sum of log(1 + retx) over the same window
+
+    which is what dSOUT uses (agreement 0.88 against 0.51 for raw share counts).
+
+    Dividends. Dividends per share are likewise on a moving share basis, so the
+    twelve monthly payments are each restated in terms of the shares
+    outstanding at `t` before being summed and divided by the price at `t`.
+    """
+    months = np.sort(monthly["month"].unique())
+    permnos = np.sort(monthly["permno"].unique())
+    dense = pd.MultiIndex.from_product([permnos, months], names=["permno", "month"])
+    m = (
+        monthly.set_index(["permno", "month"])
+        .reindex(dense)
+        .reset_index()
+        .sort_values(["permno", "month"])
+    )
+    n_months = len(months)
+
+    def by_firm(values: np.ndarray) -> np.ndarray:
+        return values.reshape(len(permnos), n_months)
+
+    def rolling_sum(values: np.ndarray, span: int) -> np.ndarray:
+        """Sum over the last `span` calendar months, NaN if any is absent."""
+        rolled = (
+            pd.DataFrame(values)
+            .T.rolling(span, min_periods=span)
+            .sum()
+            .T.to_numpy()
+        )
+        return rolled
+
+    def shift(values: np.ndarray, k: int) -> np.ndarray:
+        if k == 0:
+            return values
+        out = np.full_like(values, np.nan)
+        out[:, k:] = values[:, :-k]
+        return out
+
+    log_ret = by_firm(np.log1p(m["ret"].to_numpy(float)))
+    log_retx = by_firm(np.log1p(m["retx"].to_numpy(float)))
+
+    out = m[["permno", "month"]].copy()
+
+    def window(start: int, stop: int) -> np.ndarray:
+        """Compound return over months t-start .. t-stop, on the stored
+        convention (one month later than the name suggests)."""
+        span = start - stop + 1
+        return np.expm1(shift(rolling_sum(log_ret, span), stop - 1)).ravel()
+
+    out["R_12_2"] = window(12, 2)
+    out["R_12_7"] = window(12, 7)
+    out["R_6_2"] = window(6, 2)
+    out["R_36_13"] = window(36, 13)
+    out["R_2_1"] = m["ret"].to_numpy(float)
+
+    cap = by_firm(m["cap"].to_numpy(float))
+    gain_12 = rolling_sum(log_retx, 12)
+    out["dSOUT"] = (100.0 * (np.log(cap / shift(cap, 12)) - gain_12)).ravel()
+
+    # Each month's dividend per share, restated in the shares outstanding at t
+    # by discounting through the ex-dividend returns paid since.
+    price = by_firm(np.abs(m["prc"].to_numpy(float)))
+    paid = (by_firm(m["ret"].to_numpy(float)) - by_firm(m["retx"].to_numpy(float))) * shift(price, 1)
+    cum = np.nancumsum(np.where(np.isfinite(log_retx), log_retx, 0.0), axis=1)
+    twelve = (
+        pd.DataFrame(paid / np.exp(cum)).T.rolling(12, min_periods=6).sum().T.to_numpy()
+    )
+    out["DP"] = (twelve * np.exp(cum) / price).ravel()
+
+    out["TNOVR"] = (m["vol"] / m["shrout"]).to_numpy(float)
+    return out.dropna(how="all", subset=[c for c in out.columns if c not in ("permno", "month")])
