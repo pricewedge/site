@@ -23,14 +23,25 @@ export function Layout({
   manifest: Manifest | null;
   children: ReactNode;
 }) {
-  const [theme, setTheme] = useState<Theme>(
-    () => (localStorage.getItem("pw-theme") as Theme) ?? "system",
-  );
+  // Dark is the default presentation; a visitor's stored choice overrides it.
+  // index.html stamps the same value before paint, so this only has to keep the
+  // attribute in step once React takes over.
+  const [theme, setTheme] = useState<Theme>(() => {
+    try {
+      return (localStorage.getItem("pw-theme") as Theme) ?? "dark";
+    } catch {
+      return "dark";
+    }
+  });
 
   useEffect(() => {
     if (theme === "system") document.documentElement.removeAttribute("data-theme");
     else document.documentElement.setAttribute("data-theme", theme);
-    localStorage.setItem("pw-theme", theme);
+    try {
+      localStorage.setItem("pw-theme", theme);
+    } catch {
+      /* private windows can refuse storage; the attribute is what matters */
+    }
   }, [theme]);
 
   return (

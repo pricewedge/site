@@ -15,10 +15,24 @@
          client-side router changes pages. -->
     <link rel="canonical" href="https://pricewedge.com/" />
 
-    <meta name="color-scheme" content="light dark" />
+    <meta name="color-scheme" content="dark light" />
     <meta name="theme-color" content="#f7f6f3" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#131312" media="(prefers-color-scheme: dark)" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+
+    <!-- Runs before the first paint. React would otherwise mount after the
+         browser has already painted the light palette, giving every visitor a
+         white flash. Dark is the default; a stored choice wins over it. -->
+    <script>
+      (function () {
+        try {
+          var t = localStorage.getItem("pw-theme") || "dark";
+          if (t !== "system") document.documentElement.setAttribute("data-theme", t);
+        } catch (e) {
+          document.documentElement.setAttribute("data-theme", "dark");
+        }
+      })();
+    </script>
 
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="PriceWedge" />

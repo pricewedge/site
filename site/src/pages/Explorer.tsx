@@ -212,6 +212,8 @@ export function Explorer({ manifest }: PageProps) {
           </p>
           <p className={styles.introCite}>
             Estimates follow the method of van Binsbergen, Boons, Opp and Tamoni,{" "}
+            “{manifest?.citation.title ??
+              "Dynamic Asset (Mis)Pricing: Build-up versus Resolution Anomalies"},”{" "}
             <em>Journal of Financial Economics</em>.
           </p>
           <p className={styles.introMeta}>
