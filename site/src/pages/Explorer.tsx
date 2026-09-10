@@ -210,9 +210,13 @@ export function Explorer({ manifest }: PageProps) {
             informationally efficient value. Positive estimates indicate that the stock is
             overpriced; negative estimates indicate that it is underpriced.
           </p>
+          <p className={styles.introCite}>
+            Estimates follow the method of van Binsbergen, Boons, Opp and Tamoni,{" "}
+            <em>Journal of Financial Economics</em>.
+          </p>
           <p className={styles.introMeta}>
             {manifest ? manifest.firm.securities.toLocaleString("en-US") : "19,476"} US stocks ·
-            1964–2017 · eight specifications · <a href="/data">bulk download</a>
+            1964–2017 · eight specifications
           </p>
         </div>
       </section>

@@ -23,6 +23,18 @@
   margin-bottom: 0.7rem;
 }
 
+.introCite {
+  margin: 0 0 0.55rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  max-width: 58ch;
+}
+
+.introCite em {
+  font-style: italic;
+}
+
 .introMeta {
   margin: 0;
   font-size: 0.8125rem;
