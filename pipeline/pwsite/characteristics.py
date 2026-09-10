@@ -371,9 +371,11 @@ def crsp_characteristics(monthly: pd.DataFrame) -> pd.DataFrame:
 
     which is what dSOUT uses (agreement 0.88 against 0.51 for raw share counts).
 
-    Dividends. Dividends per share are likewise on a moving share basis, so the
-    twelve monthly payments are each restated in terms of the shares
-    outstanding at `t` before being summed and divided by the price at `t`.
+    Dividends. DP sums twelve monthly payments per share and divides by the
+    current price, without restating the payments for splits in between.
+    Restating them is the more coherent calculation, and it agrees with the
+    published decile weights *worse* (0.74 against 0.82), so the plain sum is
+    what the package appears to have used and what is kept here.
     """
     months = np.sort(monthly["month"].unique())
     permnos = np.sort(monthly["permno"].unique())
@@ -431,11 +433,8 @@ def crsp_characteristics(monthly: pd.DataFrame) -> pd.DataFrame:
     # by discounting through the ex-dividend returns paid since.
     price = by_firm(np.abs(m["prc"].to_numpy(float)))
     paid = (by_firm(m["ret"].to_numpy(float)) - by_firm(m["retx"].to_numpy(float))) * shift(price, 1)
-    cum = np.nancumsum(np.where(np.isfinite(log_retx), log_retx, 0.0), axis=1)
-    twelve = (
-        pd.DataFrame(paid / np.exp(cum)).T.rolling(12, min_periods=6).sum().T.to_numpy()
-    )
-    out["DP"] = (twelve * np.exp(cum) / price).ravel()
+    twelve = pd.DataFrame(paid).T.rolling(12, min_periods=6).sum().T.to_numpy()
+    out["DP"] = (twelve / price).ravel()
 
     out["TNOVR"] = (m["vol"] / m["shrout"]).to_numpy(float)
     return out.dropna(how="all", subset=[c for c in out.columns if c not in ("permno", "month")])

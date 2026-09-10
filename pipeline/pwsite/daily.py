@@ -46,15 +46,25 @@ def _solve(gram: np.ndarray, moment: np.ndarray) -> np.ndarray:
     `gram` is (rows, k, k) and `moment` is (rows, k). A singular month -- a
     factor with no variation across the days observed -- yields NaN rather than
     raising, so one bad firm-month does not stop the pass.
+
+    Singularity is judged against Hadamard's bound, the product of the
+    diagonal, rather than against a fixed number. A cross-product matrix of
+    daily returns has entries around 1e-3 and a determinant near 1e-12 while
+    being useless; one of daily share volumes has entries around 1e7 and a
+    determinant near 1e20 while being perfectly well conditioned. Only the
+    ratio of the two says anything.
     """
     out = np.full(moment.shape, np.nan)
     ok = np.isfinite(gram).all(axis=(1, 2)) & np.isfinite(moment).all(axis=1)
-    if ok.any():
-        sub = gram[ok]
-        good = np.abs(np.linalg.det(sub)) > 1e-30
-        idx = np.flatnonzero(ok)[good]
-        if idx.size:
-            out[idx] = np.linalg.solve(gram[idx], moment[idx])
+    if not ok.any():
+        return out
+    sub = gram[ok]
+    with np.errstate(invalid="ignore", divide="ignore", over="ignore"):
+        bound = np.prod(np.diagonal(sub, axis1=1, axis2=2), axis=1)
+        ratio = np.abs(np.linalg.det(sub)) / np.where(bound > 0, bound, np.nan)
+    idx = np.flatnonzero(ok)[np.nan_to_num(ratio) > 1e-8]
+    if idx.size:
+        out[idx] = np.linalg.solve(gram[idx], moment[idx][..., None])[..., 0]
     return out
 
 
