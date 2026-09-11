@@ -510,3 +510,79 @@ shift affects evenly.
 Everything downstream -- portfolio wedges on both samples, portfolio profiles,
 firm wedges under all three mappings, and the comparison against `PWshare.mat`
 -- has been rebuilt on the corrected sample.
+
+
+# What the out-of-sample test actually is
+
+## The regression
+
+One observation is one decile portfolio: 57 characteristics times 10 deciles,
+570 rows.
+
+* **Left-hand side** is that portfolio's price wedge in percentage points, the
+  same quantity Table 1 reports for deciles 1 and 10, computed here for all
+  ten. Keyed to raw decile, not to the signed leg, so the sign convention
+  cannot leak into the fit.
+* **Right-hand side** is 57 numbers describing where the portfolio sits in the
+  cross-section: for each characteristic, the capitalisation-weighted mean of
+  its member firms' percentile ranks, averaged over formation months. Ranks
+  rather than levels, because the characteristics share no units and because
+  ranks are what the firm side can be evaluated at.
+* Regressors are standardised on the training rows and the fit is ridge-
+  penalised with the intercept left unpenalised.
+
+The principal-component alternative replaces those 57 columns with the first
+three (or ten) principal components of the same matrix; the Fama-French
+alternative keeps five of the columns plus momentum.
+
+## Three out-of-sample designs, answering different questions
+
+**Leaving one characteristic out** is the headline, and the one quoted as 0.69.
+Fifty-seven folds: fit on the 560 portfolios belonging to 56 characteristics,
+predict the ten portfolios of the characteristic held out, rotate. The
+standardisation is recomputed inside each fold.
+
+It answers: *can the mapping price an anomaly it has never seen?* That is the
+relevant question, because a firm is never one of the 570 portfolios -- its
+combination of characteristics is new, and the mapping has to extrapolate to
+it. A test that leaves out single portfolios would let the other nine deciles
+of the same sort carry the prediction, which is too easy.
+
+**Leaving one portfolio out** is that easier test, reported for completeness.
+
+**Splitting on formation date** is the paper's own out-of-sample specification:
+fit on cohorts formed before October 1998, test on cohorts after. Both the
+wedges and the characteristic profiles are recomputed separately on each half,
+so nothing from the test period enters the training design.
+
+## What the time split says, and why it deserves a warning label
+
+| mapping | R² | correlation | intercept | slope | RMSE |
+|---|---|---|---|---|---|
+| 3 PCs | 0.332 | 0.576 | -1.95 | 2.43 | 21.3 pp |
+| 10 PCs | 0.551 | 0.742 | +6.48 | 2.64 | 18.9 pp |
+| direct, penalised | 0.519 | 0.720 | +3.29 | 2.76 | 19.7 pp |
+| direct, unpenalised | 0.309 | 0.556 | -39.65 | 1.20 | 39.6 pp |
+
+The ranking survives -- the penalised direct regression roughly doubles three
+principal components, 0.52 against 0.33 -- but **every mapping is badly
+miscalibrated in level across time**, with slopes between 2.4 and 2.9. Wedges
+on cohorts formed after 1998 average -10.1 points with a standard deviation of
+22.8, against -3.2 and 9.7 before; the late period is simply a different
+regime, and a mapping fitted on the early one understates its magnitudes by a
+factor of about two and a half.
+
+Two reasons not to over-read this. Only 52 cohorts fall after the cut, because
+the fifteen-year horizon means the last formable cohort in the paper's sample
+is December 2002. And adjacent cohorts share 179 of their 180 months, so those
+52 carry perhaps one or two independent observations. The test is directionally
+informative and statistically very thin.
+
+## The penalty was chosen honestly
+
+The penalty was picked by maximising the leave-one-characteristic-out fit, and
+then that same fit was quoted -- selection on the statistic being reported.
+Running it properly nested, choosing the penalty inside each fold using only
+the other 56 characteristics, gives **0.686 against the 0.691 quoted**. The
+difference is negligible because the choice is stable: 100 is selected in 56 of
+the 57 folds. `nested_cv.py` and `timesplit_test.py` reproduce both.
