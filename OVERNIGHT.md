@@ -438,3 +438,75 @@ the two libraries made different choices, not that ours is broken:
 
 Median absolute agreement across the 39 is 0.83. Written to
 `raw/jkp_comparison.csv`.
+
+
+# The sample: which stocks the sorts run on
+
+Christian asked whether the sorts use the same stocks as the paper. They did
+not, and fixing it was the single largest correction of the whole rebuild.
+
+The paper's sample is US common stock traded on NYSE, AMEX or Nasdaq, with no
+explicit microcap screen -- NYSE breakpoints and value weighting are what keep
+small stocks from driving the results. In CRSP's older schema that sample is
+share codes 10 and 11. The CIZ tables this pipeline reads replace that single
+code with four separate fields, and it had been filtering on only two of them.
+
+The two that were missing admit a lot:
+
+| filter | securities | firm-months | share of market cap |
+|---|---|---|---|
+| share type and security type only | 26,288 | 3,386,390 | 0.909 |
+| + ordinary common subtype | 26,288 | 3,386,390 | 0.909 |
+| + US-incorporated | 24,645 | 3,212,600 | 0.830 |
+| **+ corporate issuer (= share codes 10/11)** | **24,227** | **3,157,914** | **0.815** |
+
+That is 2,061 extra securities -- non-US-incorporated firms, real estate
+investment trusts, closed-end funds and exchange-traded products -- and 9% of
+market capitalisation. The corrected count, 24,227 over 1960-2017, sits just
+below the package's own 24,742 over a window 34 years longer, which is what it
+should do.
+
+## What it bought
+
+Agreement with the published decile weights improves for 20 of the 22
+characteristics tested, and for some of them by a great deal:
+
+| | before | after |
+|---|---|---|
+| PM | 0.824 | **0.973** |
+| PROF | 0.872 | **0.978** |
+| dPIA | 0.873 | 0.943 |
+| dPIA, S2P, ATO | 0.87-0.93 | 0.94-0.98 |
+| SPREAD | 0.935 | 0.964 |
+| Q | 0.960 | 0.978 |
+
+Across all 57:
+
+| | before | after |
+|---|---|---|
+| verified above 0.85 | 46 | **48** |
+| mean error, long leg | 1.79 pp | **1.19 pp** |
+| mean error, short leg | 1.04 pp | **0.73 pp** |
+| correlation, short leg | 0.992 | **0.997** |
+
+A third, independent confirmation: the market price of risk, which is solved
+for rather than assumed, moves from 3.3641 to **3.3476** against the package's
+3.3244. The gap halves.
+
+## What it did not change
+
+The Phase 3 and Phase 5 conclusions are unchanged, which is reassuring rather
+than surprising -- both are about relative comparisons that a common sample
+shift affects evenly.
+
+* The three-principal-component mapping still reproduces the published
+  firm-level wedges at correlation **0.937**, median 0.907 per firm, with
+  matching dispersion (21.4 against 20.9).
+* The penalised direct regression still beats it decisively out of sample:
+  **0.691 against 0.513**, with calibration intercept -0.02 and slope 0.991.
+* Extended to December 2025 the panel now holds 26,463 securities, 559
+  formation cohorts, and a recalibrated price of risk of 3.5311.
+
+Everything downstream -- portfolio wedges on both samples, portfolio profiles,
+firm wedges under all three mappings, and the comparison against `PWshare.mat`
+-- has been rebuilt on the corrected sample.
