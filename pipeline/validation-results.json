@@ -1,458 +1,458 @@
 [
  {
   "char":"A2ME",
-  "long":-12.9433010983,
+  "long":-7.7313623299,
   "long_paper":-11.3,
-  "short":17.6255232465,
+  "short":16.96953652,
   "short_paper":17.1,
-  "weight_agreement":0.9549166654
+  "weight_agreement":0.9721089705
  },
  {
   "char":"AOA",
-  "long":14.5896531127,
+  "long":15.9235679814,
   "long_paper":-8.3,
-  "short":32.3593780142,
+  "short":33.678589159,
   "short_paper":12.8,
-  "weight_agreement":0.0868434535
+  "weight_agreement":0.0949980801
  },
  {
   "char":"AT",
-  "long":-16.1480833998,
+  "long":-18.6174399517,
   "long_paper":-18.6,
-  "short":2.3991950333,
+  "short":3.0123091075,
   "short_paper":2.9,
-  "weight_agreement":0.9721531026
+  "weight_agreement":0.988182224
  },
  {
   "char":"ATO",
-  "long":-1.3282908567,
+  "long":8.141543808,
   "long_paper":9.0,
-  "short":1.5091981901,
+  "short":4.6602143078,
   "short_paper":4.5,
-  "weight_agreement":0.7794197813
+  "weight_agreement":0.9740759638
  },
  {
   "char":"BEME",
-  "long":-36.3534085552,
+  "long":-32.8554964082,
   "long_paper":-34.1,
-  "short":19.2354734556,
+  "short":18.7977248356,
   "short_paper":19.5,
-  "weight_agreement":0.9675155028
+  "weight_agreement":0.9774826653
  },
  {
   "char":"BETA_d",
-  "long":-23.0301822961,
+  "long":-21.2529940126,
   "long_paper":-21.3,
-  "short":10.7033392147,
+  "short":10.4320306947,
   "short_paper":10.6,
-  "weight_agreement":0.9396824401
+  "weight_agreement":0.951533714
  },
  {
   "char":"C2A",
-  "long":-18.3505439573,
+  "long":-17.4556841388,
   "long_paper":-17.4,
-  "short":8.9355260478,
+  "short":9.3030798896,
   "short_paper":9.5,
-  "weight_agreement":0.9272403059
+  "weight_agreement":0.9630303741
  },
  {
   "char":"C2D",
-  "long":11.0855521835,
+  "long":11.0176009299,
   "long_paper":11.5,
-  "short":-3.2632226499,
+  "short":-2.5333011358,
   "short_paper":-0.5,
-  "weight_agreement":0.9464460377
+  "weight_agreement":0.9586521002
  },
  {
   "char":"CAT",
-  "long":-3.1446996187,
+  "long":-3.4729657557,
   "long_paper":-4.7,
-  "short":3.1932038477,
+  "short":7.3773584216,
   "short_paper":7.7,
-  "weight_agreement":0.8844952222
+  "weight_agreement":0.9770791901
  },
  {
   "char":"D2P",
-  "long":-8.3346360757,
+  "long":-4.4269000464,
   "long_paper":-4.9,
-  "short":18.1319208839,
+  "short":16.6428186167,
   "short_paper":17.0,
-  "weight_agreement":0.9440728582
+  "weight_agreement":0.9638618215
  },
  {
   "char":"DP",
-  "long":-30.8311987391,
+  "long":-28.0110665286,
   "long_paper":-29.4,
-  "short":1.1359048567,
+  "short":-0.0859861151,
   "short_paper":3.3,
-  "weight_agreement":0.821844131
+  "weight_agreement":0.841033523
  },
  {
   "char":"DTO",
-  "long":-3.9367052319,
+  "long":-4.2301407302,
   "long_paper":-5.6,
-  "short":-1.1849347075,
+  "short":-1.0873886508,
   "short_paper":0.7,
-  "weight_agreement":0.3667610355
+  "weight_agreement":0.362656019
  },
  {
   "char":"E2P",
-  "long":-25.1257199923,
+  "long":-21.19951865,
   "long_paper":-24.2,
-  "short":7.9674498767,
+  "short":5.6863256021,
   "short_paper":6.1,
-  "weight_agreement":0.9679812548
+  "weight_agreement":0.9776357968
  },
  {
   "char":"EPS",
-  "long":-6.4768309535,
+  "long":-5.1821717369,
   "long_paper":-6.0,
-  "short":-8.9724270691,
+  "short":-11.9839942575,
   "short_paper":-8.1,
-  "weight_agreement":0.9490423038
+  "weight_agreement":0.9770901945
  },
  {
   "char":"I2A",
-  "long":-13.4340870097,
+  "long":-13.3903300836,
   "long_paper":-13.4,
-  "short":5.6384325092,
+  "short":5.3042050629,
   "short_paper":6.6,
-  "weight_agreement":0.9460381537
+  "weight_agreement":0.9707084105
  },
  {
   "char":"IDIOV",
-  "long":-6.5651641227,
+  "long":-1.7068883173,
   "long_paper":-1.5,
-  "short":-6.803544221,
+  "short":-8.6929506119,
   "short_paper":-7.7,
-  "weight_agreement":0.9328469295
+  "weight_agreement":0.9554211398
  },
  {
   "char":"IPM",
-  "long":14.0141299368,
+  "long":12.9153186575,
   "long_paper":13.7,
-  "short":-15.9185000458,
+  "short":-17.228474334,
   "short_paper":-15.8,
-  "weight_agreement":0.8886786541
+  "weight_agreement":0.9618474483
  },
  {
   "char":"IVC",
-  "long":-14.512713456,
+  "long":-17.1752080609,
   "long_paper":-16.2,
-  "short":-5.7232479142,
+  "short":-5.8429687895,
   "short_paper":-6.1,
-  "weight_agreement":0.9227609619
+  "weight_agreement":0.9697429986
  },
  {
   "char":"MAXRET",
-  "long":-13.908728282,
+  "long":-10.6204959377,
   "long_paper":-10.4,
-  "short":-4.7478478049,
+  "short":-6.7593467534,
   "short_paper":-5.6,
-  "weight_agreement":0.962798046
+  "weight_agreement":0.9837201201
  },
  {
   "char":"NOA",
-  "long":7.0546725586,
+  "long":6.8793943301,
   "long_paper":8.0,
-  "short":8.1824058006,
+  "short":8.5393959877,
   "short_paper":8.8,
-  "weight_agreement":0.916710777
+  "weight_agreement":0.9669451958
  },
  {
   "char":"OA",
-  "long":28.2414196913,
+  "long":30.651188819,
   "long_paper":-11.7,
-  "short":14.3755437342,
+  "short":16.2465274922,
   "short_paper":13.9,
-  "weight_agreement":0.0688546972
+  "weight_agreement":0.0803023117
  },
  {
   "char":"OL",
-  "long":-11.0164885081,
+  "long":-10.4503808458,
   "long_paper":-11.8,
-  "short":6.0270136264,
+  "short":7.5363820674,
   "short_paper":7.7,
-  "weight_agreement":0.8540023528
+  "weight_agreement":0.9585474511
  },
  {
   "char":"PCM",
-  "long":5.6525546084,
+  "long":5.7598715918,
   "long_paper":6.2,
-  "short":-20.4505653826,
+  "short":-20.3682506824,
   "short_paper":-18.8,
-  "weight_agreement":0.9305356859
+  "weight_agreement":0.9769093483
  },
  {
   "char":"PM",
-  "long":9.6617201369,
+  "long":11.0921680357,
   "long_paper":11.7,
-  "short":-16.3741248322,
+  "short":-17.1280359836,
   "short_paper":-15.6,
-  "weight_agreement":0.8235471948
+  "weight_agreement":0.972952601
  },
  {
   "char":"PROF",
-  "long":0.0988300654,
+  "long":0.8668149029,
   "long_paper":1.4,
-  "short":-14.9402550825,
+  "short":-12.7890278896,
   "short_paper":-12.5,
-  "weight_agreement":0.8715246394
+  "weight_agreement":0.9779831002
  },
  {
   "char":"Q",
-  "long":-35.7264600598,
+  "long":-30.8867289539,
   "long_paper":-31.8,
-  "short":17.7804397767,
+  "short":17.0907978232,
   "short_paper":17.3,
-  "weight_agreement":0.9602475848
+  "weight_agreement":0.9778842607
  },
  {
   "char":"RETVOL",
-  "long":-15.9566002965,
+  "long":-11.1420262249,
   "long_paper":-11.0,
-  "short":-0.8562852575,
+  "short":-2.919362217,
   "short_paper":-2.6,
-  "weight_agreement":0.9626504259
+  "weight_agreement":0.9884187519
  },
  {
   "char":"RNA",
-  "long":-2.5232354785,
+  "long":-3.1023949181,
   "long_paper":-3.7,
-  "short":12.6506122901,
+  "short":11.8030362829,
   "short_paper":12.1,
-  "weight_agreement":0.7567458477
+  "weight_agreement":0.9780489377
  },
  {
   "char":"ROA",
-  "long":15.4053188937,
+  "long":14.7371210721,
   "long_paper":14.8,
-  "short":-10.0891490115,
+  "short":-11.0728637509,
   "short_paper":-11.6,
-  "weight_agreement":0.9395443632
+  "weight_agreement":0.9648732515
  },
  {
   "char":"ROC",
-  "long":-32.0225419306,
+  "long":-29.0510465746,
   "long_paper":-28.1,
-  "short":16.4103280452,
+  "short":15.6409793024,
   "short_paper":15.4,
-  "weight_agreement":0.965308457
+  "weight_agreement":0.9723002985
  },
  {
   "char":"ROE",
-  "long":10.1149359542,
+  "long":9.5886358881,
   "long_paper":10.0,
-  "short":-16.2763084474,
+  "short":-18.1868857632,
   "short_paper":-15.5,
-  "weight_agreement":0.9490919175
+  "weight_agreement":0.9720235986
  },
  {
   "char":"ROIC",
-  "long":11.0907427148,
+  "long":10.6733389855,
   "long_paper":10.6,
-  "short":-17.7962720168,
+  "short":-18.2318774466,
   "short_paper":-18.0,
-  "weight_agreement":0.9297793588
+  "weight_agreement":0.9641662648
  },
  {
   "char":"R_12_2",
-  "long":4.9983640435,
+  "long":4.9650417055,
   "long_paper":4.8,
-  "short":-18.9323524531,
+  "short":-20.2142190367,
   "short_paper":-20.5,
-  "weight_agreement":0.9727526023
+  "weight_agreement":0.978805775
  },
  {
   "char":"R_12_7",
-  "long":5.1616650249,
+  "long":4.7668893784,
   "long_paper":4.9,
-  "short":-18.4433579558,
+  "short":-19.4297392661,
   "short_paper":-19.0,
-  "weight_agreement":0.9681266844
+  "weight_agreement":0.9835149254
  },
  {
   "char":"R_2_1",
-  "long":-7.6364152653,
+  "long":-8.0507571504,
   "long_paper":-7.7,
-  "short":-1.2967173672,
+  "short":-1.5496210845,
   "short_paper":-1.1,
-  "weight_agreement":0.9697534138
+  "weight_agreement":0.9862352285
  },
  {
   "char":"R_36_13",
-  "long":-26.7514450354,
+  "long":-27.7544723241,
   "long_paper":-26.8,
-  "short":18.1281425834,
+  "short":18.504848752,
   "short_paper":18.9,
-  "weight_agreement":0.9754282083
+  "weight_agreement":0.9883682468
  },
  {
   "char":"R_6_2",
-  "long":0.7379410961,
+  "long":0.9825706423,
   "long_paper":1.0,
-  "short":-13.7061520284,
+  "short":-14.5146924685,
   "short_paper":-13.6,
-  "weight_agreement":0.9693734133
+  "weight_agreement":0.9778681347
  },
  {
   "char":"S2C",
-  "long":-17.606292363,
+  "long":-17.3528543457,
   "long_paper":-17.5,
-  "short":3.8089960859,
+  "short":3.8760132212,
   "short_paper":4.8,
-  "weight_agreement":0.9072860014
+  "weight_agreement":0.9675310631
  },
  {
   "char":"S2P",
-  "long":-27.1344946542,
+  "long":-27.7943232788,
   "long_paper":-32.8,
-  "short":20.5226787257,
+  "short":18.2757097046,
   "short_paper":18.9,
-  "weight_agreement":0.926604053
+  "weight_agreement":0.9791807013
  },
  {
   "char":"SAT",
-  "long":-8.834806069,
+  "long":-8.5451094737,
   "long_paper":-10.2,
-  "short":4.8747334371,
+  "short":8.4999366511,
   "short_paper":8.7,
-  "weight_agreement":0.8981047976
+  "weight_agreement":0.9706919506
  },
  {
   "char":"SG",
-  "long":-14.1141498491,
+  "long":-14.3805607227,
   "long_paper":-14.5,
-  "short":4.2488944264,
+  "short":3.5843499629,
   "short_paper":4.4,
-  "weight_agreement":0.9367508184
+  "weight_agreement":0.9626688386
  },
  {
   "char":"SIZE",
-  "long":-37.8605024373,
+  "long":-38.5106197614,
   "long_paper":-38.6,
-  "short":7.0038589741,
+  "short":7.0927984174,
   "short_paper":7.3,
-  "weight_agreement":0.9922434364
+  "weight_agreement":0.9966469773
  },
  {
   "char":"SPREAD",
-  "long":-21.8579526595,
+  "long":-14.8768546725,
   "long_paper":-13.4,
-  "short":3.1811177215,
+  "short":2.0817064544,
   "short_paper":-0.3,
-  "weight_agreement":0.935436821
+  "weight_agreement":0.9641312848
  },
  {
   "char":"SUV",
-  "long":-1.0588361128,
+  "long":-1.0379292453,
   "long_paper":-4.8,
-  "short":-3.3268054057,
+  "short":-2.9731898653,
   "short_paper":0.3,
-  "weight_agreement":0.079533101
+  "weight_agreement":0.072531064
  },
  {
   "char":"TAN",
-  "long":12.4498982122,
+  "long":12.54948586,
   "long_paper":13.9,
-  "short":-5.9794326357,
+  "short":-6.1752744112,
   "short_paper":-4.8,
-  "weight_agreement":0.9549533032
+  "weight_agreement":0.9775572261
  },
  {
   "char":"TNOVR",
-  "long":-14.8843191896,
+  "long":-3.1528791744,
   "long_paper":-3.4,
-  "short":6.9416820387,
+  "short":7.7770686331,
   "short_paper":6.1,
-  "weight_agreement":0.7072175767
+  "weight_agreement":0.7895988422
  },
  {
   "char":"aBEME",
-  "long":-41.3509300996,
+  "long":-38.8071148828,
   "long_paper":-38.0,
-  "short":11.3927572157,
+  "short":8.2231718354,
   "short_paper":15.8,
-  "weight_agreement":0.5086140294
+  "weight_agreement":0.5099927738
  },
  {
   "char":"aPM",
-  "long":-13.1390269012,
+  "long":-13.1786099438,
   "long_paper":-14.8,
-  "short":13.4383925221,
+  "short":11.6806496995,
   "short_paper":10.6,
-  "weight_agreement":0.2980889613
+  "weight_agreement":0.2842906593
  },
  {
   "char":"aSAT",
-  "long":-13.9523587375,
+  "long":-14.1073030069,
   "long_paper":-10.6,
-  "short":1.5376621775,
+  "short":3.5443954563,
   "short_paper":0.5,
-  "weight_agreement":0.442419112
+  "weight_agreement":0.4472366242
  },
  {
   "char":"aSIZE",
-  "long":-28.4037429333,
+  "long":-29.9895503754,
   "long_paper":-15.3,
-  "short":7.2820130826,
+  "short":7.4053800364,
   "short_paper":7.2,
-  "weight_agreement":0.8428982067
+  "weight_agreement":0.8558476293
  },
  {
   "char":"dCEQ",
-  "long":-11.7601872318,
+  "long":-11.5942863972,
   "long_paper":-8.8,
-  "short":11.5513221414,
+  "short":11.0949621601,
   "short_paper":12.6,
-  "weight_agreement":0.9354356196
+  "weight_agreement":0.9509129859
  },
  {
   "char":"dGS",
-  "long":-10.7102771762,
+  "long":-11.0903210817,
   "long_paper":-10.4,
-  "short":-0.2364054416,
+  "short":-0.6516007394,
   "short_paper":-0.4,
-  "weight_agreement":0.9463251941
+  "weight_agreement":0.966023235
  },
  {
   "char":"dPIA",
-  "long":-22.2352376176,
+  "long":-18.8731901963,
   "long_paper":-19.1,
-  "short":3.675147287,
+  "short":4.432397786,
   "short_paper":5.3,
-  "weight_agreement":0.7765453487
+  "weight_agreement":0.9433341651
  },
  {
   "char":"dSO",
-  "long":-26.5176648099,
+  "long":-26.6979381712,
   "long_paper":-26.3,
-  "short":7.2900426724,
+  "short":7.4742865475,
   "short_paper":8.0,
-  "weight_agreement":0.921578537
+  "weight_agreement":0.9657115092
  },
  {
   "char":"dSOUT",
-  "long":-21.5793538669,
+  "long":-28.4331033363,
   "long_paper":-27.9,
-  "short":9.5718171039,
+  "short":10.0185536851,
   "short_paper":10.7,
-  "weight_agreement":0.8832336693
+  "weight_agreement":0.9924271348
  },
  {
   "char":"sdDVOL",
-  "long":-32.3596383678,
+  "long":-28.7785595073,
   "long_paper":-23.5,
-  "short":5.1876705419,
+  "short":4.9190830328,
   "short_paper":5.0,
-  "weight_agreement":0.8739038697
+  "weight_agreement":0.8961573588
  },
  {
   "char":"sdTURN",
-  "long":-1.3460505332,
+  "long":1.3275272162,
   "long_paper":1.3,
-  "short":-1.6501020577,
+  "short":-2.5555684562,
   "short_paper":-2.5,
-  "weight_agreement":0.9588196442
+  "weight_agreement":0.9909739425
  }
 ]

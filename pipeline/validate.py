@@ -97,10 +97,9 @@ def panel():
     factors = pd.read_parquet(CACHE / "ff_monthly.parquet")
     factors["month"] = factors["date"].dt.year * 100 + factors["date"].dt.month
 
+    from pwsite.panel import ordinary_common
     universe = full[
-        (full.sharetype == "NS") & (full.securitytype == "EQTY")
-        & full.primaryexch.isin(["N", "A", "Q", "R"])
-        & (full.month >= 196001) & (full.month <= 201712)
+        ordinary_common(full) & (full.month >= 196001) & (full.month <= 201712)
     ]
     months = np.array(sorted(universe.month.unique()))
     permnos = np.array(sorted(universe.permno.unique()))

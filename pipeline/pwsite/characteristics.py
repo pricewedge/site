@@ -61,13 +61,18 @@ def crsp_monthly(db, start: str, end: str) -> pd.DataFrame:
     `mthprevcap` is the lagged market cap the sorts weight by, so neither has to
     be reconstructed here. `mthcumfacshr` is the cumulative share adjustment
     factor, which dSOUT needs to tell an issuance from a split.
+
+    `securitysubtype`, `usincflg` and `issuertype` are what the CIZ schema uses
+    in place of the old share codes, and the sample depends on them: see
+    `panel.ORDINARY_COMMON`.
     """
     frame = db.raw_sql(
         f"""
         select permno, permco, mthcaldt as date, mthret as ret, mthretx as retx,
                mthprc as prc, mthcap as cap, mthprevcap as prevcap,
                mthvol as vol, mthcumfacshr as facshr,
-               shrout, primaryexch, sharetype, securitytype, siccd
+               shrout, primaryexch, sharetype, securitytype, securitysubtype,
+               usincflg, issuertype, siccd
         from crsp.msf_v2
         where mthcaldt between '{start}' and '{end}'
         """,

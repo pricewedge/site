@@ -108,7 +108,8 @@ def main() -> int:
     # enter a sort -- moves the benchmark and agrees with the published decile
     # weights markedly worse (0.10 against 0.51 for aBEME).
     panel["ff48"] = ff48(panel["siccd"])
-    ordinary = (panel["sharetype"] == "NS") & (panel["securitytype"] == "EQTY")
+    from pwsite.panel import ordinary_common
+    ordinary = ordinary_common(panel)
     for name, source in INDUSTRY_ADJUSTED.items():
         group = panel[source].where(ordinary).groupby([panel["month"], panel["ff48"]])
         panel[name] = panel[source].where(ordinary) - group.transform("mean")
