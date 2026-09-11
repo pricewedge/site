@@ -68,15 +68,35 @@ restating them for splits — the more coherent calculation agrees *worse*.
 
 ## What is still wrong
 
-**OA and AOA (0.07, 0.09).** Operating accruals. Roughly twenty definitions
-were tried — the literal reading of Appendix Table A.1, Sloan's grouping of the
-current-liability terms, the change in net operating assets, with and without
-depreciation, scaled by lagged, current and average total assets, by sales and
-by absolute earnings — and none reaches 0.6. The published series is genuine
-(it is distinct from every other slot and correlates most with the investment
-characteristics, as accruals should), so something specific about its
-construction is still missing. The resulting wedge is wrong by 40 percentage
-points on the long leg, so these two should not be published until resolved.
+**OA and AOA (0.07, 0.09).** Operating accruals, and the worst gap here. Two
+independent lines of attack narrowed it without closing it.
+
+Roughly twenty hand-built definitions were tried — the literal reading of
+Appendix Table A.1, Sloan's grouping of the current-liability terms, the change
+in net operating assets, with and without depreciation, scaled by lagged,
+current and average total assets, by sales and by absolute earnings. None
+reaches 0.6. Outliers are not the cause: winsorising monthly at 1/99, or
+discarding every firm whose accruals exceed its assets, moves the agreement by
+less than 0.01.
+
+Jensen, Kelly and Pedersen's characteristic library, on WRDS as
+`contrib_global_factor.global_factor`, settles where the fault lies. Their
+`oaccruals_at` scores 0.28 against the same slot, and 0.68 on the long decile
+alone against 0.07 for the version here — and it reproduces that decile's share
+of market capitalisation almost exactly (5.48% against 5.30%, where this
+pipeline gives 11.52%). So the construction here is wrong, not merely different
+from the package's.
+
+What their measure does differently is take accruals from the cash flow
+statement, as net income less cash flow from operations, rather than from the
+balance sheet. Building that directly from `ni` and `oancf` reproduces their
+long-decile agreement (0.69 to 0.76) but not their level or their middle
+deciles, so their screens are doing work beyond the formula.
+
+That leaves OA and AOA improvable but still far below the bar, and they should
+not be published. The cheapest route to a usable version is to take
+`oaccruals_at` from the JKP library outright rather than to keep guessing at
+the formula.
 
 **SUV (0.08).** Standardised unexplained volume. Estimating the
 volume-on-returns regression on the previous month and applying it to the
@@ -87,6 +107,10 @@ out right while the month-to-month variation does not.
 of any month, so it cannot be recovered from the server-side aggregation the
 rest of the daily characteristics use; it is approximated from a rolling window
 of monthly means, and the approximation is the likely cause.
+
+One thing the JKP library does corroborate: it carries `ivol_ff3_21d`, a
+three-factor idiosyncratic volatility over 21 days, which is the monthly window
+this pipeline uses for IDIOV and not the twelve-month one BETA_d needs.
 
 **aPM, aSAT, aBEME, aSIZE (0.30–0.84).** The industry adjustment. Neither
 Compustat's historical SIC, nor two-digit SIC, nor a median in place of a mean,
