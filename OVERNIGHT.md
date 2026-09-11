@@ -586,3 +586,92 @@ Running it properly nested, choosing the penalty inside each fold using only
 the other 56 characteristics, gives **0.686 against the 0.691 quoted**. The
 difference is negligible because the choice is stable: 100 is selected in 56 of
 the 57 folds. `nested_cv.py` and `timesplit_test.py` reproduce both.
+
+
+# Harder out-of-sample tests: a whole family, and a longer time split
+
+## (1) Leaving out a whole family of anomalies
+
+Leaving out BEME while assets-to-market, earnings-to-price and sales-to-price
+stay in the training set is too easy -- the neighbours carry the prediction.
+Leaving out the entire value family is the honest version. Freyberger, Neuhierl
+and Weber's six categories give six folds of 40 to 170 portfolios each.
+
+| test | | 3 PCs | 10 PCs | direct, penalised |
+|---|---|---|---|---|
+| leave one characteristic out | R² | 0.513 | 0.667 | **0.686** |
+| | slope | 0.951 | 0.934 | **0.974** |
+| leave one **family** out | R² | 0.411 | 0.515 | **0.559** |
+| | slope | 0.740 | 0.800 | **0.923** |
+| extremes held out (fit on deciles 2-9) | R² | 0.650 | 0.736 | **0.737** |
+| | slope | 0.963 | 0.881 | 0.901 |
+
+The family test is harder for every mapping, as it should be. What matters is
+that **the gap widens rather than closes**: 0.559 against 0.411, and the
+calibration separates sharply. Three principal components, asked to price a
+family of anomalies they have never seen, come back with a slope of 0.740 --
+they overstate the magnitude of an unfamiliar anomaly's wedge by a third. The
+penalised direct regression holds at 0.923.
+
+Holding out the extreme deciles is the test that speaks to the firm-level
+problem, since that is where the extrapolation goes. All three mappings survive
+it better than expected, and the two flexible ones are indistinguishable.
+
+## (3) A longer time split -- and a correction
+
+Extending to CRSP through 2025 moves the last formable cohort from December
+2002 to January 2011 and the test period from 19 years to as much as 41, which
+is the split Christian asked for. Running it turned up a mistake in what was
+reported earlier.
+
+**A time split of price wedges must recalibrate the market price of risk inside
+each subsample.** The price of risk is defined as whatever makes the market's
+own wedge zero. Fit it once on the whole sample and then split, and each half
+inherits a market wedge that is not zero: the early cohorts came out at -37
+percentage points on average and the late ones at +33, a seventy-point flip
+that is nothing but the difference between realised market returns before and
+after the cut. Every mapping then looks catastrophically miscalibrated, with
+slopes of 2.4 to 2.9, which is what the earlier run reported. That was an
+artifact.
+
+Re-solving the price of risk within each half -- 3.9 to 4.9 on the training
+cohorts against 2.4 to 2.9 on the test cohorts, a real and large difference
+between eras -- the level problem disappears and the numbers become
+interpretable:
+
+| split | train / test cohorts | mapping | R² | slope | RMSE |
+|---|---|---|---|---|---|
+| 1985 | 246 / 313 | 3 PCs | 0.085 | 0.391 | 10.2 pp |
+| | | 10 PCs | 0.165 | 0.456 | 9.9 pp |
+| | | direct | **0.176** | 0.511 | 9.8 pp |
+| 1990 | 306 / 253 | 3 PCs | 0.157 | 0.709 | 11.3 pp |
+| | | 10 PCs | **0.259** | 0.745 | 10.0 pp |
+| | | direct | 0.249 | 0.767 | 11.0 pp |
+| 1995 | 366 / 193 | 3 PCs | 0.183 | 1.068 | 13.9 pp |
+| | | 10 PCs | **0.265** | 1.038 | 12.4 pp |
+| | | direct | 0.216 | 0.960 | 13.4 pp |
+| 1998 | 411 / 148 | 3 PCs | 0.164 | 1.075 | 15.0 pp |
+| | | 10 PCs | **0.255** | 1.104 | 13.2 pp |
+| | | direct | 0.244 | 1.142 | 13.8 pp |
+
+Root mean squared error falls from 37-77 points to 10-15 once the price of risk
+is handled properly, and the slopes sit between 0.4 and 1.14 rather than near
+2.7.
+
+Two conclusions, and they are not the same conclusion:
+
+**Across anomalies the mapping generalises well and the direct regression is
+best.** R² of 0.56 to 0.69, calibrated, and it beats three principal components
+by a widening margin as the test gets harder.
+
+**Across time every mapping generalises weakly.** R² of 0.09 to 0.27 regardless
+of which one, against 0.51 to 0.69 on the characteristic dimension. Ten
+principal components edge out the direct regression at three of the four cuts.
+Whatever maps characteristics to wedges is not stable across eras, and that is
+a statement about the phenomenon rather than about the estimator -- the price
+of risk itself moves from roughly 4.5 to roughly 2.7 between halves.
+
+The practical implication for the website is the same either way: a firm-level
+wedge is a cross-sectional statement about where a firm sits today relative to
+other firms, and should not be read as a forecast that the same mapping will
+hold in ten years.
