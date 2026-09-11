@@ -39,6 +39,27 @@ from pwsite.wrds_source import CACHE
 MARKET = DECILES          # index of the whole-universe portfolio
 
 
+def long_short_alpha(ybh: np.ndarray, rm: np.ndarray, rf: np.ndarray,
+                     offset: int) -> float:
+    """One-month CAPM alpha of decile 1 minus decile 10, after formation.
+
+    The paper signs each characteristic so that this is positive, and reads the
+    first decile as the long leg thereafter. Taking the sign from our own
+    returns rather than from the package's stored `alpha1` is what makes the
+    pipeline self-contained -- and it is the only way to sign a characteristic
+    on a sample the package never saw.
+    """
+    first = ybh[offset:, :, 0]
+    spread = first[:, 0] - first[:, DECILES - 1]
+    market = rm
+    ok = np.isfinite(spread) & np.isfinite(market)
+    if ok.sum() < 24:
+        return np.nan
+    x = np.column_stack([np.ones(ok.sum()), market[ok]])
+    beta, *_ = np.linalg.lstsq(x, spread[ok], rcond=None)
+    return float(beta[0])
+
+
 def buy_and_hold_path(tag: str, name: str) -> Path:
     return CACHE / "buyandhold" / tag / f"{name}.npz"
 
@@ -111,19 +132,26 @@ def main() -> int:
 
     rows = []
     for name in built:
-        ybh, ybhx = load_bh(args.tag, name)
-        ybh, ybhx = ybh[offset:], ybhx[offset:]
-        legs = {p: wedge(ybh, ybhx, p, mtj, cohorts, args.horizon) * 100
+        raw_ybh, raw_ybhx = load_bh(args.tag, name)
+        alpha = long_short_alpha(raw_ybh, rm, rf, offset)
+        ybh, ybhx = raw_ybh[offset:], raw_ybhx[offset:]
+        legs = {p: wedge(ybh, ybhx, p, mtj, cohorts, args.horizon, start_row=0) * 100
                 for p in range(DECILES + 1)}
+        # Decile 1 holds the highest characteristic values; flip when that is
+        # the negative-alpha leg, so "long" always means positive alpha.
+        order = list(range(DECILES))[::-1] if alpha < 0 else list(range(DECILES))
         rows.append({"char": name, "lambda": lam, "cohorts": cohorts,
-                     **{f"d{p+1}": legs[p] for p in range(DECILES)},
+                     "alpha_1m": alpha, "flipped": bool(alpha < 0),
+                     **{f"d{i+1}": legs[order[i]] for i in range(DECILES)},
+                     "long": legs[order[0]], "short": legs[order[DECILES - 1]],
                      "market": legs[MARKET],
-                     "long_short": legs[0] - legs[DECILES - 1]})
+                     "long_short": legs[order[0]] - legs[order[DECILES - 1]]})
     table = pd.DataFrame(rows)
     out = CACHE / f"portfolio_wedges_{args.tag}.csv"
     table.to_csv(out, index=False)
     print(f"\nwrote {out} ({len(table)} characteristics)")
-    print(table[["char", "d1", "d10", "long_short"]].head(12).to_string(index=False))
+    print(table[["char", "alpha_1m", "flipped", "long", "short",
+                 "long_short"]].head(12).to_string(index=False))
     return 0
 
 

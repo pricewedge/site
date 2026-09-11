@@ -42,9 +42,15 @@ def _stochastic_discount_factor(rep_iss: int) -> tuple[np.ndarray, int, int]:
     return m_cum * debias[None, :], n_cohorts, n_months
 
 
-def _cash_flows(ybh: np.ndarray, ybh_x: np.ndarray, portfolio: int, n_cohorts: int, j: int):
-    """Dividends and cumulative capital gains per $1 invested at formation."""
-    start = C.FIRST_FORMATION_ROW - 1
+def _cash_flows(ybh: np.ndarray, ybh_x: np.ndarray, portfolio: int, n_cohorts: int,
+                j: int, start_row: int | None = None):
+    """Dividends and cumulative capital gains per $1 invested at formation.
+
+    `start_row` is the row of the first formation month. It defaults to the
+    package's own layout, where the arrays span 1926 onward and formation
+    begins at row 458; a sort run on a different window passes its own.
+    """
+    start = C.FIRST_FORMATION_ROW - 1 if start_row is None else start_row
     total = ybh[start : start + n_cohorts, portfolio, : j + 1]
     capital = ybh_x[start : start + n_cohorts, portfolio, : j + 1]
 

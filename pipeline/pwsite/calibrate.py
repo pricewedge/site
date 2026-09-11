@@ -51,12 +51,17 @@ def discount_factor(rm: np.ndarray, rf: np.ndarray, lam: float,
 
 
 def wedge(ybh: np.ndarray, ybhx: np.ndarray, portfolio: int, mtj: np.ndarray,
-          n_cohorts: int, horizon: int, start: int = 0) -> float:
-    """Price wedge of one portfolio, in logs, given a discount factor."""
+          n_cohorts: int, horizon: int, start: int = 0,
+          start_row: int = 0) -> float:
+    """Price wedge of one portfolio, in logs, given a discount factor.
+
+    `start_row` is the row of the first formation month within `ybh`; zero when
+    the array has already been trimmed to begin there.
+    """
     from .portfolio import _cash_flows, _wedge_at_horizon
 
     j = horizon - 1
-    dividends, gain = _cash_flows(ybh, ybhx, portfolio, n_cohorts, j)
+    dividends, gain = _cash_flows(ybh, ybhx, portfolio, n_cohorts, j, start_row)
     return float(_wedge_at_horizon(dividends, gain, mtj, j, start)[0])
 
 
@@ -70,7 +75,7 @@ def solve_lambda(ybh: np.ndarray, ybhx: np.ndarray, rm: np.ndarray, rf: np.ndarr
     """
     def residual(lam: float) -> float:
         mtj, n_cohorts = discount_factor(rm, rf, lam, horizon)
-        return wedge(ybh, ybhx, market, mtj, n_cohorts, horizon)
+        return wedge(ybh, ybhx, market, mtj, n_cohorts, horizon, start_row=0)
 
     low, high = bracket
     f_low, f_high = residual(low), residual(high)
