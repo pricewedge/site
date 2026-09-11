@@ -398,3 +398,43 @@ A natural way to have both: fit the penalised direct regression, and state the
 firm-level wedge together with the share of the firm's characteristics that lie
 inside the portfolio range, so a reader can see when a number is interpolated
 and when it is not.
+
+
+# Cross-check against Jensen, Kelly and Pedersen
+
+Their library on WRDS carries an independently built version of many of the
+same quantities, which gives a second opinion that owes nothing to the
+replication package. Comparing 39 pairs on Spearman rank correlation over 3.3
+million overlapping firm-months:
+
+**Nine agree essentially perfectly** -- SIZE, RETVOL, MAXRET, dSOUT, R_12_2,
+R_6_2 (1.000), R_2_1 (0.999), IDIOV (0.997), AT (0.994) -- and a further six
+above 0.95: S2P, A2ME, OL, D2P, BEME, TNOVR. These are independent confirmation
+that our constructions are right, and they include the two that were *changed*
+tonight on the package's evidence: dSOUT matches JKP exactly after the share-
+factor fix, and TNOVR reaches 0.94 after the three-month window.
+
+**OA and AOA fail here too** -- 0.22 and -0.05 against their `oaccruals_at`,
+the lowest of all 39. Three independent sources now agree that our accruals are
+wrong: the package's decile weights, JKP's own series, and the fact that JKP's
+series scores four times better against the package than ours does.
+
+**The rest of the low correlations are definitional choices rather than
+errors, and should not be read as red flags.** Where our construction is
+already verified above 0.85 against the package, a disagreement with JKP means
+the two libraries made different choices, not that ours is broken:
+
+* BETA_d (0.35) -- ours is a twelve-month Dimson beta, theirs a 21-day one. The
+  twelve-month window is what the package's decile weights require (0.94
+  against 0.35 at one month).
+* sdTURN (-0.11) and sdDVOL (0.74) -- ours are one month of daily data as
+  Appendix A.1 specifies, theirs 126-day. Ours verify at 0.96 and 0.87.
+* dSO (0.53) -- ours is Compustat share growth, theirs CRSP's. Ours verifies at
+  0.92.
+* Q against `at_me` (-0.85) -- these are near-reciprocal by construction, so a
+  strong negative correlation is the expected result.
+* PM against `ope_be` (0.60) -- not the same quantity; JKP carry no profit
+  margin in Soliman's sense.
+
+Median absolute agreement across the 39 is 0.83. Written to
+`raw/jkp_comparison.csv`.
