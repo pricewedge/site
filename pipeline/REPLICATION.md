@@ -66,6 +66,56 @@ industry mean behind aBEME, aPM, aSAT and aSIZE is equal-weighted over ordinary
 common shares only, and DP sums twelve monthly dividends per share without
 restating them for splits — the more coherent calculation agrees *worse*.
 
+## Which definition is authoritative
+
+Three documents describe these 57 characteristics, and they are not the same
+document.
+
+1. **Freyberger, Neuhierl and Weber's appendix** (NBER w23227) is the origin.
+   It is the longest and most precise of the three.
+2. **Appendix Table A.1** of this paper condenses FNW, and loses detail doing
+   it — ROIC's invested capital becomes a sum where it should be a difference,
+   momentum's timing goes unstated, SPREAD's data source goes unstated.
+3. **The code that produced the published numbers**, which the package could
+   not ship. This is the one that matters, and it agrees with neither of the
+   other two everywhere.
+
+The paper's own supplementary material carries a citation column naming each
+characteristic's source paper, which `spec/characteristics.json` now records
+alongside FNW's wording. Five of the weaker characteristics — PM, ATO, RNA and
+the industry-adjusted aPM and aSAT — all trace to Soliman (2008); OA to Sloan
+(1996); SUV and DTO to Garfinkel (2009).
+
+Two places where the published numbers demonstrably follow neither text:
+
+**Market equity is contemporaneous, not December of the prior year.** FNW state
+December t-1 explicitly for A2ME, E2P and BEME, and "as of December" for S2P.
+The decile weights say otherwise for every market-value ratio, and not
+marginally:
+
+| | contemporaneous | December t-1 |
+|---|---|---|
+| A2ME | 0.954 | 0.702 |
+| S2P | 0.927 | 0.718 |
+| E2P | 0.967 | 0.688 |
+| D2P | 0.944 | 0.714 |
+| Q | 0.960 | 0.613 |
+| SIZE | 0.992 | 0.969 |
+
+**SPREAD is the high-low range though FNW cite Chung and Zhang (2014)**, whose
+estimator is the quoted bid-ask spread. Built from quotes it agrees at 0.02;
+built from the range, 0.94. CRSP's quote coverage before 2000 makes the quoted
+version impossible to compute over this sample, so the range is presumably what
+was used, but the citation says otherwise and that tension is unresolved.
+
+Two readings suggested by the source papers were tested and **rejected**.
+Chordia, Subrahmanyam and Anshuman (2001) measure trading activity by
+coefficients of variation rather than standard deviations; using theirs makes
+sdDVOL worse (0.52 against 0.88) and sdTURN far worse (0.004 against 0.96).
+Garfinkel (2009) estimates SUV's regression over a benchmark window rather than
+within the month; no window from one month to twenty-four improves on the
+current 0.08.
+
 ## What is still wrong
 
 **OA and AOA (0.07, 0.09).** Operating accruals, and the worst gap here. Two

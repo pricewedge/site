@@ -1,561 +1,747 @@
 {
-  "n": 57,
-  "characteristics": [
-    {
-      "id": "A2ME",
-      "group": "value",
-      "source": "bhandari1988",
-      "fields": [
-        "at"
-      ],
-      "definition": "Total assets (at) over market capitalization (prc x shrout)"
-    },
-    {
-      "id": "AT",
-      "group": "trading frictions",
-      "source": "gandhi2015",
-      "fields": [
-        "at"
-      ],
-      "definition": "Total assets (at)"
-    },
-    {
-      "id": "ATO",
-      "group": "profitability",
-      "source": "soliman2008",
-      "fields": [
-        "at",
-        "ceq",
-        "che",
-        "dlc",
-        "dltt",
-        "ivao",
-        "mib",
-        "pstk",
-        "sales"
-      ],
-      "definition": "Net sales (sales) over lagged net operating assets. Net operating assets is the difference between operating assets and operating liabilities. Operating Assets is total assets (at) minus cash and short-term investments (che) minus investments and other advances (ivao). Operating Liabilities is total assets (at) minus debt in current liabilities (dlc) minus long-debt debt (dltt) minus minority interest (mib) minus preferred stock (pstk) minus common equity (ceq)."
-    },
-    {
-      "id": "BEME",
-      "group": "value",
-      "source": "davis2000",
-      "fields": [
-        "at",
-        "ceq",
-        "lt",
-        "prc",
-        "pstk",
-        "pstkl",
-        "pstrkrv",
-        "seq",
-        "shrout",
-        "txditc"
-      ],
-      "definition": "Book equity to market equity. Book equity is shareholders' equity (seq), (if missing, common equity (ceq) plus preferred stock (pstk), if missing, total assets (at) minus total liabilities (lt)), plus deferred taxes and investment tax credit (txditc) minus preferred stock (pstrkrv), (if missing, liquidation value, (pstkl), if missing par value (pstk)). Market value of equity is shares outstanding (shrout) times price (prc)."
-    },
-    {
-      "id": "aBEME",
-      "group": "value",
-      "source": "asness2000",
-      "fields": [],
-      "definition": "BEME minus average industry BEME. Industry level is defined as the Fama-French 48 industries."
-    },
-    {
-      "id": "C2A",
-      "group": "value",
-      "source": "palazzo2012",
-      "fields": [
-        "at",
-        "che"
-      ],
-      "definition": "Cash and short-term investments (che) to total assets (at)."
-    },
-    {
-      "id": "C2D",
-      "group": "value",
-      "source": "ou1989",
-      "fields": [
-        "dp",
-        "ib",
-        "lt"
-      ],
-      "definition": "Cashflow to debt. Cashflow is the sum of income and extraordinary items (ib) and depreciation and amortization (dp). And debt is to total liabilities (lt)."
-    },
-    {
-      "id": "CAT",
-      "group": "profitability",
-      "source": "haugen1996",
-      "fields": [
-        "at",
-        "sale"
-      ],
-      "definition": "Sales (sale) to lagged total assets (at)."
-    },
-    {
-      "id": "D2P",
-      "group": "value",
-      "source": "litzenberger1979",
-      "fields": [
-        "dlc",
-        "dltt",
-        "prc",
-        "shrout"
-      ],
-      "definition": "Debt to price. Debt is long-term debt (dltt) plus debt in current liabilities (dlc). Market capitalization is the product of shares outstanding (shrout) and price (prc)."
-    },
-    {
-      "id": "dCEQ",
-      "group": "investment",
-      "source": "richardson2005",
-      "fields": [
-        "ceq"
-      ],
-      "definition": "Annual % change in book value of equity (ceq)."
-    },
-    {
-      "id": "dGS",
-      "group": "profitability",
-      "source": "abarbanell1997",
-      "fields": [
-        "cogs",
-        "sale"
-      ],
-      "definition": "% change in gross margin minus % change in sales (sale). Gross margin is the difference in sales (sale) and cost of goods sold (cogs)."
-    },
-    {
-      "id": "dSO",
-      "group": "value",
-      "source": "fama2008",
-      "fields": [
-        "ajex",
-        "csho"
-      ],
-      "definition": "Log change in the product of shares outstanding (csho) and the adjustment factor (ajex)."
-    },
-    {
-      "id": "dSOUT",
-      "group": "investment",
-      "source": "pontiff2008",
-      "fields": [
-        "shrout"
-      ],
-      "definition": "Annual % change in shares outstanding (shrout)."
-    },
-    {
-      "id": "dPIA",
-      "group": "investment",
-      "source": "lyandres2008",
-      "fields": [
-        "at",
-        "invt",
-        "ppegt"
-      ],
-      "definition": "Change in property, plants and equipment (ppegt) and inventory (invt) over lagged total assets (at)."
-    },
-    {
-      "id": "DTO",
-      "group": "trading frictions",
-      "source": "garfinkel2009",
-      "fields": [
-        "shrout",
-        "vol"
-      ],
-      "definition": "Daily volume (vol) to shares outstanding (shrout) minus the daily market turnover and detrended by the 180 trading day median. To address the double counting of volume for NASDAQ securities, we follow and scale down the volume of NASDAQ securities by 50% before and by 38% after 1997."
-    },
-    {
-      "id": "E2P",
-      "group": "value",
-      "source": "basu1983",
-      "fields": [
-        "ib"
-      ],
-      "definition": "Income before extraordinary items (ib) to market capitalization (prc x shrout)."
-    },
-    {
-      "id": "EPS",
-      "group": "profitability",
-      "source": "basu1977",
-      "fields": [
-        "ib",
-        "shrout"
-      ],
-      "definition": "Income before extraordinary items (ib) to shares outstanding (shrout)."
-    },
-    {
-      "id": "IDIOV",
-      "group": "trading frictions",
-      "source": "ang2006",
-      "fields": [],
-      "definition": "Standard deviation of the residuals from a regression of excess returns on the three-factor model."
-    },
-    {
-      "id": "I2A",
-      "group": "investment",
-      "source": "cooper2008",
-      "fields": [
-        "at"
-      ],
-      "definition": "Annual % change in total assets (at)."
-    },
-    {
-      "id": "IPM",
-      "group": "profitability",
-      "source": null,
-      "fields": [
-        "pi",
-        "sale"
-      ],
-      "definition": "Pre-tax income (pi) over sales (sale)."
-    },
-    {
-      "id": "IVC",
-      "group": "investment",
-      "source": "thomas2002",
-      "fields": [
-        "at",
-        "invt"
-      ],
-      "definition": "Annual change in inventories (invt) in the last two fiscal years over the average total assets (at) over the last two fiscal years."
-    },
-    {
-      "id": "DP",
-      "group": "value",
-      "source": "litzenberger1979",
-      "fields": [
-        "prc"
-      ],
-      "definition": "Sum of monthly dividend over the last 12 months to last month's price (prc)."
-    },
-    {
-      "id": "SIZE",
-      "group": "trading frictions",
-      "source": "fama1992",
-      "fields": [
-        "prc",
-        "shrout"
-      ],
-      "definition": "Price (prc) times shares outstanding (shrout) ."
-    },
-    {
-      "id": "aSIZE",
-      "group": "trading frictions",
-      "source": "asness2000",
-      "fields": [],
-      "definition": "SIZE minus average industry SIZE. Industry level is defined as the Fama-French 48 industries."
-    },
-    {
-      "id": "TNOVR",
-      "group": "trading frictions",
-      "source": "datar1998",
-      "fields": [
-        "shrout",
-        "vol"
-      ],
-      "definition": "Volume (vol) over shares outstanding (shrout)."
-    },
-    {
-      "id": "NOA",
-      "group": "investment",
-      "source": "hirshleifer2004",
-      "fields": [
-        "at",
-        "ceq",
-        "che",
-        "dlc",
-        "dltt",
-        "ivao",
-        "mib",
-        "pstk"
-      ],
-      "definition": "Operating assets minus operating liabilities to lagged total assets (at). Operating assets is total assets (at) minus cash and short term investments (che) minus investment and other advances (ivao). Operating liabilities is total assets (at) minus debt in current liabilities (dlc) minus long-term debt (dltt) minus minority interest (mib) minus preferred stock (pstk) minus common equity (ceq)."
-    },
-    {
-      "id": "OL",
-      "group": "intangibles",
-      "source": "novy2011",
-      "fields": [
-        "at",
-        "cogs",
-        "xsga"
-      ],
-      "definition": "Sum of cost of goods sold (cogs) and selling, general and administrative expense (xsga) over total assets (at)."
-    },
-    {
-      "id": "BETA_d",
-      "group": "trading frictions",
-      "source": "lewellen2006",
-      "fields": [],
-      "definition": "The sum of the regression coefficients of daily excess returns on market excess returns and the lag of market excess returns."
-    },
-    {
-      "id": "PCM",
-      "group": "profitability",
-      "source": "gorodnichenko2016",
-      "fields": [
-        "cogs",
-        "sale"
-      ],
-      "definition": "Net sales (sale) minus cost of goods sold (cogs) all scaled by net sales (sale)."
-    },
-    {
-      "id": "PM",
-      "group": "profitability",
-      "source": "soliman2008",
-      "fields": [
-        "oiadp",
-        "sale"
-      ],
-      "definition": "Operating Income after depreciation (oiadp) to sales (sale)."
-    },
-    {
-      "id": "aPM",
-      "group": "profitability",
-      "source": "soliman2008",
-      "fields": [],
-      "definition": "PM minus average industry PM. Industry level is defined as the Fama-French 48 industries."
-    },
-    {
-      "id": "PROF",
-      "group": "profitability",
-      "source": "ball2015",
-      "fields": [
-        "gp"
-      ],
-      "definition": "Gross profitability (gp) over book equity as defined in BEME."
-    },
-    {
-      "id": "Q",
-      "group": "value",
-      "source": null,
-      "fields": [
-        "at",
-        "ceq",
-        "txdb"
-      ],
-      "definition": "Total assets (at) plus market value of equity (shrout x prc) minus book value of equity (ceq) minus deferred taxes (txdb) scaled by total assets (at)."
-    },
-    {
-      "id": "MAXRET",
-      "group": "trading frictions",
-      "source": "bali2011",
-      "fields": [],
-      "definition": "Maximum daily return in the previous month."
-    },
-    {
-      "id": "RNA",
-      "group": "profitability",
-      "source": "soliman2008",
-      "fields": [
-        "at",
-        "ceq",
-        "che",
-        "dlc",
-        "dltt",
-        "ivao",
-        "mib",
-        "oiadp",
-        "pstk"
-      ],
-      "definition": "Operating income after depreciation (oiadp) scaled by lagged net operating assets. Net operating assets is operating assets minus operating liabilities. Operating assets is total assets (at) minus cash and short term investments (che) minus investment and other advances (ivao). Operating liabilities is total assets (at) minus debt in current liabilities (dlc) minus long-term debt (dltt) minus minority interest (mib) minus preferred stock (pstk) minus common equity (ceq)."
-    },
-    {
-      "id": "ROA",
-      "group": "profitability",
-      "source": "balakrishnan2010",
-      "fields": [
-        "at",
-        "ib"
-      ],
-      "definition": "Income before extraordinary items (ib) to lagged total assets (at)."
-    },
-    {
-      "id": "ROC",
-      "group": "profitability",
-      "source": "chandrashekar2009",
-      "fields": [
-        "at",
-        "che",
-        "dltt"
-      ],
-      "definition": "Market value of equity (shrout x prc) plus long-term debt (dltt) minus total assets (at) all over cash and short-term investments (che)."
-    },
-    {
-      "id": "ROE",
-      "group": "profitability",
-      "source": "haugen1996",
-      "fields": [
-        "ib"
-      ],
-      "definition": "Income before extraordinary items (ib) to lagged book-value of equity."
-    },
-    {
-      "id": "ROIC",
-      "group": "profitability",
-      "source": "brown2007",
-      "fields": [
-        "ceq",
-        "che",
-        "ebit",
-        "lt",
-        "nopi"
-      ],
-      "definition": "Earnings before interest and taxes (ebit) less non-operating income (nopi) to the sum of common equity (ceq), total liabilities (lt), and cash and short-term investments (che)."
-    },
-    {
-      "id": "R_12_2",
-      "group": "past returns",
-      "source": "fama1996",
-      "fields": [],
-      "definition": "Cumulative return from 12 months to 2 months ago."
-    },
-    {
-      "id": "R_12_7",
-      "group": "past returns",
-      "source": "novy2012",
-      "fields": [],
-      "definition": "Cumulative return from 12 months to 7 months ago."
-    },
-    {
-      "id": "R_6_2",
-      "group": "past returns",
-      "source": "jegadeesh1993",
-      "fields": [],
-      "definition": "Cumulative return from 6 months to 2 months ago."
-    },
-    {
-      "id": "R_2_1",
-      "group": "past returns",
-      "source": "jegadeesh1990",
-      "fields": [],
-      "definition": "Lagged one month return."
-    },
-    {
-      "id": "R_36_13",
-      "group": "past returns",
-      "source": "de1985",
-      "fields": [],
-      "definition": "Cumulative return from 36 months to 13 months ago."
-    },
-    {
-      "id": "S2C",
-      "group": "profitability",
-      "source": "ou1989",
-      "fields": [
-        "che",
-        "sale"
-      ],
-      "definition": "Net sales (sale) to cash and short-term investments (che)."
-    },
-    {
-      "id": "S2P",
-      "group": "value",
-      "source": "lewellen2015",
-      "fields": [
-        "sale"
-      ],
-      "definition": "Net sales (sale) to market capitalization (shrout x prc)."
-    },
-    {
-      "id": "SG",
-      "group": "value",
-      "source": "lakonishok1994",
-      "fields": [
-        "sale"
-      ],
-      "definition": "% growth rate in sales (sale)."
-    },
-    {
-      "id": "SAT",
-      "group": "profitability",
-      "source": "soliman2008",
-      "fields": [
-        "at",
-        "sale"
-      ],
-      "definition": "Sales (sale) to total assets (at)."
-    },
-    {
-      "id": "aSAT",
-      "group": "profitability",
-      "source": "soliman2008",
-      "fields": [],
-      "definition": "SAT minus average industry SAT. Industry level is defined as the Fama-French 48 industries."
-    },
-    {
-      "id": "SPREAD",
-      "group": "trading frictions",
-      "source": "chung2014",
-      "fields": [],
-      "definition": "Average daily bid-ask spread in the previous month."
-    },
-    {
-      "id": "sdTURN",
-      "group": "trading frictions",
-      "source": "chordia2001",
-      "fields": [
-        "shrout",
-        "vol"
-      ],
-      "definition": "Standard deviation of residuals from a regression of daily turnover on a constant. Turnover is volume (vol) times shares outstanding (shrout). Use one month of daily data requiring at-least 15 non-missing observations."
-    },
-    {
-      "id": "sdDVOL",
-      "group": "trading frictions",
-      "source": "chordia2001",
-      "fields": [
-        "vol"
-      ],
-      "definition": "Standard deviation of residuals from a regression of daily volume (vol) on a constant. Use one month of daily data requiring at-least 15 non-missing observations."
-    },
-    {
-      "id": "TAN",
-      "group": "intangibles",
-      "source": "hahn2009",
-      "fields": [
-        "at",
-        "che",
-        "invt",
-        "ppent",
-        "rect"
-      ],
-      "definition": "Tangibility is defined as (0.715 x total receivables (rect) + 0.547 x inventories (invt) + 0.535 x property, plant and equipment (ppent) + cash and short-term investments (che)) / total assets (at)."
-    },
-    {
-      "id": "RETVOL",
-      "group": "trading frictions",
-      "source": "ang2006",
-      "fields": [],
-      "definition": "Standard deviation of residuals from a regression of excess returns on a constant using one month of daily data. We require there to be at least 15 non-missing observations."
-    },
-    {
-      "id": "SUV",
-      "group": "trading frictions",
-      "source": "garfinkel2009",
-      "fields": [],
-      "definition": "Difference between actual volume and predicted volume. Predicted volume is from a regression of previous month's daily volume on a constant and the absolute values of positive and negative previous month's returns. Unexplained volume is standardized by the standard deviation of the residuals from the regression."
-    },
-    {
-      "id": "AOA",
-      "group": "intangibles",
-      "source": "bandyopadhyay2010",
-      "fields": [],
-      "definition": "Absolute value of OA"
-    },
-    {
-      "id": "OA",
-      "group": "intangibles",
-      "source": "sloan1996",
-      "fields": [
-        "act",
-        "at",
-        "che",
-        "dlc",
-        "dp",
-        "lct",
-        "txp"
-      ],
-      "definition": "Operating Accruals: Changes in non-cash working capital minus depreciation (dp), all scaled by lagged total assets (at). Changes in non-cash working capital is difference in current assets (act) minus difference in cash and short-term investments (che) minus difference in current liabilities (lct) minus difference in debt in current liabilities (dlc) minus difference in taxes payable (txp)."
-    }
-  ]
+ "note": "Appendix Table A.1 of the paper, with each characteristic's source paper taken from the supplementary material's citation column, and Freyberger, Neuhierl and Weber's own wording where it can be matched (NBER w23227). A.1 is a condensation of FNW's appendix; where the two differ, FNW is longer and more precise. Neither always describes the code that produced the published numbers -- see REPLICATION.md.",
+ "characteristics": [
+  {
+   "id": "A2ME",
+   "group": "value",
+   "source": "bhandari1988",
+   "fields": [
+    "at"
+   ],
+   "definition": "Total assets (at) over market capitalization (prc x shrout)",
+   "sources": [
+    "bhandari1988"
+   ],
+   "fnw_definition": "We follow Bhandari (1988) and define assets-to-market cap as total assets (AT) over market capitalization as of December t-1. Market capitalization is the product of shares outstanding (SHROUT) and price (PRC). AT Total assets (AT) as in Gandhi and Lustig (2015)."
+  },
+  {
+   "id": "AT",
+   "group": "trading frictions",
+   "source": "gandhi2015",
+   "fields": [
+    "at"
+   ],
+   "definition": "Total assets (at)",
+   "sources": [
+    "gandhi2015"
+   ]
+  },
+  {
+   "id": "ATO",
+   "group": "profitability",
+   "source": "soliman2008",
+   "fields": [
+    "at",
+    "ceq",
+    "che",
+    "dlc",
+    "dltt",
+    "ivao",
+    "mib",
+    "pstk",
+    "sales"
+   ],
+   "definition": "Net sales (sales) over lagged net operating assets. Net operating assets is the difference between operating assets and operating liabilities. Operating Assets is total assets (at) minus cash and short-term investments (che) minus investments and other advances (ivao). Operating Liabilities is total assets (at) minus debt in current liabilities (dlc) minus long-debt debt (dltt) minus minority interest (mib) minus preferred stock (pstk) minus common equity (ceq).",
+   "sources": [
+    "soliman2008"
+   ],
+   "fnw_definition": "Net sales over lagged net operating assets as in Soliman (2008). Net operating assets are the difference between operating assets and operating liabilities. Operating assets are total assets (AT) minus cash and short-term investments (CHE), minus investment and other advances (IVAO). Operating liabilities are total assets (AT), minus debt in current liabilities (DLC), minus long-term debt (DLTT), minus minority interest (MIB), minus preferred stock (PSTK), minus common equity (CEQ)."
+  },
+  {
+   "id": "BEME",
+   "group": "value",
+   "source": "davis2000",
+   "fields": [
+    "at",
+    "ceq",
+    "lt",
+    "prc",
+    "pstk",
+    "pstkl",
+    "pstrkrv",
+    "seq",
+    "shrout",
+    "txditc"
+   ],
+   "definition": "Book equity to market equity. Book equity is shareholders' equity (seq), (if missing, common equity (ceq) plus preferred stock (pstk), if missing, total assets (at) minus total liabilities (lt)), plus deferred taxes and investment tax credit (txditc) minus preferred stock (pstrkrv), (if missing, liquidation value, (pstkl), if missing par value (pstk)). Market value of equity is shares outstanding (shrout) times price (prc).",
+   "fnw_definition": "Ratio of book value of equity to market value of equity. Book equity is shareholder equity (SH) plus deferred taxes and investment tax credit (TXDITC), minus preferred stock (PS). SH is shareholders\u2019 equity (SEQ). If missing, SH is the sum of common equity (CEQ) and preferred stock (PS). If missing, SH is the difference between total assets (AT) and total liabilities (LT). Depending on availability, we use the redemption (item PSTKRV), liquidating (item PSTKL), or par value (item PSTK) for PS. The market value of equity is as of December t-1. The market value of equity is the product of shares outstanding (SHROUT) and price (PRC). See Rosenberg, Reid, and Lanstein (1985) and Davis, Fama, and French (2000)."
+  },
+  {
+   "id": "aBEME",
+   "group": "value",
+   "source": "asness2000",
+   "fields": [],
+   "definition": "BEME minus average industry BEME. Industry level is defined as the Fama-French 48 industries.",
+   "sources": [
+    "asness2000"
+   ]
+  },
+  {
+   "id": "C2A",
+   "group": "value",
+   "source": "palazzo2012",
+   "fields": [
+    "at",
+    "che"
+   ],
+   "definition": "Cash and short-term investments (che) to total assets (at).",
+   "sources": [
+    "palazzo2012"
+   ],
+   "fnw_definition": "Ratio of cash and short-term investments (CHE) to total assets (AT) as in Palazzo (2012)."
+  },
+  {
+   "id": "C2D",
+   "group": "value",
+   "source": "ou1989",
+   "fields": [
+    "dp",
+    "ib",
+    "lt"
+   ],
+   "definition": "Cashflow to debt. Cashflow is the sum of income and extraordinary items (ib) and depreciation and amortization (dp). And debt is to total liabilities (lt).",
+   "sources": [
+    "ou1989"
+   ]
+  },
+  {
+   "id": "CAT",
+   "group": "profitability",
+   "source": "haugen1996",
+   "fields": [
+    "at",
+    "sale"
+   ],
+   "definition": "Sales (sale) to lagged total assets (at).",
+   "sources": [
+    "haugen1996"
+   ]
+  },
+  {
+   "id": "D2P",
+   "group": "value",
+   "source": "litzenberger1979",
+   "fields": [
+    "dlc",
+    "dltt",
+    "prc",
+    "shrout"
+   ],
+   "definition": "Debt to price. Debt is long-term debt (dltt) plus debt in current liabilities (dlc). Market capitalization is the product of shares outstanding (shrout) and price (prc).",
+   "sources": [
+    "litzenberger1979"
+   ]
+  },
+  {
+   "id": "dCEQ",
+   "group": "investment",
+   "source": "richardson2005",
+   "fields": [
+    "ceq"
+   ],
+   "definition": "Annual % change in book value of equity (ceq).",
+   "sources": [
+    "richardson2005"
+   ]
+  },
+  {
+   "id": "dGS",
+   "group": "profitability",
+   "source": "abarbanell1997",
+   "fields": [
+    "cogs",
+    "sale"
+   ],
+   "definition": "% change in gross margin minus % change in sales (sale). Gross margin is the difference in sales (sale) and cost of goods sold (cogs).",
+   "sources": [
+    "abarbanell1997"
+   ]
+  },
+  {
+   "id": "dSO",
+   "group": "value",
+   "source": "fama2008",
+   "fields": [
+    "ajex",
+    "csho"
+   ],
+   "definition": "Log change in the product of shares outstanding (csho) and the adjustment factor (ajex).",
+   "sources": [
+    "fama2008"
+   ]
+  },
+  {
+   "id": "dSOUT",
+   "group": "investment",
+   "source": "pontiff2008",
+   "fields": [
+    "shrout"
+   ],
+   "definition": "Annual % change in shares outstanding (shrout).",
+   "sources": [
+    "pontiff2008"
+   ]
+  },
+  {
+   "id": "dPIA",
+   "group": "investment",
+   "source": "lyandres2008",
+   "fields": [
+    "at",
+    "invt",
+    "ppegt"
+   ],
+   "definition": "Change in property, plants and equipment (ppegt) and inventory (invt) over lagged total assets (at).",
+   "sources": [
+    "lyandres2008"
+   ],
+   "fnw_definition": "We define the change in property, plants, and equipment following Lyandres, Sun, and Zhang (2008) as changes in property, plants, and equipment (PPEGT) and inventory (INVT) over lagged total assets (TA)."
+  },
+  {
+   "id": "DTO",
+   "group": "trading frictions",
+   "source": "garfinkel2009",
+   "fields": [
+    "shrout",
+    "vol"
+   ],
+   "definition": "Daily volume (vol) to shares outstanding (shrout) minus the daily market turnover and detrended by the 180 trading day median. To address the double counting of volume for NASDAQ securities, we follow and scale down the volume of NASDAQ securities by 50% before and by 38% after 1997.",
+   "sources": [
+    "garfinkel2009"
+   ]
+  },
+  {
+   "id": "E2P",
+   "group": "value",
+   "source": "basu1983",
+   "fields": [
+    "ib"
+   ],
+   "definition": "Income before extraordinary items (ib) to market capitalization (prc x shrout).",
+   "sources": [
+    "basu1983"
+   ],
+   "fnw_definition": "We follow Basu (1983) and define earnings to price as the ratio of income before extraordinary items (IB) to the market capitalization as of December t-1. Market capitalization is the product of shares outstanding (SHROUT) and price (PRC)."
+  },
+  {
+   "id": "EPS",
+   "group": "profitability",
+   "source": "basu1977",
+   "fields": [
+    "ib",
+    "shrout"
+   ],
+   "definition": "Income before extraordinary items (ib) to shares outstanding (shrout).",
+   "sources": [
+    "basu1977"
+   ]
+  },
+  {
+   "id": "IDIOV",
+   "group": "trading frictions",
+   "source": "ang2006",
+   "fields": [],
+   "definition": "Standard deviation of the residuals from a regression of excess returns on the three-factor model.",
+   "sources": [
+    "ang2006"
+   ],
+   "fnw_definition": "Idiosyncratic volatility is the standard deviation of the residuals from a regression of excess returns on the Fama and French (1993) three-factor model as in Ang, Hodrick, Xing, and Zhang (2006). We use one month of daily data and require at least fifteen non-missing observations."
+  },
+  {
+   "id": "I2A",
+   "group": "investment",
+   "source": "cooper2008",
+   "fields": [
+    "at"
+   ],
+   "definition": "Annual % change in total assets (at).",
+   "fnw_definition": "We define investment as the percentage year-on-year growth rate in total assets (AT) following Cooper, Gulen, and Schill (2008)."
+  },
+  {
+   "id": "IPM",
+   "group": "profitability",
+   "source": null,
+   "fields": [
+    "pi",
+    "sale"
+   ],
+   "definition": "Pre-tax income (pi) over sales (sale)."
+  },
+  {
+   "id": "IVC",
+   "group": "investment",
+   "source": "thomas2002",
+   "fields": [
+    "at",
+    "invt"
+   ],
+   "definition": "Annual change in inventories (invt) in the last two fiscal years over the average total assets (at) over the last two fiscal years.",
+   "sources": [
+    "thomas2002"
+   ]
+  },
+  {
+   "id": "DP",
+   "group": "value",
+   "source": "litzenberger1979",
+   "fields": [
+    "prc"
+   ],
+   "definition": "Sum of monthly dividend over the last 12 months to last month's price (prc).",
+   "sources": [
+    "litzenberger1979"
+   ]
+  },
+  {
+   "id": "SIZE",
+   "group": "trading frictions",
+   "source": "fama1992",
+   "fields": [
+    "prc",
+    "shrout"
+   ],
+   "definition": "Price (prc) times shares outstanding (shrout) .",
+   "sources": [
+    "fama1992"
+   ],
+   "fnw_definition": "Size is the total market capitalization of the previous month defined as price (PRC) times shares outstanding (SHROUT) as in Fama and French (1992)."
+  },
+  {
+   "id": "aSIZE",
+   "group": "trading frictions",
+   "source": "asness2000",
+   "fields": [],
+   "definition": "SIZE minus average industry SIZE. Industry level is defined as the Fama-French 48 industries.",
+   "sources": [
+    "asness2000"
+   ]
+  },
+  {
+   "id": "TNOVR",
+   "group": "trading frictions",
+   "source": "datar1998",
+   "fields": [
+    "shrout",
+    "vol"
+   ],
+   "definition": "Volume (vol) over shares outstanding (shrout).",
+   "sources": [
+    "datar1998"
+   ]
+  },
+  {
+   "id": "NOA",
+   "group": "investment",
+   "source": "hirshleifer2004",
+   "fields": [
+    "at",
+    "ceq",
+    "che",
+    "dlc",
+    "dltt",
+    "ivao",
+    "mib",
+    "pstk"
+   ],
+   "definition": "Operating assets minus operating liabilities to lagged total assets (at). Operating assets is total assets (at) minus cash and short term investments (che) minus investment and other advances (ivao). Operating liabilities is total assets (at) minus debt in current liabilities (dlc) minus long-term debt (dltt) minus minority interest (mib) minus preferred stock (pstk) minus common equity (ceq).",
+   "sources": [
+    "hirshleifer2004"
+   ],
+   "fnw_definition": "Net operating assets are the difference between operating assets minus 2 operating liabilities scaled by lagged total assets as in Hirshleifer, Hou, Teoh, and Zhang (2004). Operating assets are total assets (AT) minus cash and short-term investments (CHE), minus investment and other advances (IVAO). Operating liabilities are total assets (AT), minus debt in current liabilities (DLC), minus long-term debt (DLTT), minus minority interest (MIB), minus preferred stock (PSTK), minus common equity (CEQ)."
+  },
+  {
+   "id": "OL",
+   "group": "intangibles",
+   "source": "novy2011",
+   "fields": [
+    "at",
+    "cogs",
+    "xsga"
+   ],
+   "definition": "Sum of cost of goods sold (cogs) and selling, general and administrative expense (xsga) over total assets (at).",
+   "sources": [
+    "novy2011"
+   ],
+   "fnw_definition": "Operating leverage is the sum of cost of goods sold (COGS) and selling, general, and administrative expenses (XSGA) over total assets as in Novy-Marx (2011)."
+  },
+  {
+   "id": "BETA_d",
+   "group": "trading frictions",
+   "source": "lewellen2006",
+   "fields": [],
+   "definition": "The sum of the regression coefficients of daily excess returns on market excess returns and the lag of market excess returns.",
+   "sources": [
+    "lewellen2006"
+   ],
+   "fnw_definition": "We follow Frazzini and Pedersen (2014) and define the CAPM beta as product of correlations between the excess return of stock i and the market excess return and the ratio of volatilities. We calculate volatilities from the standard deviations of daily log excess returns over a one-year horizon requiring at least 120 observations. We estimate correlations using overlapping three-day log excess returns over a five-year period requiring at least 750 non-missing observations. 1"
+  },
+  {
+   "id": "PCM",
+   "group": "profitability",
+   "source": "gorodnichenko2016",
+   "fields": [
+    "cogs",
+    "sale"
+   ],
+   "definition": "Net sales (sale) minus cost of goods sold (cogs) all scaled by net sales (sale).",
+   "sources": [
+    "gorodnichenko2016"
+   ],
+   "fnw_definition": "The price-to-cost margin is the difference between net sales (SALE) and costs of goods sold (COGS) divided by net sales (SALE) as in Bustamante and Donangelo (2016)."
+  },
+  {
+   "id": "PM",
+   "group": "profitability",
+   "source": "soliman2008",
+   "fields": [
+    "oiadp",
+    "sale"
+   ],
+   "definition": "Operating Income after depreciation (oiadp) to sales (sale).",
+   "sources": [
+    "soliman2008"
+   ],
+   "fnw_definition": "The profit margin is operating income after depreciation (OIADP) over net sales (SALE) as in Soliman (2008)."
+  },
+  {
+   "id": "aPM",
+   "group": "profitability",
+   "source": "soliman2008",
+   "fields": [],
+   "definition": "PM minus average industry PM. Industry level is defined as the Fama-French 48 industries.",
+   "sources": [
+    "soliman2008"
+   ]
+  },
+  {
+   "id": "PROF",
+   "group": "profitability",
+   "source": "ball2015",
+   "fields": [
+    "gp"
+   ],
+   "definition": "Gross profitability (gp) over book equity as defined in BEME.",
+   "sources": [
+    "ball2015"
+   ],
+   "fnw_definition": "We follow Ball, Gerakos, Linnainmaa, and Nikolaev (2015) and define profitability as gross profitability (GP) divided by the book value of equity as defined above."
+  },
+  {
+   "id": "Q",
+   "group": "value",
+   "source": null,
+   "fields": [
+    "at",
+    "ceq",
+    "txdb"
+   ],
+   "definition": "Total assets (at) plus market value of equity (shrout x prc) minus book value of equity (ceq) minus deferred taxes (txdb) scaled by total assets (at).",
+   "fnw_definition": "Tobin\u2019s Q is total assets (AT), the market value of equity (SHROUT times PRC) minus cash and short-term investments (CEQ), minus deferred taxes (TXDB) scaled by total assets (AT)."
+  },
+  {
+   "id": "MAXRET",
+   "group": "trading frictions",
+   "source": "bali2011",
+   "fields": [],
+   "definition": "Maximum daily return in the previous month.",
+   "sources": [
+    "bali2011"
+   ]
+  },
+  {
+   "id": "RNA",
+   "group": "profitability",
+   "source": "soliman2008",
+   "fields": [
+    "at",
+    "ceq",
+    "che",
+    "dlc",
+    "dltt",
+    "ivao",
+    "mib",
+    "oiadp",
+    "pstk"
+   ],
+   "definition": "Operating income after depreciation (oiadp) scaled by lagged net operating assets. Net operating assets is operating assets minus operating liabilities. Operating assets is total assets (at) minus cash and short term investments (che) minus investment and other advances (ivao). Operating liabilities is total assets (at) minus debt in current liabilities (dlc) minus long-term debt (dltt) minus minority interest (mib) minus preferred stock (pstk) minus common equity (ceq).",
+   "sources": [
+    "soliman2008"
+   ],
+   "fnw_definition": "The return on net operating assets is the ratio of operating income after depreciation to lagged net operating assets (Soliman (2008)). Net operating assets are the difference between operating assets minus operating liabilities. Operating assets are total assets (AT) minus cash and short-term investments (CHE), minus investment and other advances (IVAO). Operating liabilities are total assets (AT), minus debt in current liabilities (DLC), minus long-term debt (DLTT), minus minority interest (MIB), minus preferred stock (PSTK), minus common equity (CEQ)."
+  },
+  {
+   "id": "ROA",
+   "group": "profitability",
+   "source": "balakrishnan2010",
+   "fields": [
+    "at",
+    "ib"
+   ],
+   "definition": "Income before extraordinary items (ib) to lagged total assets (at).",
+   "sources": [
+    "balakrishnan2010"
+   ],
+   "fnw_definition": "Return-on-assets is income before extraordinary items (IB) to lagged total assets (AT) following Balakrishnan, Bartov, and Faurel (2010). 3"
+  },
+  {
+   "id": "ROC",
+   "group": "profitability",
+   "source": "chandrashekar2009",
+   "fields": [
+    "at",
+    "che",
+    "dltt"
+   ],
+   "definition": "Market value of equity (shrout x prc) plus long-term debt (dltt) minus total assets (at) all over cash and short-term investments (che).",
+   "sources": [
+    "chandrashekar2009"
+   ]
+  },
+  {
+   "id": "ROE",
+   "group": "profitability",
+   "source": "haugen1996",
+   "fields": [
+    "ib"
+   ],
+   "definition": "Income before extraordinary items (ib) to lagged book-value of equity.",
+   "sources": [
+    "haugen1996"
+   ],
+   "fnw_definition": "Return-on-equity is income before extraordinary items (IB) to lagged book-value of equity as in Haugen and Baker (1996)."
+  },
+  {
+   "id": "ROIC",
+   "group": "profitability",
+   "source": "brown2007",
+   "fields": [
+    "ceq",
+    "che",
+    "ebit",
+    "lt",
+    "nopi"
+   ],
+   "definition": "Earnings before interest and taxes (ebit) less non-operating income (nopi) to the sum of common equity (ceq), total liabilities (lt), and cash and short-term investments (che).",
+   "sources": [
+    "brown2007"
+   ]
+  },
+  {
+   "id": "R_12_2",
+   "group": "past returns",
+   "source": "fama1996",
+   "fields": [],
+   "definition": "Cumulative return from 12 months to 2 months ago.",
+   "sources": [
+    "fama1996"
+   ],
+   "fnw_definition": "We define momentum as cumulative return from 12 months before the return prediction to two months before as in Fama and French (1996)."
+  },
+  {
+   "id": "R_12_7",
+   "group": "past returns",
+   "source": "novy2012",
+   "fields": [],
+   "definition": "Cumulative return from 12 months to 7 months ago.",
+   "sources": [
+    "novy2012"
+   ],
+   "fnw_definition": "We define intermediate momentum as cumulative return from 12 months before the return prediction to seven months before as in Novy-Marx (2012)."
+  },
+  {
+   "id": "R_6_2",
+   "group": "past returns",
+   "source": "jegadeesh1993",
+   "fields": [],
+   "definition": "Cumulative return from 6 months to 2 months ago.",
+   "sources": [
+    "jegadeesh1993"
+   ]
+  },
+  {
+   "id": "R_2_1",
+   "group": "past returns",
+   "source": "jegadeesh1990",
+   "fields": [],
+   "definition": "Lagged one month return.",
+   "sources": [
+    "jegadeesh1990"
+   ],
+   "fnw_definition": "We define short-term reversal as lagged one-month return as in Jegadeesh (1990)."
+  },
+  {
+   "id": "R_36_13",
+   "group": "past returns",
+   "source": "de1985",
+   "fields": [],
+   "definition": "Cumulative return from 36 months to 13 months ago.",
+   "sources": [
+    "de1985"
+   ],
+   "fnw_definition": "Long-term reversal is the cumulative return from 36 months before the return prediction to 13 months before as in De Bondt and Thaler (1985)."
+  },
+  {
+   "id": "S2C",
+   "group": "profitability",
+   "source": "ou1989",
+   "fields": [
+    "che",
+    "sale"
+   ],
+   "definition": "Net sales (sale) to cash and short-term investments (che).",
+   "sources": [
+    "ou1989"
+   ]
+  },
+  {
+   "id": "S2P",
+   "group": "value",
+   "source": "lewellen2015",
+   "fields": [
+    "sale"
+   ],
+   "definition": "Net sales (sale) to market capitalization (shrout x prc).",
+   "sources": [
+    "lewellen2015"
+   ],
+   "fnw_definition": "Sales-to-price is the ratio of net sales (SALE) to the market capitalization as of December following Lewellen (2015)."
+  },
+  {
+   "id": "SG",
+   "group": "value",
+   "source": "lakonishok1994",
+   "fields": [
+    "sale"
+   ],
+   "definition": "% growth rate in sales (sale).",
+   "sources": [
+    "lakonishok1994"
+   ]
+  },
+  {
+   "id": "SAT",
+   "group": "profitability",
+   "source": "soliman2008",
+   "fields": [
+    "at",
+    "sale"
+   ],
+   "definition": "Sales (sale) to total assets (at).",
+   "sources": [
+    "soliman2008"
+   ]
+  },
+  {
+   "id": "aSAT",
+   "group": "profitability",
+   "source": "soliman2008",
+   "fields": [],
+   "definition": "SAT minus average industry SAT. Industry level is defined as the Fama-French 48 industries.",
+   "sources": [
+    "soliman2008"
+   ]
+  },
+  {
+   "id": "SPREAD",
+   "group": "trading frictions",
+   "source": "chung2014",
+   "fields": [],
+   "definition": "Average daily bid-ask spread in the previous month.",
+   "sources": [
+    "chung2014"
+   ],
+   "fnw_definition": "The bid-ask spread is the average daily bid-ask spread in the previous months as in Chung and Zhang (2014)."
+  },
+  {
+   "id": "sdTURN",
+   "group": "trading frictions",
+   "source": "chordia2001",
+   "fields": [
+    "shrout",
+    "vol"
+   ],
+   "definition": "Standard deviation of residuals from a regression of daily turnover on a constant. Turnover is volume (vol) times shares outstanding (shrout). Use one month of daily data requiring at-least 15 non-missing observations.",
+   "sources": [
+    "chordia2001"
+   ]
+  },
+  {
+   "id": "sdDVOL",
+   "group": "trading frictions",
+   "source": "chordia2001",
+   "fields": [
+    "vol"
+   ],
+   "definition": "Standard deviation of residuals from a regression of daily volume (vol) on a constant. Use one month of daily data requiring at-least 15 non-missing observations.",
+   "sources": [
+    "chordia2001"
+   ]
+  },
+  {
+   "id": "TAN",
+   "group": "intangibles",
+   "source": "hahn2009",
+   "fields": [
+    "at",
+    "che",
+    "invt",
+    "ppent",
+    "rect"
+   ],
+   "definition": "Tangibility is defined as (0.715 x total receivables (rect) + 0.547 x inventories (invt) + 0.535 x property, plant and equipment (ppent) + cash and short-term investments (che)) / total assets (at).",
+   "sources": [
+    "hahn2009"
+   ]
+  },
+  {
+   "id": "RETVOL",
+   "group": "trading frictions",
+   "source": "ang2006",
+   "fields": [],
+   "definition": "Standard deviation of residuals from a regression of excess returns on a constant using one month of daily data. We require there to be at least 15 non-missing observations.",
+   "sources": [
+    "ang2006"
+   ]
+  },
+  {
+   "id": "SUV",
+   "group": "trading frictions",
+   "source": "garfinkel2009",
+   "fields": [],
+   "definition": "Difference between actual volume and predicted volume. Predicted volume is from a regression of previous month's daily volume on a constant and the absolute values of positive and negative previous month's returns. Unexplained volume is standardized by the standard deviation of the residuals from the regression.",
+   "sources": [
+    "garfinkel2009"
+   ],
+   "fnw_definition": "Standard unexplained volume is difference between actual volume and predicted volume in the previous month. Predicted volume comes from a regression of daily volume on a constant and the absolute values of positive and negative returns. Unexplained volume is standardized by the standard deviation of the residuals from the regression as in Garfinkel (2009). 4"
+  },
+  {
+   "id": "AOA",
+   "group": "intangibles",
+   "source": "bandyopadhyay2010",
+   "fields": [],
+   "definition": "Absolute value of OA",
+   "sources": [
+    "bandyopadhyay2010"
+   ]
+  },
+  {
+   "id": "OA",
+   "group": "intangibles",
+   "source": "sloan1996",
+   "fields": [
+    "act",
+    "at",
+    "che",
+    "dlc",
+    "dp",
+    "lct",
+    "txp"
+   ],
+   "definition": "Operating Accruals: Changes in non-cash working capital minus depreciation (dp), all scaled by lagged total assets (at). Changes in non-cash working capital is difference in current assets (act) minus difference in cash and short-term investments (che) minus difference in current liabilities (lct) minus difference in debt in current liabilities (dlc) minus difference in taxes payable (txp).",
+   "sources": [
+    "sloan1996"
+   ],
+   "fnw_definition": "We follow Sloan (1996) and define operating accruals as changes in non-cash working capital minus depreciation (DP) scaled by lagged total assets (TA). Non-cash working capital is the difference between non-cash current assets and current liabilities (LCT), debt in current liabilities (DLC) and income taxes payable (TXP). Non-cash current assets are current assets (ACT) minus cash and short-term investments (CHE)."
+  }
+ ]
 }
