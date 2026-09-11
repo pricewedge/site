@@ -224,3 +224,177 @@ not close enough. Note that aBEME fails at 0.51 while its parent BEME reaches
 
 **PM (0.82) and DP (0.82)** have no better candidate. Chen and Zimmermann's
 profit margin, net income over revenue, is much worse at 0.39.
+
+
+# Phase 2 — portfolio-level price wedges
+
+## Reproduced
+
+`portfolio_wedges.py` runs the sorts, calibrates the market price of risk, and
+reports all ten deciles rather than the two legs Table 1 prints. Two things
+make it self-contained rather than borrowed from the package:
+
+**The price of risk is re-solved, not carried over.** It is whatever makes the
+market's own price wedge exactly zero. On the paper's sample that is 3.3641
+against the package's 3.3244 -- the 1.2% gap is our market portfolio being our
+universe rather than theirs. Using the package's value instead moves the mean
+long-leg error from +1.27 points to -0.02 and the short leg from +0.34 to
+-1.04, so neither choice dominates.
+
+**Signs come from our own one-month alphas.** The paper signs each
+characteristic so its long-short earns a positive one-month alpha. Taking that
+from our returns rather than the package's stored `alpha1` agrees for 55 of 57.
+The two that differ, dGS and aPM, have alphas of 0.0013 and 0.0001 a month --
+aPM's is indistinguishable from zero, so which leg is "long" is arbitrary, and
+that is worth knowing before publishing a signed wedge for it.
+
+Against Table 1, self-signed: 2.05 points mean absolute error on the long leg
+and 1.45 on the short over the 46 verified characteristics, correlations 0.979
+and 0.983. The decile profiles are cleanly monotone where they should be --
+BEME runs -35.5 to +20.2 across its ten deciles, R_12_2 +5.9 to -17.9.
+
+## Brought forward
+
+CRSP now runs to December 2025 and Compustat to August 2026. The whole panel
+rebuilds on that: 57 of 57 characteristics, 4.9 million firm-months.
+
+The binding constraint on *portfolio* wedges is the fifteen-year resolution
+horizon, not the data: a cohort formed in month t needs 180 months of
+subsequent cash flows, so the last formable cohort is **December 2010**. That
+gives **559 formation cohorts against the paper's 463**, a 21% increase, and a
+recalibrated price of risk of **3.5474**.
+
+Both tables are written to `raw/portfolio_wedges_paper.csv` and
+`raw/portfolio_wedges_current.csv`, with all ten deciles, the one-month alpha,
+the sign, and the long-short spread.
+
+# Phase 3 — reproducing the firm-level wedges the site serves
+
+`PWshare.mat` holds the paper's own firm-level wedges: 642 months by 24,742
+securities for each of eight specifications. Ours, built from scratch through
+the same three-principal-component mapping, line up against them like this:
+
+| mapping | overlap | correlation | median per firm | slope | RMSE |
+|---|---|---|---|---|---|
+| 3 PCs | 638,601 firm-months, 7,858 firms | **0.940** | **0.906** | 0.895 | 12.1 pp |
+| FF5 + momentum | same | 0.816 | 0.869 | 0.508 | 32.3 pp |
+| direct rank regression | same | 0.768 | 0.789 | 0.525 | 30.6 pp |
+
+The three-PC reconstruction tracks the published series closely and reproduces
+its dispersion almost exactly: standard deviation 22.0 points against 21.0.
+55% of firms have a per-firm correlation above 0.8 over their own history.
+
+What differs is the level, and the reason is instructive. Equal-weighted, ours
+average -17.7 points against a published -8.3. **Capitalisation-weighted, ours
+average -5.2 points, against a 570-portfolio mean of -4.3 and a market wedge of
+zero.** The published series, capitalisation-weighted, averages +6.3. So the
+rebuilt series aggregates back to the portfolio and market levels it was
+derived from, and the published one does not. The equal-weighted gap is small
+firms, which the mapping pushes to large negative wedges -- which is Phase 5's
+subject.
+
+# Phase 4 — firm-level wedges to today
+
+Firm-level wedges now run to **December 2025** for 8,956 firms, in
+`raw/firm_wedges_current_{pc3,direct}.parquet`. The mapping is estimated where
+portfolio wedges are observable (cohorts through 2010) and evaluated forward,
+which is the only honest way to price a firm today.
+
+Coverage is the practical constraint, and it is fixable. Requiring all 57
+characteristics leaves **540 firms in December 2025**. Requiring only the 46
+whose construction is verified leaves **3,156** -- six times as many, using only
+the characteristics we trust:
+
+| completeness rule | firms, latest month | share of the panel |
+|---|---|---|
+| all 57 | 540 | 19.3% |
+| without OA and AOA | 920 | 24.1% |
+| the 46 verified above 0.85 | **3,156** | **50.7%** |
+
+**Recommendation: drop the eleven unverified characteristics from the firm-level
+mapping.** It costs nothing in fidelity -- they are the ones we cannot
+reproduce -- and multiplies coverage of recent years by six. Separately, aPM is
+missing for 76% of firm-months in 2024-25 and should be looked at regardless.
+
+# Phase 5 — which mapping, judged on magnitudes
+
+Christian's proposal was to regress portfolio price wedges directly on the
+portfolios' characteristic ranks rather than on three principal components of
+them, and to judge the result on intercepts and slopes rather than on rank
+correlation alone. Both halves of that turn out to matter.
+
+## At the portfolio level the direct regression wins clearly
+
+Every fit is scored by regressing the realised portfolio wedge on the fitted
+one. A mapping that orders firms correctly but compresses the spread shows up
+as a slope above one; one that overstates magnitudes shows a slope below one.
+Out-of-sample means leaving one whole characteristic out and predicting its ten
+portfolios -- the relevant test, since a firm's combination of characteristics
+is never one of the 570 portfolios.
+
+| mapping | in-sample R² | out-of-sample R² | correlation | intercept | slope | RMSE |
+|---|---|---|---|---|---|---|
+| 1 PC | 0.391 | 0.376 | 0.613 | -0.11 | 0.973 | 8.44 pp |
+| **3 PCs (the paper's)** | 0.560 | **0.529** | 0.727 | -0.20 | 0.951 | 7.34 pp |
+| 5 PCs | 0.631 | 0.578 | 0.760 | -0.33 | 0.919 | 6.98 pp |
+| 10 PCs | 0.735 | 0.692 | 0.832 | -0.24 | 0.931 | 5.96 pp |
+| FF5 + momentum | 0.644 | 0.623 | 0.789 | -0.11 | 0.976 | 6.56 pp |
+| direct, unpenalised | 0.810 | 0.619 | 0.787 | -0.87 | 0.752 | 7.16 pp |
+| **direct, penalised** | — | **0.724** | **0.851** | **+0.04** | **0.994** | **5.62 pp** |
+
+Unpenalised, the direct regression fits best in sample and generalises worst:
+57 regressors on 570 portfolios overfits, and its out-of-sample slope of 0.752
+means it **overstates how mispriced an unfamiliar portfolio is by a third**.
+Penalised at the level that maximises out-of-sample fit, the same regression
+becomes the best mapping available on every criterion at once: it explains
+0.724 of the variation against 0.529 for three principal components, cuts the
+error from 7.34 to 5.62 percentage points, and is essentially unbiased in
+magnitude -- intercept 0.04, slope 0.994 where perfection is 0 and 1.
+
+On the extreme deciles alone, the ones that matter most, it reaches R² 0.804
+with a slope of 0.953.
+
+So: **Christian's approach is right, and the shrinkage is what makes it right.**
+Three principal components are not merely less accurate, they discard 20% of
+the explainable variation and leave 30% more error.
+
+## At the firm level the picture reverses, and the reason is the real finding
+
+The same direct mapping, evaluated at individual firms, correlates only 0.768
+with the published series where three components reach 0.940, and produces
+firm wedges averaging -32 points equal-weighted.
+
+This is not a defect of the regression. It is a property of the exercise:
+
+* Across the 570 portfolios, a characteristic's percentile rank has a median
+  standard deviation of **0.077**. Portfolios are averages of hundreds of
+  firms, so idiosyncratic rank variation averages away and the design points
+  barely move.
+* Across individual firms the same ranks have a median standard deviation of
+  **0.271** -- three and a half times wider, and up to eight times for R_2_1,
+  dGS and R_6_2.
+* **94.1% of firm-months sit outside the range of the 570 portfolios on at
+  least one characteristic.**
+
+Going from portfolio wedges to firm wedges is therefore almost entirely
+extrapolation, and the more flexible the mapping the further it extrapolates.
+Three principal components behave better at the firm level precisely because
+they are restricted to the three directions in which portfolios actually vary.
+
+Two consequences worth taking seriously:
+
+1. **Firm-level magnitudes are extrapolations and should be presented as such.**
+   The ordering is well identified; the level for any individual small firm is
+   not. Capitalisation-weighted the wedges aggregate correctly, so the
+   aggregate and the large-firm numbers are trustworthy in a way the tails are
+   not.
+2. **The best portfolio-level mapping is not the best firm-level mapping.** If
+   the site's purpose is per-firm numbers, three components remain defensible.
+   If the purpose is to measure mispricing at the portfolio level -- which is
+   what the paper actually estimates -- the penalised direct regression is
+   strictly better and should be what the paper reports.
+
+A natural way to have both: fit the penalised direct regression, and state the
+firm-level wedge together with the share of the firm's characteristics that lie
+inside the portfolio range, so a reader can see when a number is interpolated
+and when it is not.
