@@ -300,6 +300,13 @@ def daily_month_moments(db, table: str, years: list[int]) -> pd.DataFrame:
 # The market and factor returns come from ff.factors_daily, joined in the query
 # rather than merged afterwards, so the cross-products with them are computed
 # in the same aggregation.
+#
+# Two of the sums answer questions the obvious reading of Appendix Table A.1
+# gets wrong, and the published decile weights settle both. SPREAD is the daily
+# high-low range, not the quoted bid-ask spread: CRSP's quotes are missing for
+# most of the 1960s through 1980s, and using them gives 0.02 agreement against
+# 0.94 for the range. sdDVOL is the dispersion of *log* dollar volume, not of
+# dollar volume itself -- 0.73 against 0.06.
 
 DAILY_MOMENTS_SQL = """
 with f as (
@@ -317,6 +324,10 @@ d as (
            s.dlyvol / nullif(s.shrout * 1000.0, 0) as turn,
            case when s.dlyask > 0 and s.dlybid > 0
                 then 2 * (s.dlyask - s.dlybid) / (s.dlyask + s.dlybid) end as spr,
+           case when s.dlyhigh > 0 and s.dlylow > 0
+                then 2 * (s.dlyhigh - s.dlylow) / (s.dlyhigh + s.dlylow) end as hl,
+           ln(s.dlyvol + 1)                      as lv,
+           ln(s.dlyprcvol + 1)                   as ldv,
            f.mktrf, f.mktrf_lag, f.smb, f.hml,
            greatest(s.dlyret, 0)                 as rpos,
            abs(least(s.dlyret, 0))               as rneg
@@ -371,3 +382,78 @@ def daily_moments(db, years: list[int], table: str = "crsp.dsf_v2") -> pd.DataFr
         frame.to_parquet(path, index=False)
         frames.append(frame)
     return pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
+
+
+# Two of the nine daily characteristics need moments the first query does not
+# carry, and both corrections came from checking against the package's own
+# published decile weights rather than from the wording of Appendix Table A.1:
+#
+#   SPREAD is the daily high-low range, not the quoted bid-ask spread. CRSP
+#   carries quotes for a minority of daily rows before 2000 -- 9% in the 1960s,
+#   53% in the 1980s -- and a spread built from them agrees at 0.02 against
+#   0.94 for the range.
+#
+#   sdDVOL is the dispersion of *log* dollar volume, not of dollar volume. In
+#   levels it is dominated by scale: 0.06 against 0.73.
+#
+# SUV's regression likewise runs on log volume, which needs its cross-products
+# with the day's positive and negative returns.
+#
+# These are separate cached pulls rather than extra columns on the first, so
+# adding them costs one pass over the daily file instead of redoing all of it.
+
+RANGE_MOMENTS_SQL = """
+select permno, date_trunc('month', dlycaldt)::date as month,
+       count(*) as n,
+       count(case when dlyhigh > 0 and dlylow > 0 then 1 end) as n_hl,
+       sum(case when dlyhigh > 0 and dlylow > 0
+                then 2 * (dlyhigh - dlylow) / nullif(dlyhigh + dlylow, 0) end) as s_hl,
+       sum(ln(dlyvol + 1)) as s_lv, sum(ln(dlyvol + 1) ^ 2) as s_lvlv,
+       sum(ln(dlyprcvol + 1)) as s_ldv, sum(ln(dlyprcvol + 1) ^ 2) as s_ldvldv
+from {table}
+where dlycaldt >= '{y}-01-01' and dlycaldt <= '{y}-12-31' and dlyret is not null
+group by permno, date_trunc('month', dlycaldt)
+"""
+
+SUV_MOMENTS_SQL = """
+with d as (
+    select permno, date_trunc('month', dlycaldt)::date as month,
+           ln(dlyvol + 1) as lv,
+           greatest(dlyret, 0) as rp, abs(least(dlyret, 0)) as rn
+    from {table}
+    where dlycaldt >= '{y}-01-01' and dlycaldt <= '{y}-12-31'
+      and dlyret is not null and dlyvol is not null
+)
+select permno, month, count(*) as n_lv,
+       sum(lv) as s_lv2, sum(lv * lv) as s_lvlv2,
+       sum(lv * rp) as s_lvrp, sum(lv * rn) as s_lvrn,
+       sum(rp) as s_rp2, sum(rn) as s_rn2,
+       sum(rp * rp) as s_rprp2, sum(rn * rn) as s_rnrn2
+from d group by permno, month
+"""
+
+
+def _yearly(db, name: str, sql: str, years: list[int], table: str) -> pd.DataFrame:
+    have = cached_years(name)
+    newest = max(have) if have else None
+    frames = []
+    for year in sorted(years):
+        path = _cache_path(name, year)
+        if path.exists() and year != newest:
+            frames.append(pd.read_parquet(path))
+            continue
+        frame = db.raw_sql(sql.format(table=table, y=year), date_cols=["month"])
+        path.parent.mkdir(parents=True, exist_ok=True)
+        frame.to_parquet(path, index=False)
+        frames.append(frame)
+    return pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
+
+
+def range_moments(db, years: list[int], table: str = "crsp.dsf_v2") -> pd.DataFrame:
+    """High-low ranges and log-volume moments, per firm-month."""
+    return _yearly(db, "spread_moments", RANGE_MOMENTS_SQL, years, table)
+
+
+def suv_moments(db, years: list[int], table: str = "crsp.dsf_v2") -> pd.DataFrame:
+    """Cross-products of log volume with the day's positive and negative returns."""
+    return _yearly(db, "suv_moments", SUV_MOMENTS_SQL, years, table)

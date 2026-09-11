@@ -31,7 +31,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from pwsite import characteristics as ch
 from pwsite.daily import daily_characteristics
 from pwsite.industry import ff48
-from pwsite.wrds_source import CACHE, connect, daily_moments
+from pwsite.wrds_source import (CACHE, connect, daily_moments, range_moments,
+                                suv_moments)
 
 START, END = "1960-01-01", "2017-12-31"
 COMPUSTAT_START = "1955-01-01"          # annual characteristics need a prior year
@@ -84,6 +85,9 @@ def main() -> int:
     years = list(range(int(START[:4]), int(END[:4]) + 1))
     print("  daily moments (aggregated on WRDS's server, one row per firm-month)")
     moments = daily_moments(db, years)
+    moments = moments.merge(range_moments(db, years).drop(columns=["n"]),
+                            on=["permno", "month"], how="left")
+    moments = moments.merge(suv_moments(db, years), on=["permno", "month"], how="left")
     print(f"  {'daily_moments':22} {len(moments):>10,} rows")
     db.close()
 
@@ -99,10 +103,15 @@ def main() -> int:
     panel = panel.merge(daily_characteristics(moments, monthly), on=["permno", "month"],
                         how="left")
 
+    # The industry mean is taken over ordinary common shares only. Averaging
+    # over everything CRSP carries -- funds, ADRs, share classes that never
+    # enter a sort -- moves the benchmark and agrees with the published decile
+    # weights markedly worse (0.10 against 0.51 for aBEME).
     panel["ff48"] = ff48(panel["siccd"])
+    ordinary = (panel["sharetype"] == "NS") & (panel["securitytype"] == "EQTY")
     for name, source in INDUSTRY_ADJUSTED.items():
-        group = panel.groupby(["month", "ff48"])[source]
-        panel[name] = panel[source] - group.transform("mean")
+        group = panel[source].where(ordinary).groupby([panel["month"], panel["ff48"]])
+        panel[name] = panel[source].where(ordinary) - group.transform("mean")
 
     CACHE.mkdir(parents=True, exist_ok=True)
     panel.to_parquet(CACHE / "full_panel.parquet", index=False)

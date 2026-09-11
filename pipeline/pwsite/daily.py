@@ -25,6 +25,17 @@ import pandas as pd
 
 MIN_DAYS = 15
 
+# BETA_d is estimated over twelve months of daily data, not one. Appendix Table
+# A.1 does not say so, but a one-month Dimson beta is too noisy to sort on and
+# the published decile weights settle it: agreement is 0.35 at one month, 0.62
+# at six, 0.94 at twelve, and falls away again at twenty-four and sixty. Every
+# other daily characteristic is monthly, IDIOV emphatically so -- 0.93 at one
+# month against 0.58 at twelve.
+#
+# Widening the window costs nothing here because the moments are additive: a
+# twelve-month cross-product matrix is the sum of twelve monthly ones.
+BETA_WINDOW = 12
+
 # CRSP counts both sides of a Nasdaq dealer trade, so Nasdaq volume is roughly
 # double a comparable NYSE figure. Appendix Table A.1 scales it down by 50%
 # before 1997 and 38% after, which is the convention DTO is defined on.
@@ -83,7 +94,14 @@ def daily_characteristics(moments: pd.DataFrame, monthly: pd.DataFrame) -> pd.Da
     ).sort_values(["permno", "month"])
 
     n = d["n"].to_numpy(float)
+    z = np.zeros_like(n)
     enough = n >= MIN_DAYS
+
+    def shift(values: np.ndarray, k: int) -> np.ndarray:
+        """Move a (firms, months) grid k months forward in time."""
+        out = np.full_like(values, np.nan)
+        out[:, k:] = values[:, :-k]
+        return out
     out = d[["permno", "month"]].copy()
 
     def col(name: str) -> np.ndarray:
@@ -92,25 +110,36 @@ def daily_characteristics(moments: pd.DataFrame, monthly: pd.DataFrame) -> pd.Da
     # --- dispersion and extremes -------------------------------------------
     out["RETVOL"] = np.where(enough, _sd(n, col("s_re"), col("s_rere")), np.nan)
     out["MAXRET"] = np.where(enough, col("max_r"), np.nan)
-    out["sdDVOL"] = np.where(enough, _sd(n, col("s_dv"), col("s_dvdv")), np.nan)
+    # Log dollar volume. In levels the dispersion is dominated by scale and
+    # agrees with the published decile weights far worse (0.06 against 0.73).
+    out["sdDVOL"] = np.where(enough, _sd(n, col("s_ldv"), col("s_ldvldv")), np.nan)
     nt = col("n_turn")
     out["sdTURN"] = np.where(nt >= MIN_DAYS, _sd(nt, col("s_t"), col("s_tt")), np.nan)
-    nq = col("n_spr")
+    # The daily high-low range rather than the quoted bid-ask spread. CRSP
+    # carries quotes for only a minority of daily rows before 2000 -- 9% in the
+    # 1960s, 53% in the 1980s -- and a spread built from them agrees with the
+    # published decile weights at 0.02 against 0.94 for the range.
+    nhl = col("n_hl")
     with np.errstate(invalid="ignore", divide="ignore"):
-        out["SPREAD"] = np.where(nq >= MIN_DAYS, col("s_spr") / nq, np.nan)
+        out["SPREAD"] = np.where(nhl >= MIN_DAYS, col("s_hl") / nhl, np.nan)
 
     # --- BETA_d: the sum of the coefficients on the market and its lag ------
+    wide = (
+        d.groupby("permno")[["n", "s_m", "s_ml", "s_mm", "s_mlml", "s_mml",
+                             "s_re", "s_rem", "s_reml"]]
+        .rolling(BETA_WINDOW, min_periods=BETA_WINDOW).sum().to_numpy()
+    )
+    wn = wide[:, 0]
     gram = np.stack([
-        np.stack([n,            col("s_m"),   col("s_ml")],   axis=1),
-        np.stack([col("s_m"),   col("s_mm"),  col("s_mml")],  axis=1),
-        np.stack([col("s_ml"),  col("s_mml"), col("s_mlml")], axis=1),
+        np.stack([wn,          wide[:, 1], wide[:, 2]], axis=1),
+        np.stack([wide[:, 1],  wide[:, 3], wide[:, 5]], axis=1),
+        np.stack([wide[:, 2],  wide[:, 5], wide[:, 4]], axis=1),
     ], axis=1)
-    rhs = np.stack([col("s_re"), col("s_rem"), col("s_reml")], axis=1)
+    rhs = np.stack([wide[:, 6], wide[:, 7], wide[:, 8]], axis=1)
     beta = _solve(gram, rhs)
-    out["BETA_d"] = np.where(enough, beta[:, 1] + beta[:, 2], np.nan)
+    out["BETA_d"] = np.where(wn >= MIN_DAYS * BETA_WINDOW, beta[:, 1] + beta[:, 2], np.nan)
 
     # --- IDIOV: residual dispersion around the three-factor model -----------
-    z = np.zeros_like(n)
     g4 = np.stack([
         np.stack([n,           col("s_m"),  col("s_s"),  col("s_h")],  axis=1),
         np.stack([col("s_m"),  col("s_mm"), col("s_ms"), col("s_mh")], axis=1),
@@ -126,30 +155,48 @@ def daily_characteristics(moments: pd.DataFrame, monthly: pd.DataFrame) -> pd.Da
 
     # --- SUV: this month's volume against last month's volume-return fit ----
     # The fit is estimated on the previous month and applied to this one, so a
-    # month's unexplained volume is genuinely out of sample.
+    # month's unexplained volume is genuinely out of sample. Volume enters in
+    # logs, as it does in sdDVOL: in levels a handful of heavy days dominate
+    # the fit and the residual carries almost no cross-sectional information.
+    #
+    # The previous month is taken on a dense firm-by-month grid, so a gap in a
+    # firm's history breaks the lag instead of reaching back across it to
+    # whatever month happens to be the previous *row*.
+    nl = col("n_lv")
     g3 = np.stack([
-        np.stack([n,            col("s_rp"),    col("s_rn")],    axis=1),
-        np.stack([col("s_rp"),  col("s_rprp"),  col("s_rprn")],  axis=1),
-        np.stack([col("s_rn"),  col("s_rprn"),  col("s_rnrn")],  axis=1),
+        np.stack([nl,           col("s_rp2"),    col("s_rn2")],   axis=1),
+        np.stack([col("s_rp2"), col("s_rprp2"),  z],              axis=1),
+        np.stack([col("s_rn2"), z,               col("s_rnrn2")], axis=1),
     ], axis=1)
-    r3 = np.stack([col("s_v"), col("s_vrp"), col("s_vrn")], axis=1)
+    r3 = np.stack([col("s_lv2"), col("s_lvrp"), col("s_lvrn")], axis=1)
     vcoef = _solve(g3, r3)
     with np.errstate(invalid="ignore"):
-        vrss = col("s_vv") - (vcoef * r3).sum(axis=1)
-        vsd = np.sqrt(np.where(vrss > 0, vrss, np.nan) / (n - 3))
+        vrss = col("s_lvlv2") - (vcoef * r3).sum(axis=1)
+        vsd = np.sqrt(np.where(vrss > 0, vrss, np.nan) / (nl - 3))
 
-    prior = pd.DataFrame(vcoef, columns=["a", "b", "c"], index=d.index)
-    prior["sd"] = vsd
-    prior["permno"] = d["permno"].to_numpy()
-    lagged = prior.groupby("permno")[["a", "b", "c", "sd"]].shift(1)
+    keys = d["permno"].to_numpy(), d["month"].to_numpy()
+    order = pd.MultiIndex.from_arrays(keys, names=["permno", "month"])
+    firms = np.unique(keys[0])
+    grid_months = np.unique(keys[1])
+    dense = pd.MultiIndex.from_product([firms, grid_months], names=["permno", "month"])
+    stacked = pd.DataFrame(
+        {"a": vcoef[:, 0], "b": vcoef[:, 1], "c": vcoef[:, 2], "sd": vsd}, index=order
+    ).reindex(dense)
+    shape = (len(firms), len(grid_months))
+    lagged = {
+        name: shift(stacked[name].to_numpy().reshape(shape), 1).ravel()
+        for name in ("a", "b", "c", "sd")
+    }
+    prior = pd.DataFrame(lagged, index=dense).reindex(order)
+
     predicted = (
-        lagged["a"].to_numpy() * n
-        + lagged["b"].to_numpy() * col("s_rp")
-        + lagged["c"].to_numpy() * col("s_rn")
+        prior["a"].to_numpy() * nl
+        + prior["b"].to_numpy() * col("s_rp2")
+        + prior["c"].to_numpy() * col("s_rn2")
     )
     with np.errstate(invalid="ignore", divide="ignore"):
-        suv = (col("s_v") - predicted) / (n * lagged["sd"].to_numpy())
-    out["SUV"] = np.where(enough, suv, np.nan)
+        suv = (col("s_lv2") - predicted) / (nl * prior["sd"].to_numpy())
+    out["SUV"] = np.where(nl >= MIN_DAYS, suv, np.nan)
 
     # --- DTO: turnover in excess of the market's, detrended -----------------
     year = d["month"].to_numpy() // 100
