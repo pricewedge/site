@@ -675,3 +675,114 @@ The practical implication for the website is the same either way: a firm-level
 wedge is a cross-sectional statement about where a firm sits today relative to
 other firms, and should not be read as a forecast that the same mapping will
 hold in ten years.
+
+
+# What the paper's own out-of-sample test is, and how ours compares
+
+## What the paper does
+
+Section 5 reports three numbers (maintext.tex line 513):
+
+1. Portfolio wedges recomputed on the **first half of formation dates** (July
+   1964 to September 1983, post-formation returns running to September 1998)
+   correlate **0.92** with the full-sample wedges across the 57x2 extreme
+   deciles.
+2. A footnote adds that first-half and **second-half** wedges correlate
+   **0.77** (Appendix Fig. G.7).
+3. The pre-October-1998 mapping is then applied to firm characteristics from
+   October 1998 onward, and those firm-level wedges correlate **0.98** with the
+   full-sample firm-level wedges.
+
+The mapping itself is three principal components of rank-normalised
+characteristics of the **114 extreme decile portfolios**, with an in-sample R²
+of 0.76 (0.77 for six components, 0.74 for the five Fama-French characteristics
+plus momentum, 0.67 for book-to-market alone).
+
+## Replicating it
+
+| | paper | ours |
+|---|---|---|
+| PC3 in-sample R², 114 extremes | 0.76 | **0.705** |
+| PC6 | 0.77 | 0.752 |
+| FF5 + momentum | 0.74 | 0.704 |
+| BEME alone | 0.67 | 0.550 |
+| SIZE alone | 0.29 | 0.253 |
+| I2A alone | 0.37 | 0.325 |
+| R_12_2 alone | 0.22 | 0.164 |
+| corr(first half, full sample) | 0.92 | **0.948** |
+| corr(first half, second half) | 0.77 | **0.576** |
+
+The in-sample table replicates within a few points throughout, and the 0.92
+replicates closely. The half-against-half correlation does not: 0.58 against
+their 0.77. That is the one number of the three that measures something real,
+and it is the one we cannot reproduce.
+
+(One entry in their table is worth a second look regardless: profitability
+alone is reported with an R² of exactly 0.00 against 0.18 here, while its
+coefficient is non-zero. That combination is hard to produce.)
+
+## Why the 0.92 is not the informative number
+
+The first half is one half of the full sample, so the two overlap by
+construction. If the two half-sample wedges have similar variance and correlate
+rho, then each half correlates with the full sample at roughly
+sqrt((1+rho)/2). At our rho of 0.58 that formula gives 0.89, and we observe
+0.95; at the paper's rho of 0.77 it gives 0.94, and they report 0.92. In other
+words **the 0.92 is very nearly implied by the 0.77** and adds little to it.
+The honest summary of the paper's portfolio-level evidence is the footnote, not
+the sentence.
+
+## Why the 0.98 does not test what it appears to test
+
+The 0.98 compares firm-level wedges from the pre-1998 mapping against
+firm-level wedges from the full-sample mapping. Both are linear functions of
+the **same three principal components of the same firm characteristics**. Only
+the coefficients differ. Correlation is invariant to scale, so it is close to
+one whenever the two coefficient vectors point in a similar direction,
+regardless of whether either is right.
+
+How uninformative this is can be shown directly. Refitting the mapping to
+deliberately corrupted portfolio wedges and evaluating both versions on the
+same firms over October 1998 to December 2017:
+
+| mapping fitted to | correlation with the true mapping's firm wedges |
+|---|---|
+| the 114 extremes instead of all 570 | 0.9915 |
+| wedges with **half the spread** | **1.0000** |
+| wedges plus noise of equal variance | 0.9976 |
+
+A mapping fitted to wedges half as large produces firm wedges correlating
+perfectly with the correct ones -- it gets every magnitude wrong by a factor of
+two and the correlation cannot see it. So the 0.98 establishes that the
+coefficient vector is stable across the sample split, which is a genuine if
+modest robustness claim, but it is not evidence that the mapping predicts
+out-of-sample price wedges. At no point does the exercise compare a prediction
+against a realised wedge.
+
+## How our tests differ
+
+| | the paper | here |
+|---|---|---|
+| what is held out | formation dates after Sept 1983 | a characteristic, a family of characteristics, the extreme deciles, or formation dates |
+| what is compared | predicted against *predicted* | predicted against *realised* wedges |
+| scored on | correlation | R², plus the intercept and slope of realised on predicted |
+| portfolios used | 114 extremes | all 570, extremes reported separately |
+| price of risk on a subsample | carried over from the full sample | re-solved within each half |
+| mappings compared | 3 PCs, 6 PCs, FF5+momentum | those plus 1, 5, 10 PCs and the penalised direct rank regression |
+
+Two of those matter for the conclusions.
+
+**Scoring on correlation alone hides magnitude errors**, as the table above
+shows. Once the intercept and slope are reported, three principal components
+turn out to overstate the wedge of an unfamiliar family of anomalies by a third
+(slope 0.740), where the penalised direct regression holds at 0.923. Nothing in
+the paper's design would reveal that.
+
+**Not recalibrating the price of risk on a subsample** does not affect the
+paper's reported correlations -- correlation is location-invariant, so the
+seventy-point level flip between halves washes out. It does matter for the
+investment-q regressions in their Panel B, which use the out-of-sample
+firm-level wedges as a regressor in levels. Our first-half wedges average -26
+percentage points and second-half wedges +28 when the full-sample price of risk
+is carried over; re-solving it within each half gives +0.3 and -5.2. Anything
+that depends on the level rather than the ranking inherits that.
