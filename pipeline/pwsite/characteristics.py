@@ -362,6 +362,11 @@ def monthly_all(merged: pd.DataFrame) -> pd.DataFrame:
     Market capitalisation arrives from CRSP in thousands while Compustat is in
     millions, so it is rescaled once here and every ratio below is formed from
     the rescaled figure.
+
+    Market equity is the current month's. The package's stored panel appears to
+    disagree until one notices that `MainPart1.m` slices it from one row
+    *before* July 1926, so its rows are offset by a month; lined up correctly,
+    the current month is what matches.
     """
     out = merged.copy()
     me = out["cap"] / 1000.0

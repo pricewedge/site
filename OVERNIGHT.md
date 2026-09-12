@@ -839,3 +839,59 @@ their library carries no Garfinkel signal, so nothing for SUV or DTO, and no
 industry-adjusted signals at all, so nothing for aPM, aSAT or aBEME. Their
 turnover and dividend-yield measures were tried and are worse than what is
 here.
+
+
+# Why the anomalies are still "a bit different"
+
+Not the sample any more. Three pieces of evidence.
+
+**There is no systematic bias left.** The mean *signed* error across all 114
+published legs is -0.15 percentage points, and the signed long-leg errors have
+mean +0.03 with a standard deviation of 2.48. The residual is dispersion, not a
+shift. Relatedly, the market price of risk we solve for now fits better than
+the package's own: carrying theirs over gives a mean absolute error of 1.41
+points against 1.09 for ours, which is the reverse of what held before the
+sample was corrected.
+
+**The characteristic values themselves match.** The package ships its own
+values for the five characteristics in `data_fixed`. Lined up correctly against
+ours:
+
+| | exact to 1e-6 | rank correlation | our coverage |
+|---|---|---|---|
+| BEME | 94.9% | 0.995 | +1.3% |
+| Q | 96.3% | 0.996 | +1.4% |
+| PROF | 94.0% | 0.989 | +1.8% |
+| I2A | 94.0% | 0.959 | +1.7% |
+| R_12_2 | see below | 0.896 | +0.4% |
+
+R_12_2 never matches to the digit because the package stores the *gross*
+cumulative return and we store the net one -- the median difference is exactly
+1.0000. That is a units convention, it leaves every rank untouched, and the
+decile weights agree at 0.979.
+
+Two traps were worth the time. `MainPart1.m` slices its panel from one row
+*before* July 1926, so its rows are offset by a month; comparing without
+noticing makes contemporaneous market equity look 3% exact and lagged market
+equity 91%, which is backwards. Implementing the lagged version accordingly
+made the sorts worse -- 50 verified characteristics down to 48, BEME from 0.97
+to 0.84 -- which is what caught the error. Market capitalisation is also stored
+in millions there and thousands here, a factor of exactly 1000 that value
+weighting is invariant to.
+
+**What is left is data vintage.** Five to nine percent of firm-months differ,
+at a rate that is flat across decades (PROF and I2A are 93.6% to 94.4% exact in
+every decade from the 1960s to the 2010s), and our coverage is 1.3% to 1.8%
+higher throughout. That is the signature of Compustat restatements and CRSP
+reprocessing between their extract, taken around 2018, and ours, taken in 2026 --
+not of a different sample or a different formula. A five-to-nine percent
+disagreement at the observation level, compounded through fifteen years of cash
+flows, is what produces the 1.2 point average error in the wedge.
+
+Consistent with that, the error correlates -0.48 with how well a
+characteristic's construction verifies: the 50 verified ones average 1.20
+points on the long leg and the seven unverified ones 1.90.
+
+The one improvement still available on this front is small: aggregating market
+equity across share classes of the same company, as Fama and French do, raises
+BEME's exact-match rate from 94.9% to 95.7% and Q's from 96.3% to 97.1%.
