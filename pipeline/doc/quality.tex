@@ -1,0 +1,178 @@
+\documentclass[11pt]{article}
+\usepackage[margin=2.3cm]{geometry}
+\usepackage{booktabs,amsmath,microtype,longtable}
+\usepackage[colorlinks=true,linkcolor=black,urlcolor=blue]{hyperref}
+\usepackage{sectsty}\allsectionsfont{\sffamily}
+\setlength{\parindent}{0pt}\setlength{\parskip}{5pt}
+\title{\sffamily Firm-level price wedges:\\how good is the mapping, and can it be improved?}
+\author{}\date{\today}
+\begin{document}\maketitle
+
+\section*{What is being measured}
+
+A firm's price wedge is not estimated directly. Wedges are estimated for decile
+portfolios, and a mapping carries those onto individual firms through their
+characteristics. The question is how much that mapping can be trusted, and
+whether it can be improved.
+
+Four criteria, because they answer different questions.
+
+\textbf{Leaving one characteristic out.} Fit on the portfolios of all but one
+characteristic, predict that one's ten deciles, rotate. Can the mapping price an
+anomaly it has not seen?
+
+\textbf{Leaving one family out.} The same, holding out a whole Freyberger--
+Neuhierl--Weber category. Harder and more honest: value characteristics predict
+each other, so holding out book-to-market while assets-to-market and
+earnings-to-price remain is not a real test.
+
+\textbf{Holding out the extreme deciles.} Fit on deciles two to nine, predict
+one and ten. This tests extrapolation, which is what the mapping must do at the
+firm level: 94\% of firm-months sit outside the range the portfolios span on at
+least one characteristic.
+
+\textbf{Subsequent returns.} Do firms the mapping calls overpriced go on to
+underperform? This is the only criterion evaluated on firms rather than
+portfolios, so it is the only one that can penalise bad extrapolation.
+
+Everything is scored on magnitudes, not only ordering: the realised wedge is
+regressed on the fitted one and the intercept and slope reported. A perfect
+mapping has intercept zero and slope one. A mapping that ranks firms correctly
+but compresses the spread shows a slope away from one, and would be no good for
+a website that reports a wedge rather than a score.
+
+\paragraph{Which portfolios count.} Only characteristics whose construction is
+verified against the replication package enter, as regressors \emph{and} as
+portfolios. A portfolio we cannot reproduce carries a wedge we cannot trust, so
+including it adds noise to the left-hand side as well as the right. Dropping the
+six unverified ones raises the leave-one-family-out fit of the direct mapping
+from 0.56 to 0.67.
+
+\section*{Results}
+\subsection*{Leave one characteristic out}
+\begin{tabular}{lrrrrr}\toprule
+Mapping & $R^2$ & Correlation & Intercept & Slope & RMSE (pp)\\\midrule
+3 PCs (paper) & 0.546 & 0.739 & -0.22 & 0.957 & 6.62\\
+10 PCs & 0.758 & 0.871 & -0.15 & 0.963 & 4.84\\
+\bfseries direct & 0.783 & 0.885 & -0.13 & 0.962 & 4.58\\
+direct, precision-wtd & 0.776 & 0.881 & -0.29 & 0.963 & 4.66\\
+direct + squares & 0.363 & 0.602 & -1.44 & 0.616 & 8.70\\
+squares, precision-wtd & 0.377 & 0.614 & -1.77 & 0.551 & 9.23\\
+\bottomrule\end{tabular}\\[8pt]
+\subsection*{Leave one family out}
+\begin{tabular}{lrrrrr}\toprule
+Mapping & $R^2$ & Correlation & Intercept & Slope & RMSE (pp)\\\midrule
+3 PCs (paper) & 0.401 & 0.633 & -1.27 & 0.767 & 7.84\\
+10 PCs & 0.616 & 0.785 & -0.82 & 0.942 & 6.13\\
+\bfseries direct & 0.666 & 0.816 & -0.56 & 0.908 & 5.74\\
+direct, precision-wtd & 0.644 & 0.802 & -0.93 & 0.866 & 5.99\\
+direct + squares & 0.388 & 0.622 & -2.62 & 0.463 & 10.46\\
+squares, precision-wtd & 0.378 & 0.615 & -2.76 & 0.435 & 11.03\\
+\bottomrule\end{tabular}\\[8pt]
+\subsection*{Extremes held out}
+\begin{tabular}{lrrrrr}\toprule
+Mapping & $R^2$ & Correlation & Intercept & Slope & RMSE (pp)\\\midrule
+3 PCs (paper) & 0.692 & 0.832 & +1.06 & 0.966 & 7.98\\
+10 PCs & 0.813 & 0.901 & -0.44 & 0.870 & 6.43\\
+\bfseries direct & 0.805 & 0.897 & -1.48 & 0.866 & 6.66\\
+direct, precision-wtd & 0.797 & 0.893 & -1.71 & 0.851 & 6.90\\
+direct + squares & 0.552 & 0.743 & -0.20 & 0.796 & 9.90\\
+squares, precision-wtd & 0.613 & 0.783 & -1.88 & 0.699 & 10.09\\
+\bottomrule\end{tabular}\\[8pt]
+
+\section*{Do the wedges predict returns?}
+
+Firms are sorted into deciles on their fitted wedge each month and tracked
+forward. Decile 1 is the most negative wedge (most underpriced), decile 10 the
+most positive, so if wedges are mispricing that resolves, decile 1 should
+outperform and the spread should be positive.
+
+\begin{longtable}{llrrrr}\toprule
+Mapping & Horizon & Weighting & Decile 1 & Decile 10 & Spread (pp)\\\midrule
+\endhead
+3 PCs (paper) & 12m & cap & 17.7 & 10.6 & 7.1\\
+3 PCs (paper) & 36m & cap & 58.3 & 34.8 & 23.5\\
+3 PCs (paper) & 60m & cap & 113.8 & 69.2 & 44.6\\
+3 PCs (paper) & 12m & equal & 24.4 & 11.3 & 13.0\\
+3 PCs (paper) & 36m & equal & 74.2 & 35.2 & 39.0\\
+3 PCs (paper) & 60m & equal & 135.7 & 66.6 & 69.0\\
+10 PCs & 12m & cap & 19.6 & 10.5 & 9.2\\
+10 PCs & 36m & cap & 67.9 & 32.4 & 35.5\\
+10 PCs & 60m & cap & 127.1 & 62.8 & 64.2\\
+10 PCs & 12m & equal & 25.0 & 10.2 & 14.8\\
+10 PCs & 36m & equal & 78.8 & 30.5 & 48.4\\
+10 PCs & 60m & equal & 141.0 & 59.3 & 81.7\\
+direct & 12m & cap & 18.0 & 10.0 & 8.0\\
+direct & 36m & cap & 63.3 & 31.3 & 32.0\\
+direct & 60m & cap & 120.8 & 60.4 & 60.4\\
+direct & 12m & equal & 24.2 & 9.9 & 14.2\\
+direct & 36m & equal & 77.0 & 29.9 & 47.1\\
+direct & 60m & equal & 140.2 & 57.9 & 82.3\\
+\bottomrule\end{longtable}
+
+The wedges predict returns strongly and with the right sign. Over five years the
+direct mapping separates the extreme deciles by 60 percentage points
+capitalisation-weighted and 82 equal-weighted, and its deciles are monotone at
+every horizon and weighting. Three principal components produce a materially
+smaller spread and are not monotone capitalisation-weighted at twelve or
+thirty-six months.
+
+\section*{Can the mapping be improved?}
+
+\subsection*{Precision weighting: no, and the reason is informative}
+
+If some portfolio wedges were estimated far more precisely than others, the
+regression should weight them accordingly. They are not. Reproducing the
+package's own standard error --- a Newey--West variance on the cohort-level
+ratios carried through the logarithm by the delta method --- and separately a
+moving-block bootstrap with the package's 180-month blocks:
+
+\begin{tabular}{lrrrr}\toprule
+ & Median & 10th pct & 90th pct & Max\\\midrule
+Standard error (pp) & 29.0 & 27.1 & 32.2 & 40.6\\
+\bottomrule\end{tabular}\\[6pt]
+
+The ratio of the 90th to the 10th percentile is 1.2. Precision is
+close to uniform across the 510 portfolios, so weighting by it has almost
+nothing to exploit --- and in the event it is very slightly worse on all three
+criteria, presumably because the weights add estimation noise of their own.
+
+What the exercise does reveal is the \emph{level}: a standard error around
+29 percentage points on wedges whose cross-sectional standard deviation is
+about 10. Individual portfolio wedges are imprecise, because 463 formation
+cohorts that overlap in 179 of their 180 months are worth only two or three
+independent observations. That is a caveat on the whole exercise rather than on
+any mapping.
+
+\subsection*{Non-linear terms: no}
+
+Adding squared ranks roughly halves out-of-sample fit and pushes the slope to
+0.6 or below. The design already carries the non-linearity that matters: using
+all ten deciles rather than the extremes lets the wedge be non-linear in each
+sorting characteristic, and squaring 51 standardised ranks mostly adds
+collinear regressors for 510 observations to overfit.
+
+\subsection*{Shrinkage: yes, and it is the substance}
+
+Unpenalised, the direct regression fits best in sample and generalises worst.
+Penalised at the level chosen inside each fold, it is the best mapping on every
+criterion at once and is close to unbiased in magnitude. The penalty is not a
+technicality: without it the mapping overstates how mispriced an unfamiliar
+portfolio is by roughly a third.
+
+\subsection*{Number of components}
+
+Ten principal components come close to the direct regression and beat three
+decisively on every criterion. If a dimension-reduced mapping is wanted for
+interpretability, ten is the defensible choice; three is not.
+
+\section*{Recommendation}
+
+Use the penalised direct regression of portfolio wedges on portfolio
+characteristic ranks, fitted on verified characteristics only, with all ten
+deciles. Report firm-level wedges together with an indication of how far a
+firm's characteristics sit outside the range the portfolios span, because that
+is where the magnitudes stop being trustworthy and no portfolio-level criterion
+can detect it.
+
+\end{document}
