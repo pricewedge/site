@@ -1,0 +1,952 @@
+\documentclass[11pt]{article}
+\usepackage[margin=2.2cm]{geometry}
+\usepackage{longtable,booktabs,amsmath,xcolor,microtype}
+\usepackage[colorlinks=true,linkcolor=black,urlcolor=blue]{hyperref}
+\usepackage{sectsty}\allsectionsfont{\sffamily}
+\setlength{\parindent}{0pt}\setlength{\parskip}{4pt}
+\newcommand{\ok}{\textcolor{black!70}{verified}}
+\newcommand{\bad}{\textcolor{red!70!black}{unresolved}}
+\title{\sffamily Price wedge anomaly signals:\\construction log}
+\author{}\date{\today}
+\begin{document}\maketitle
+
+\section*{How to read this}
+
+One entry per characteristic. \emph{Agreement} is the mean correlation, across
+the ten deciles and 462 formation months, between our decile capitalisation
+weights and the replication package's own (\texttt{datas\_all\_charP}). It tests
+the characteristic and the sort alone, independently of the 241-month tracking
+and the discount factor. Above 0.85 the construction is
+treated as verified. \emph{Error} is our price wedge less the paper's Table 1
+value, in percentage points.
+
+\emph{Rejected alternatives} records what was tried and did not work, so the
+same ground is not covered twice.
+
+\section*{Summary}
+\begin{longtable}{llrrrl}
+\toprule
+Signal & Group & Agreement & Long err. & Short err. & Status\\
+\midrule
+\endhead
+OA & intangibles & 0.963 & -1.53 & 0.15 & \ok\\
+AOA & intangibles & 0.971 & -1.15 & 0.05 & \ok\\
+ATO & profitability & 0.974 & -0.86 & 0.16 & \ok\\
+RNA & profitability & 0.978 & 0.60 & -0.30 & \ok\\
+dSOUT & investment & 0.992 & -0.53 & -0.68 & \ok\\
+dPIA & investment & 0.943 & 0.23 & -0.87 & \ok\\
+aSIZE & trading frictions & 0.856 & -14.69 & 0.21 & \ok\\
+A2ME & value & 0.972 & 3.57 & -0.13 & \ok\\
+AT & trading frictions & 0.988 & -0.02 & 0.11 & \ok\\
+BEME & value & 0.977 & 1.24 & -0.70 & \ok\\
+C2A & value & 0.963 & -0.06 & -0.20 & \ok\\
+C2D & value & 0.959 & -0.48 & -2.03 & \ok\\
+CAT & profitability & 0.977 & 1.23 & -0.32 & \ok\\
+D2P & value & 0.964 & 0.47 & -0.36 & \ok\\
+dCEQ & investment & 0.951 & -2.79 & -1.51 & \ok\\
+dGS & profitability & 0.966 & -0.69 & -0.25 & \ok\\
+dSO & value & 0.966 & -0.40 & -0.53 & \ok\\
+E2P & value & 0.978 & 3.00 & -0.41 & \ok\\
+EPS & value & 0.977 & 0.82 & -3.88 & \ok\\
+IDIOV & trading frictions & 0.955 & -0.21 & -0.99 & \ok\\
+I2A & investment & 0.971 & 0.01 & -1.30 & \ok\\
+IPM & profitability & 0.962 & -0.78 & -1.43 & \ok\\
+IVC & investment & 0.970 & -0.98 & 0.26 & \ok\\
+SIZE & trading frictions & 0.997 & 0.09 & -0.21 & \ok\\
+NOA & investment & 0.967 & -1.12 & -0.26 & \ok\\
+OL & intangibles & 0.959 & 1.35 & -0.16 & \ok\\
+BETA\_d & trading frictions & 0.952 & 0.05 & -0.17 & \ok\\
+PCM & profitability & 0.977 & -0.44 & -1.57 & \ok\\
+PM & profitability & 0.973 & -0.61 & -1.53 & \ok\\
+PROF & profitability & 0.978 & -0.53 & -0.29 & \ok\\
+Q & value & 0.978 & 0.91 & -0.21 & \ok\\
+MAXRET & trading frictions & 0.984 & -0.22 & -1.16 & \ok\\
+ROA & profitability & 0.965 & -0.06 & 0.53 & \ok\\
+ROC & profitability & 0.972 & -0.95 & 0.24 & \ok\\
+ROE & profitability & 0.972 & -0.41 & -2.69 & \ok\\
+ROIC & profitability & 0.964 & 0.07 & -0.23 & \ok\\
+R\_12\_2 & past returns & 0.979 & 0.17 & 0.29 & \ok\\
+R\_12\_7 & past returns & 0.984 & -0.13 & -0.43 & \ok\\
+R\_6\_2 & past returns & 0.978 & -0.02 & -0.91 & \ok\\
+R\_2\_1 & past returns & 0.986 & -0.35 & -0.45 & \ok\\
+R\_36\_13 & past returns & 0.988 & -0.95 & -0.40 & \ok\\
+S2C & value & 0.968 & 0.15 & -0.92 & \ok\\
+S2P & value & 0.979 & 5.01 & -0.62 & \ok\\
+SG & value & 0.963 & 0.12 & -0.82 & \ok\\
+SAT & profitability & 0.971 & 1.65 & -0.20 & \ok\\
+SPREAD & trading frictions & 0.964 & -1.48 & 2.38 & \ok\\
+sdTURN & trading frictions & 0.991 & 0.03 & -0.06 & \ok\\
+sdDVOL & trading frictions & 0.896 & -5.28 & -0.08 & \ok\\
+TAN & intangibles & 0.978 & -1.35 & -1.38 & \ok\\
+RETVOL & trading frictions & 0.988 & -0.14 & -0.32 & \ok\\
+DP & value & 0.841 & 1.39 & -3.39 & \bad\\
+TNOVR & trading frictions & 0.790 & 0.25 & 1.68 & \bad\\
+SUV & trading frictions & 0.073 & 3.76 & -3.27 & \bad\\
+DTO & trading frictions & 0.363 & 1.37 & -1.79 & \bad\\
+aBEME & value & 0.510 & -0.81 & -7.58 & \bad\\
+aSAT & profitability & 0.447 & -3.51 & 3.04 & \bad\\
+aPM & profitability & 0.284 & 1.62 & 1.08 & \bad\\
+\bottomrule
+\end{longtable}
+
+\section*{Construction, signal by signal}
+\subsection*{OA --- Operating accruals}
+\textbf{Group} intangibles \quad \textbf{Source} Sloan (1996), per Appendix Table A.1 \quad \textbf{Frequency} annual \quad \textbf{Agreement} 0.963\\[2pt]
+\textbf{Inputs.} \texttt{act, che, lct, dlc, txp, dp, at}
+
+\textbf{Formula.}
+\begin{quote}
+OA = ( d act - d che - ( d lct - d dlc - d txp - dp ) ) / at[t-1]\\
+where d txp treats a missing value as zero.\\
+Note the placement of dp: it sits INSIDE the bracket, so expanding gives\\
+OA = d act - d che - d lct + d dlc + d txp + dp, i.e. depreciation is\\
+ADDED to accruals.\\
+
+\end{quote}
+\textbf{Notes.} This is not Sloan (1996) and not what Table A.1's own wording says ("changes in non-cash working capital minus depreciation"). It is nevertheless unambiguously what the paper's data does: netting depreciation out gives agreement 0.286, adding it gives 0.963, and decile one's share of market capitalisation comes out at 5.29\% against a published 5.30\%. Chen and Zimmermann's PctAcc.do carries the identical bracket placement while their Accruals.do does not, which suggests a shared transcription. WORTH RAISING WITH THE COAUTHORS: as published, OA and AOA are not accruals net of depreciation, so capital-intensive firms sort toward the high-accrual leg because of their depreciation rather than away from it.
+
+
+\textbf{Rejected alternatives.}
+\begin{longtable}{p{10.5cm}rp{3.2cm}}
+\toprule Variant & Agreement & Verdict\\\midrule\endhead
+Sloan's grouping with dp subtracted outside the bracket & 0.286 & rejected\\
+literal reading of A.1, all three current-liability terms subtracted & 0.065 & rejected\\
+dp subtracted, scaled by average rather than lagged total assets & 0.251 & rejected\\
+dp subtracted, every delta zero-filled & 0.163 & rejected\\
+change in net operating assets & 0.234 & rejected\\
+change in working capital from wcap directly & -0.058 & rejected\\
+cash-flow statement form, ni less oancf, over average assets & 0.087 & rejected\\
+cash-flow form with balance-sheet fallback & 0.269 & rejected\\
+scaled by sales, by absolute earnings, by current assets & 0.154 & rejected\\
+winsorised 1/99 monthly, or |OA| capped at 1, 0.5, 0.3 & 0.065 & no effect; outliers are not the cause\\
+JKP oaccruals\_at taken directly from their library & 0.278 & better than ours was, worse than the fix\\
+shifted +/- 6 months against the published series & -- & no peak; not a timing offset\\
+\bottomrule\end{longtable}
+\subsection*{AOA --- Absolute operating accruals}
+\textbf{Group} intangibles \quad \textbf{Source} Bandyopadhyay, Huang and Wirjanto (2010) \quad \textbf{Frequency} annual \quad \textbf{Agreement} 0.971\\[2pt]
+\textbf{Inputs.} \texttt{act, che, lct, dlc, txp, dp, at}
+
+\textbf{Formula.}
+\begin{quote}
+AOA = |OA|, with OA exactly as above (depreciation added, not subtracted).\\
+
+\end{quote}
+\textbf{Notes.} Follows OA mechanically. Neither Chen and Zimmermann nor Jensen, Kelly and Pedersen carry a Bandyopadhyay signal, so there is no third implementation to compare against; it is verified only through OA.
+
+
+\textbf{Rejected alternatives.}
+\begin{longtable}{p{10.5cm}rp{3.2cm}}
+\toprule Variant & Agreement & Verdict\\\midrule\endhead
+absolute value of every rejected OA variant above & 0.087 & rejected\\
+\bottomrule\end{longtable}
+\subsection*{ATO --- Asset turnover}
+\textbf{Group} profitability \quad \textbf{Source} Soliman (2008) \quad \textbf{Frequency} annual \quad \textbf{Agreement} 0.974\\[2pt]
+\textbf{Inputs.} \texttt{sale, at, che, ivao, dlc, dltt, mib, pstk, ceq}
+
+\textbf{Formula.}
+\begin{quote}
+operating assets      = at - che - ivao        (che, ivao missing -> 0)\\
+operating liabilities = at - dlc - dltt - mib - pstk - ceq\\
+                        (dlc, dltt, mib, pstk missing -> 0; ceq REQUIRED)\\
+net operating assets  = operating assets - operating liabilities\\
+ATO = sale / NOA[t-1]\\
+
+\end{quote}
+\textbf{Notes.} Common equity must be required rather than zero-filled. Filled, operating liabilities collapse to assets less debt, net operating assets go to nearly zero, and anything divided by them explodes into the end deciles. Agreement 0.78 filled against 0.92 required. This is Chen and Zimmermann's convention in RetNOA.do, where dlc, dltt, mib and pstk are zero-filled and ceq is not.
+
+
+\textbf{Rejected alternatives.}
+\begin{longtable}{p{10.5cm}rp{3.2cm}}
+\toprule Variant & Agreement & Verdict\\\midrule\endhead
+ceq zero-filled like the other liability terms & 0.780 & rejected\\
+contemporaneous rather than lagged net operating assets & 0.582 & rejected\\
+operating assets without subtracting ivao & 0.558 & rejected\\
+observations with non-positive NOA discarded & 0.494 & rejected\\
+Soliman's component-built operating assets (rect+invt+aco+ppent+intan-ap-lco-lo), averaged & 0.241 & rejected\\
+lagged sales over lagged NOA & 0.625 & rejected\\
+\bottomrule\end{longtable}
+\subsection*{RNA --- Return on net operating assets}
+\textbf{Group} profitability \quad \textbf{Source} Soliman (2008) \quad \textbf{Frequency} annual \quad \textbf{Agreement} 0.978\\[2pt]
+\textbf{Inputs.} \texttt{oiadp, at, che, ivao, dlc, dltt, mib, pstk, ceq}
+
+\textbf{Formula.}
+\begin{quote}
+RNA = oiadp / NOA[t-1], with NOA exactly as defined under ATO\\
+(ceq required, the other liability terms zero-filled).\\
+
+\end{quote}
+\textbf{Notes.} Same common-equity point as ATO: 0.76 with ceq filled, 0.95 required.
+
+
+\textbf{Rejected alternatives.}
+\begin{longtable}{p{10.5cm}rp{3.2cm}}
+\toprule Variant & Agreement & Verdict\\\midrule\endhead
+ceq zero-filled & 0.758 & rejected\\
+contemporaneous NOA & 0.690 & rejected\\
+operating assets without ivao & 0.551 & rejected\\
+non-positive NOA discarded & 0.538 & rejected\\
+Soliman component-built operating assets & 0.411 & rejected\\
+\bottomrule\end{longtable}
+\subsection*{dSOUT --- Change in shares outstanding}
+\textbf{Group} investment \quad \textbf{Source} Pontiff and Woodgate (2008) \quad \textbf{Frequency} monthly \quad \textbf{Agreement} 0.992\\[2pt]
+\textbf{Inputs.} \texttt{shrout, mthcumfacshr}
+
+\textbf{Formula.}
+\begin{quote}
+adjusted shares s[t] = shrout[t] * mthcumfacshr[t]\\
+dSOUT[t] = 100 * ( s[t] / s[t-12] - 1 )\\
+
+\end{quote}
+\textbf{Notes.} CRSP's share counts are not split-adjusted, so raw growth reads every split as a 100\% issuance. The cumulative share factor is the exact adjustment.
+
+
+\textbf{Rejected alternatives.}
+\begin{longtable}{p{10.5cm}rp{3.2cm}}
+\toprule Variant & Agreement & Verdict\\\midrule\endhead
+raw shrout growth, unadjusted for splits & 0.513 & rejected\\
+split adjustment backed out of market cap and the ex-dividend return & 0.883 & close, superseded\\
+\bottomrule\end{longtable}
+\subsection*{dPIA --- Change in plant and inventory over assets}
+\textbf{Group} investment \quad \textbf{Source} Lyandres, Sun and Zhang (2008) \quad \textbf{Frequency} annual \quad \textbf{Agreement} 0.943\\[2pt]
+\textbf{Inputs.} \texttt{ppegt, invt, at}
+
+\textbf{Formula.}
+\begin{quote}
+dPIA = ( d ppegt + d invt ) / at[t-1],\\
+where each delta treats a missing component as no change (zero) rather than\\
+discarding the firm.\\
+
+\end{quote}
+\textbf{Rejected alternatives.}
+\begin{longtable}{p{10.5cm}rp{3.2cm}}
+\toprule Variant & Agreement & Verdict\\\midrule\endhead
+both deltas required non-missing & 0.777 & rejected\\
+scaled by average rather than lagged assets & 0.771 & rejected\\
+net rather than gross plant (ppent) & 0.493 & rejected\\
+scaled by lagged (ppegt + invt) & 0.420 & rejected\\
+\bottomrule\end{longtable}
+\subsection*{aSIZE --- Industry-adjusted size}
+\textbf{Group} trading frictions \quad \textbf{Source} Asness, Porter and Stevens (2000) \quad \textbf{Frequency} monthly \quad \textbf{Agreement} 0.856\\[2pt]
+\textbf{Inputs.} \texttt{cap, siccd}
+
+\textbf{Formula.}
+\begin{quote}
+aSIZE = SIZE - mean(SIZE) within the Fama-French 48 industry that month,\\
+equal-weighted over ordinary common shares.\\
+
+\end{quote}
+\textbf{Notes.} Just above the threshold at 0.85, but its wedge is still 13 points from the paper's on the long leg -- the widest gap of any characteristic that passes the construction check. Treat as unresolved in practice.
+
+
+\textbf{Rejected alternatives.}
+\begin{longtable}{p{10.5cm}rp{3.2cm}}
+\toprule Variant & Agreement & Verdict\\\midrule\endhead
+Fama-French 10 and 30 industries & 0.866 & marginally better than 48, within noise\\
+industry median instead of mean & 0.877 & marginally better, not adopted\\
+log size demeaned within industry & 0.754 & rejected\\
+partial adjustment at 0.75 & 0.872 & marginally better, not adopted\\
+capitalisation-weighted industry mean & 0.317 & rejected\\
+\bottomrule\end{longtable}
+\subsection*{A2ME --- Total assets (at) over market capitalization (prc x shrout)}
+\textbf{Group} value \quad \textbf{Source} bhandari1988 \quad \textbf{Frequency} monthly \quad \textbf{Agreement} 0.972\\[2pt]
+\textbf{Inputs.} \texttt{at}
+
+\textbf{Formula.}
+\begin{quote}
+at / me.\\
+
+\end{quote}
+\textbf{Rejected alternatives.}
+\begin{longtable}{p{10.5cm}rp{3.2cm}}
+\toprule Variant & Agreement & Verdict\\\midrule\endhead
+market equity as of December t-1 & 0.700 & rejected\\
+\bottomrule\end{longtable}
+\subsection*{AT --- Total assets (at)}
+\textbf{Group} trading frictions \quad \textbf{Source} gandhi2015 \quad \textbf{Frequency} annual \quad \textbf{Agreement} 0.988\\[2pt]
+\textbf{Inputs.} \texttt{at}
+
+\textbf{Formula.}
+\begin{quote}
+Total assets.\\
+
+\end{quote}
+\subsection*{BEME --- Book equity to market equity. Book equity is shareholders' equity (seq}
+\textbf{Group} value \quad \textbf{Source} -- \quad \textbf{Frequency} monthly \quad \textbf{Agreement} 0.977\\[2pt]
+\textbf{Inputs.} \texttt{at, ceq, lt, prc, pstk, pstkl, pstrkrv, seq, shrout, txditc}
+
+\textbf{Formula.}
+\begin{quote}
+be / me, with negative book equity discarded before sorting.\\
+Book equity = seq, else ceq+pstk, else at-lt; plus txditc; minus the first\\
+available of pstkrv, pstkl, pstk. Market equity is CRSP mthcap for the CURRENT\\
+month, in millions.\\
+
+\end{quote}
+\textbf{Notes.} FNW state market equity as of December t-1 explicitly. The package's own
+stored panel says otherwise once its one-month row offset is accounted for:
+lined up correctly the current month matches 94.9\% of firm-months exactly and
+December 3.9\%. Implementing December drops agreement from 0.97 to about 0.70.
+
+\textbf{Rejected alternatives.}
+\begin{longtable}{p{10.5cm}rp{3.2cm}}
+\toprule Variant & Agreement & Verdict\\\midrule\endhead
+market equity as of December of the prior year & 0.700 & rejected\\
+market equity lagged one month & 0.840 & rejected; an artifact of a row-offset error in the comparison\\
+market equity summed across share classes of the same permco & -- & marginally better on values (95.7\% vs 94.9\%), not adopted\\
+\bottomrule\end{longtable}
+\subsection*{C2A --- Cash and short-term investments (che) to total assets (at)}
+\textbf{Group} value \quad \textbf{Source} palazzo2012 \quad \textbf{Frequency} annual \quad \textbf{Agreement} 0.963\\[2pt]
+\textbf{Inputs.} \texttt{at, che}
+
+\textbf{Formula.}
+\begin{quote}
+che / at.\\
+
+\end{quote}
+\subsection*{C2D --- Cashflow to debt. Cashflow is the sum of income and extraordinary item}
+\textbf{Group} value \quad \textbf{Source} ou1989 \quad \textbf{Frequency} annual \quad \textbf{Agreement} 0.959\\[2pt]
+\textbf{Inputs.} \texttt{dp, ib, lt}
+
+\textbf{Formula.}
+\begin{quote}
+(ib + dp) / lt.\\
+
+\end{quote}
+\subsection*{CAT --- Sales (sale) to lagged total assets (at)}
+\textbf{Group} profitability \quad \textbf{Source} haugen1996 \quad \textbf{Frequency} annual \quad \textbf{Agreement} 0.977\\[2pt]
+\textbf{Inputs.} \texttt{at, sale}
+
+\textbf{Formula.}
+\begin{quote}
+sale / at[t-1].\\
+
+\end{quote}
+\subsection*{D2P --- Debt to price. Debt is long-term debt (dltt) plus debt in current liab}
+\textbf{Group} value \quad \textbf{Source} litzenberger1979 \quad \textbf{Frequency} monthly \quad \textbf{Agreement} 0.964\\[2pt]
+\textbf{Inputs.} \texttt{dlc, dltt, prc, shrout}
+
+\textbf{Formula.}
+\begin{quote}
+(dltt + dlc) / me, each debt term missing treated as zero.\\
+
+\end{quote}
+\textbf{Rejected alternatives.}
+\begin{longtable}{p{10.5cm}rp{3.2cm}}
+\toprule Variant & Agreement & Verdict\\\midrule\endhead
+market equity as of December t-1 & 0.710 & rejected\\
+\bottomrule\end{longtable}
+\subsection*{dCEQ --- Annual \% change in book value of equity (ceq)}
+\textbf{Group} investment \quad \textbf{Source} richardson2005 \quad \textbf{Frequency} annual \quad \textbf{Agreement} 0.951\\[2pt]
+\textbf{Inputs.} \texttt{ceq}
+
+\textbf{Formula.}
+\begin{quote}
+Percent change in ceq.\\
+
+\end{quote}
+\subsection*{dGS --- \% change in gross margin minus \% change in sales (sale). Gross margin}
+\textbf{Group} profitability \quad \textbf{Source} abarbanell1997 \quad \textbf{Frequency} annual \quad \textbf{Agreement} 0.966\\[2pt]
+\textbf{Inputs.} \texttt{cogs, sale}
+
+\textbf{Formula.}
+\begin{quote}
+Percent growth in gross margin (sale-cogs) less percent growth in sale.\\
+
+\end{quote}
+\subsection*{dSO --- Log change in the product of shares outstanding (csho) and the adjustm}
+\textbf{Group} value \quad \textbf{Source} fama2008 \quad \textbf{Frequency} annual \quad \textbf{Agreement} 0.966\\[2pt]
+\textbf{Inputs.} \texttt{ajex, csho}
+
+\textbf{Formula.}
+\begin{quote}
+log( csho*ajex / (csho*ajex)[t-1] ), i.e. growth in split-adjusted Compustat\\
+share count.\\
+
+\end{quote}
+\subsection*{E2P --- Income before extraordinary items (ib) to market capitalization (prc x}
+\textbf{Group} value \quad \textbf{Source} basu1983 \quad \textbf{Frequency} monthly \quad \textbf{Agreement} 0.978\\[2pt]
+\textbf{Inputs.} \texttt{ib}
+
+\textbf{Formula.}
+\begin{quote}
+ib / me.\\
+
+\end{quote}
+\textbf{Rejected alternatives.}
+\begin{longtable}{p{10.5cm}rp{3.2cm}}
+\toprule Variant & Agreement & Verdict\\\midrule\endhead
+market equity as of December t-1 & 0.690 & rejected\\
+\bottomrule\end{longtable}
+\subsection*{EPS --- Income before extraordinary items (ib) to shares outstanding (shrout)}
+\textbf{Group} value \quad \textbf{Source} basu1977 \quad \textbf{Frequency} monthly \quad \textbf{Agreement} 0.977\\[2pt]
+\textbf{Inputs.} \texttt{ib, shrout}
+
+\textbf{Formula.}
+\begin{quote}
+ib / (shrout/1000), i.e. earnings per share on CRSP's share count.\\
+
+\end{quote}
+\subsection*{IDIOV --- Standard deviation of the residuals from a regression of excess return}
+\textbf{Group} trading frictions \quad \textbf{Source} ang2006 \quad \textbf{Frequency} monthly \quad \textbf{Agreement} 0.955\\[2pt]
+\textbf{Formula.}
+\begin{quote}
+Standard deviation of the residuals from a regression of daily excess returns\\
+on the three Fama-French factors, within the month, at least 15 days.\\
+
+\end{quote}
+\textbf{Notes.} Emphatically monthly, unlike BETA\_d: 0.93 at one month against 0.58 at twelve.
+JKP corroborate, carrying ivol\_ff3\_21d at a 21-day window, and our series
+correlates 0.997 with theirs.
+
+\textbf{Rejected alternatives.}
+\begin{longtable}{p{10.5cm}rp{3.2cm}}
+\toprule Variant & Agreement & Verdict\\\midrule\endhead
+estimated over twelve months & 0.582 & rejected\\
+\bottomrule\end{longtable}
+\subsection*{I2A --- Annual \% change in total assets (at)}
+\textbf{Group} investment \quad \textbf{Source} -- \quad \textbf{Frequency} annual \quad \textbf{Agreement} 0.971\\[2pt]
+\textbf{Inputs.} \texttt{at}
+
+\textbf{Formula.}
+\begin{quote}
+Percent change in at.\\
+
+\end{quote}
+\subsection*{IPM --- Pre-tax income (pi) over sales (sale)}
+\textbf{Group} profitability \quad \textbf{Source} -- \quad \textbf{Frequency} annual \quad \textbf{Agreement} 0.962\\[2pt]
+\textbf{Inputs.} \texttt{pi, sale}
+
+\textbf{Formula.}
+\begin{quote}
+pi / sale.\\
+
+\end{quote}
+\subsection*{IVC --- Annual change in inventories (invt) in the last two fiscal years over}
+\textbf{Group} investment \quad \textbf{Source} thomas2002 \quad \textbf{Frequency} annual \quad \textbf{Agreement} 0.970\\[2pt]
+\textbf{Inputs.} \texttt{at, invt}
+
+\textbf{Formula.}
+\begin{quote}
+(invt - invt[t-1]) / ((at + at[t-1])/2).\\
+
+\end{quote}
+\subsection*{SIZE --- Price (prc) times shares outstanding (shrout)}
+\textbf{Group} trading frictions \quad \textbf{Source} fama1992 \quad \textbf{Frequency} monthly \quad \textbf{Agreement} 0.997\\[2pt]
+\textbf{Inputs.} \texttt{prc, shrout}
+
+\textbf{Formula.}
+\begin{quote}
+Market equity, CRSP mthcap for the current month, in millions.\\
+
+\end{quote}
+\subsection*{NOA --- Operating assets minus operating liabilities to lagged total assets (a}
+\textbf{Group} investment \quad \textbf{Source} hirshleifer2004 \quad \textbf{Frequency} annual \quad \textbf{Agreement} 0.967\\[2pt]
+\textbf{Inputs.} \texttt{at, ceq, che, dlc, dltt, ivao, mib, pstk}
+
+\textbf{Formula.}
+\begin{quote}
+(operating assets - operating liabilities) / at[t-1], with operating assets\\
+and liabilities as defined under ATO.\\
+
+\end{quote}
+\textbf{Notes.} Unaffected by the common-equity question that matters so much for ATO and RNA,
+because NOA uses the level rather than dividing by it.
+
+\textbf{Rejected alternatives.}
+\begin{longtable}{p{10.5cm}rp{3.2cm}}
+\toprule Variant & Agreement & Verdict\\\midrule\endhead
+ceq zero-filled & 0.917 & no effect\\
+\bottomrule\end{longtable}
+\subsection*{OL --- Sum of cost of goods sold (cogs) and selling, general and administrati}
+\textbf{Group} intangibles \quad \textbf{Source} novy2011 \quad \textbf{Frequency} annual \quad \textbf{Agreement} 0.959\\[2pt]
+\textbf{Inputs.} \texttt{at, cogs, xsga}
+
+\textbf{Formula.}
+\begin{quote}
+(cogs + xsga) / at, each missing term treated as zero.\\
+
+\end{quote}
+\subsection*{BETA\_d --- The sum of the regression coefficients of daily excess returns on mark}
+\textbf{Group} trading frictions \quad \textbf{Source} lewellen2006 \quad \textbf{Frequency} monthly \quad \textbf{Agreement} 0.952\\[2pt]
+\textbf{Formula.}
+\begin{quote}
+Sum of the coefficients on the market and its lag, from a regression of daily\\
+excess returns on both, estimated over TWELVE months of daily data.\\
+
+\end{quote}
+\textbf{Notes.} Twelve months, not one. A one-month Dimson beta is too noisy to sort on:
+0.35 at one month, 0.62 at six, 0.94 at twelve, 0.63 at twenty-four. The
+moments are additive, so a twelve-month cross-product matrix is the sum of
+twelve monthly ones.
+
+\textbf{Rejected alternatives.}
+\begin{longtable}{p{10.5cm}rp{3.2cm}}
+\toprule Variant & Agreement & Verdict\\\midrule\endhead
+estimated over one month & 0.353 & rejected\\
+six months & 0.617 & rejected\\
+twenty-four and sixty months & 0.631 & rejected\\
+\bottomrule\end{longtable}
+\subsection*{PCM --- Net sales (sale) minus cost of goods sold (cogs) all scaled by net sal}
+\textbf{Group} profitability \quad \textbf{Source} gorodnichenko2016 \quad \textbf{Frequency} annual \quad \textbf{Agreement} 0.977\\[2pt]
+\textbf{Inputs.} \texttt{cogs, sale}
+
+\textbf{Formula.}
+\begin{quote}
+(sale - cogs) / sale.\\
+
+\end{quote}
+\subsection*{PM --- Operating Income after depreciation (oiadp) to sales (sale)}
+\textbf{Group} profitability \quad \textbf{Source} soliman2008 \quad \textbf{Frequency} annual \quad \textbf{Agreement} 0.973\\[2pt]
+\textbf{Inputs.} \texttt{oiadp, sale}
+
+\textbf{Formula.}
+\begin{quote}
+oiadp / sale.\\
+
+\end{quote}
+\textbf{Rejected alternatives.}
+\begin{longtable}{p{10.5cm}rp{3.2cm}}
+\toprule Variant & Agreement & Verdict\\\midrule\endhead
+net income over revenue, as Chen and Zimmermann implement Soliman & 0.387 & rejected\\
+oiadp over average sales & 0.732 & rejected\\
+\bottomrule\end{longtable}
+\subsection*{PROF --- Gross profitability (gp) over book equity as defined in BEME}
+\textbf{Group} profitability \quad \textbf{Source} ball2015 \quad \textbf{Frequency} annual \quad \textbf{Agreement} 0.978\\[2pt]
+\textbf{Inputs.} \texttt{gp}
+
+\textbf{Formula.}
+\begin{quote}
+gp / be, with book equity as defined under BEME.\\
+
+\end{quote}
+\subsection*{Q --- Total assets (at) plus market value of equity (shrout x prc) minus boo}
+\textbf{Group} value \quad \textbf{Source} -- \quad \textbf{Frequency} monthly \quad \textbf{Agreement} 0.978\\[2pt]
+\textbf{Inputs.} \texttt{at, ceq, txdb}
+
+\textbf{Formula.}
+\begin{quote}
+(at + me - ceq - txdb) / at, txdb missing treated as zero, me the current month's market equity in millions.\\
+
+\end{quote}
+\textbf{Rejected alternatives.}
+\begin{longtable}{p{10.5cm}rp{3.2cm}}
+\toprule Variant & Agreement & Verdict\\\midrule\endhead
+market equity as of December of the prior year & 0.610 & rejected\\
+\bottomrule\end{longtable}
+\subsection*{MAXRET --- Maximum daily return in the previous month}
+\textbf{Group} trading frictions \quad \textbf{Source} bali2011 \quad \textbf{Frequency} monthly \quad \textbf{Agreement} 0.984\\[2pt]
+\textbf{Formula.}
+\begin{quote}
+Maximum daily return within the month.\\
+
+\end{quote}
+\textbf{Notes.} Correlates 1.000 with JKP's rmax1\_21d.
+
+\subsection*{ROA --- Income before extraordinary items (ib) to lagged total assets (at)}
+\textbf{Group} profitability \quad \textbf{Source} balakrishnan2010 \quad \textbf{Frequency} annual \quad \textbf{Agreement} 0.965\\[2pt]
+\textbf{Inputs.} \texttt{at, ib}
+
+\textbf{Formula.}
+\begin{quote}
+ib / at[t-1].\\
+
+\end{quote}
+\subsection*{ROC --- Market value of equity (shrout x prc) plus long-term debt (dltt) minus}
+\textbf{Group} profitability \quad \textbf{Source} chandrashekar2009 \quad \textbf{Frequency} monthly \quad \textbf{Agreement} 0.972\\[2pt]
+\textbf{Inputs.} \texttt{at, che, dltt}
+
+\textbf{Formula.}
+\begin{quote}
+(me + dltt - at) / che.\\
+
+\end{quote}
+\subsection*{ROE --- Income before extraordinary items (ib) to lagged book-value of equity}
+\textbf{Group} profitability \quad \textbf{Source} haugen1996 \quad \textbf{Frequency} annual \quad \textbf{Agreement} 0.972\\[2pt]
+\textbf{Inputs.} \texttt{ib}
+
+\textbf{Formula.}
+\begin{quote}
+ib / be[t-1].\\
+
+\end{quote}
+\subsection*{ROIC --- Earnings before interest and taxes (ebit) less non-operating income (n}
+\textbf{Group} profitability \quad \textbf{Source} brown2007 \quad \textbf{Frequency} annual \quad \textbf{Agreement} 0.964\\[2pt]
+\textbf{Inputs.} \texttt{ceq, che, ebit, lt, nopi}
+
+\textbf{Formula.}
+\begin{quote}
+(ebit - nopi) / (ceq + lt - che), nopi missing treated as zero.\\
+
+\end{quote}
+\textbf{Notes.} Appendix Table A.1 words the denominator as a sum, which would add cash to
+invested capital. Subtracting it is both what invested capital means and what
+the data says: 0.64 adding against 0.93 subtracting.
+
+\textbf{Rejected alternatives.}
+\begin{longtable}{p{10.5cm}rp{3.2cm}}
+\toprule Variant & Agreement & Verdict\\\midrule\endhead
+cash added to invested capital, as A.1 words it & 0.640 & rejected\\
+every component required non-missing & 0.640 & no effect\\
+\bottomrule\end{longtable}
+\subsection*{R\_12\_2 --- Cumulative return from 12 months to 2 months ago}
+\textbf{Group} past returns \quad \textbf{Source} fama1996 \quad \textbf{Frequency} monthly \quad \textbf{Agreement} 0.979\\[2pt]
+\textbf{Formula.}
+\begin{quote}
+Compound return over months t-11..t-1, stored on row t.\\
+
+\end{quote}
+\textbf{Notes.} Stored ONE MONTH EARLIER than the name suggests. The sort's own one-month lag
+then produces the stated twelve-to-two window. Storing the literal window drops
+agreement from 0.97 to 0.65.
+
+\textbf{Rejected alternatives.}
+\begin{longtable}{p{10.5cm}rp{3.2cm}}
+\toprule Variant & Agreement & Verdict\\\midrule\endhead
+literal window, months t-12..t-2 & 0.647 & rejected\\
+\bottomrule\end{longtable}
+\subsection*{R\_12\_7 --- Cumulative return from 12 months to 7 months ago}
+\textbf{Group} past returns \quad \textbf{Source} novy2012 \quad \textbf{Frequency} monthly \quad \textbf{Agreement} 0.984\\[2pt]
+\textbf{Formula.}
+\begin{quote}
+Compound return over months t-11..t-6, stored on row t.\\
+
+\end{quote}
+\textbf{Rejected alternatives.}
+\begin{longtable}{p{10.5cm}rp{3.2cm}}
+\toprule Variant & Agreement & Verdict\\\midrule\endhead
+literal window t-12..t-7 & 0.533 & rejected\\
+\bottomrule\end{longtable}
+\subsection*{R\_6\_2 --- Cumulative return from 6 months to 2 months ago}
+\textbf{Group} past returns \quad \textbf{Source} jegadeesh1993 \quad \textbf{Frequency} monthly \quad \textbf{Agreement} 0.978\\[2pt]
+\textbf{Formula.}
+\begin{quote}
+Compound return over months t-5..t-1, stored on row t.\\
+
+\end{quote}
+\textbf{Rejected alternatives.}
+\begin{longtable}{p{10.5cm}rp{3.2cm}}
+\toprule Variant & Agreement & Verdict\\\midrule\endhead
+literal window t-6..t-2 & 0.507 & rejected\\
+\bottomrule\end{longtable}
+\subsection*{R\_2\_1 --- Lagged one month return}
+\textbf{Group} past returns \quad \textbf{Source} jegadeesh1990 \quad \textbf{Frequency} monthly \quad \textbf{Agreement} 0.986\\[2pt]
+\textbf{Formula.}
+\begin{quote}
+The CURRENT month's return, stored on row t.\\
+
+\end{quote}
+\textbf{Notes.} The one-month shift matters most here: with a single month there is no overlap
+to rescue a timing error, and the literal 'lagged one-month return' gives 0.11
+against 0.97.
+
+\textbf{Rejected alternatives.}
+\begin{longtable}{p{10.5cm}rp{3.2cm}}
+\toprule Variant & Agreement & Verdict\\\midrule\endhead
+lagged one-month return, as A.1 words it & 0.108 & rejected\\
+\bottomrule\end{longtable}
+\subsection*{R\_36\_13 --- Cumulative return from 36 months to 13 months ago}
+\textbf{Group} past returns \quad \textbf{Source} de1985 \quad \textbf{Frequency} monthly \quad \textbf{Agreement} 0.988\\[2pt]
+\textbf{Formula.}
+\begin{quote}
+Compound return over months t-35..t-12, stored on row t.\\
+
+\end{quote}
+\textbf{Rejected alternatives.}
+\begin{longtable}{p{10.5cm}rp{3.2cm}}
+\toprule Variant & Agreement & Verdict\\\midrule\endhead
+literal window t-36..t-13 & 0.744 & rejected\\
+\bottomrule\end{longtable}
+\subsection*{S2C --- Net sales (sale) to cash and short-term investments (che)}
+\textbf{Group} value \quad \textbf{Source} ou1989 \quad \textbf{Frequency} annual \quad \textbf{Agreement} 0.968\\[2pt]
+\textbf{Inputs.} \texttt{che, sale}
+
+\textbf{Formula.}
+\begin{quote}
+sale / che.\\
+
+\end{quote}
+\subsection*{S2P --- Net sales (sale) to market capitalization (shrout x prc)}
+\textbf{Group} value \quad \textbf{Source} lewellen2015 \quad \textbf{Frequency} monthly \quad \textbf{Agreement} 0.979\\[2pt]
+\textbf{Inputs.} \texttt{sale}
+
+\textbf{Formula.}
+\begin{quote}
+sale / me.\\
+
+\end{quote}
+\textbf{Rejected alternatives.}
+\begin{longtable}{p{10.5cm}rp{3.2cm}}
+\toprule Variant & Agreement & Verdict\\\midrule\endhead
+market equity as of December & 0.720 & rejected\\
+\bottomrule\end{longtable}
+\subsection*{SG --- \% growth rate in sales (sale)}
+\textbf{Group} value \quad \textbf{Source} lakonishok1994 \quad \textbf{Frequency} annual \quad \textbf{Agreement} 0.963\\[2pt]
+\textbf{Inputs.} \texttt{sale}
+
+\textbf{Formula.}
+\begin{quote}
+Percent change in sale.\\
+
+\end{quote}
+\subsection*{SAT --- Sales (sale) to total assets (at)}
+\textbf{Group} profitability \quad \textbf{Source} soliman2008 \quad \textbf{Frequency} annual \quad \textbf{Agreement} 0.971\\[2pt]
+\textbf{Inputs.} \texttt{at, sale}
+
+\textbf{Formula.}
+\begin{quote}
+sale / at.\\
+
+\end{quote}
+\textbf{Rejected alternatives.}
+\begin{longtable}{p{10.5cm}rp{3.2cm}}
+\toprule Variant & Agreement & Verdict\\\midrule\endhead
+sale over average assets & 0.786 & rejected\\
+sale over lagged assets & 0.736 & rejected\\
+\bottomrule\end{longtable}
+\subsection*{SPREAD --- Average daily bid-ask spread in the previous month}
+\textbf{Group} trading frictions \quad \textbf{Source} chung2014 \quad \textbf{Frequency} monthly \quad \textbf{Agreement} 0.964\\[2pt]
+\textbf{Formula.}
+\begin{quote}
+Mean over the month of the daily high-low range, 2*(high-low)/(high+low),\\
+requiring at least 15 days.\\
+
+\end{quote}
+\textbf{Notes.} NOT the quoted bid-ask spread, although FNW cite Chung and Zhang (2014). CRSP
+carries quotes for 9\% of daily rows in the 1960s and 53\% in the 1980s, so a
+quoted spread cannot be computed over this sample: 0.02 against 0.94.
+
+\textbf{Rejected alternatives.}
+\begin{longtable}{p{10.5cm}rp{3.2cm}}
+\toprule Variant & Agreement & Verdict\\\midrule\endhead
+quoted bid-ask spread, 2*(ask-bid)/(ask+bid) & 0.017 & rejected\\
+high-low range over the closing price & 0.933 & marginally worse\\
+\bottomrule\end{longtable}
+\subsection*{sdTURN --- Standard deviation of residuals from a regression of daily turnover on}
+\textbf{Group} trading frictions \quad \textbf{Source} chordia2001 \quad \textbf{Frequency} monthly \quad \textbf{Agreement} 0.991\\[2pt]
+\textbf{Inputs.} \texttt{shrout, vol}
+
+\textbf{Formula.}
+\begin{quote}
+Standard deviation within the month of daily turnover (volume over shares\\
+outstanding), requiring at least 15 days.\\
+
+\end{quote}
+\textbf{Rejected alternatives.}
+\begin{longtable}{p{10.5cm}rp{3.2cm}}
+\toprule Variant & Agreement & Verdict\\\midrule\endhead
+coefficient of variation of turnover (Chordia et al.) & 0.004 & rejected\\
+\bottomrule\end{longtable}
+\subsection*{sdDVOL --- Standard deviation of residuals from a regression of daily volume (vol}
+\textbf{Group} trading frictions \quad \textbf{Source} chordia2001 \quad \textbf{Frequency} monthly \quad \textbf{Agreement} 0.896\\[2pt]
+\textbf{Inputs.} \texttt{vol}
+
+\textbf{Formula.}
+\begin{quote}
+Standard deviation within the month of log(1 + daily dollar volume),\\
+requiring at least 15 days.\\
+
+\end{quote}
+\textbf{Notes.} In LOGS. In levels the dispersion measures scale rather than variability:
+0.06 against 0.87.
+
+\textbf{Rejected alternatives.}
+\begin{longtable}{p{10.5cm}rp{3.2cm}}
+\toprule Variant & Agreement & Verdict\\\midrule\endhead
+standard deviation of dollar volume in levels & 0.057 & rejected\\
+standard deviation of log share volume & 0.632 & rejected\\
+coefficient of variation of dollar volume (Chordia et al.) & 0.521 & rejected\\
+\bottomrule\end{longtable}
+\subsection*{TAN --- Tangibility is defined as (0.715 x total receivables (rect) + 0.547 x}
+\textbf{Group} intangibles \quad \textbf{Source} hahn2009 \quad \textbf{Frequency} annual \quad \textbf{Agreement} 0.978\\[2pt]
+\textbf{Inputs.} \texttt{at, che, invt, ppent, rect}
+
+\textbf{Formula.}
+\begin{quote}
+(0.715*rect + 0.547*invt + 0.535*ppent + che) / at, every component REQUIRED.\\
+
+\end{quote}
+\textbf{Notes.} Zero-filling a missing component reads as 'this firm holds no tangible
+assets' and sends firms with incomplete filings to the bottom decile: 0.48
+against 0.96.
+
+\textbf{Rejected alternatives.}
+\begin{longtable}{p{10.5cm}rp{3.2cm}}
+\toprule Variant & Agreement & Verdict\\\midrule\endhead
+missing components filled with zero & 0.478 & rejected\\
+\bottomrule\end{longtable}
+\subsection*{RETVOL --- Standard deviation of residuals from a regression of excess returns on}
+\textbf{Group} trading frictions \quad \textbf{Source} ang2006 \quad \textbf{Frequency} monthly \quad \textbf{Agreement} 0.988\\[2pt]
+\textbf{Formula.}
+\begin{quote}
+Standard deviation of daily excess returns within the month, at least 15 days.\\
+
+\end{quote}
+\textbf{Notes.} Correlates 1.000 with JKP's rvol\_21d.
+
+\subsection*{DP --- Dividend yield}
+\textbf{Group} value \quad \textbf{Source} Litzenberger and Ramaswamy (1979) \quad \textbf{Frequency} monthly \quad \textbf{Agreement} 0.841\\[2pt]
+\textbf{Inputs.} \texttt{ret, retx, cap}
+
+\textbf{Formula.}
+\begin{quote}
+dollars paid in month s = (ret[s] - retx[s]) * cap[s-1]\\
+DP[t] = sum of those dollars over months t-11..t, divided by cap[t],\\
+requiring at least six of the twelve months.\\
+
+\end{quote}
+\textbf{Notes.} Dividends in dollars over market capitalisation, not dividends per share over price. Per share the share count drifts through the year and agreement falls to 0.841. JKP's div12m\_me, which is this same quantity, scores 0.928 against the package, and building it natively gives 0.924.
+
+
+\textbf{Rejected alternatives.}
+\begin{longtable}{p{10.5cm}rp{3.2cm}}
+\toprule Variant & Agreement & Verdict\\\midrule\endhead
+dividends per share over price (twelve-month sum) & 0.841 & rejected\\
+per-share dividends restated for splits before summing & 0.735 & rejected; the more coherent calculation agrees worse\\
+sum of twelve monthly dividend yields, no price & 0.743 & rejected\\
+cash distributions from crsp.stkdistributions over price & 0.348 & rejected despite being the more principled source\\
+dollar dividends over lagged rather than current market cap & 0.869 & rejected\\
+JKP div\_me (one month), div6m\_me, div\_at & 0.652 & rejected\\
+\bottomrule\end{longtable}
+\subsection*{TNOVR --- Share turnover}
+\textbf{Group} trading frictions \quad \textbf{Source} Datar, Naik and Radcliffe (1998) \quad \textbf{Frequency} monthly \quad \textbf{Agreement} 0.790\\[2pt]
+\textbf{Inputs.} \texttt{vol, shrout}
+
+\textbf{Formula.}
+\begin{quote}
+TNOVR[t] = ( vol[t] + vol[t-1] + vol[t-2] ) / ( 3 * shrout[t] )\\
+
+\end{quote}
+\textbf{Notes.} Averaged over three months. Table A.1 reads as one month and the source paper does not say; three tracks the published weights best. Still below the verification threshold at 0.79, so this one is not settled.
+
+
+\textbf{Rejected alternatives.}
+\begin{longtable}{p{10.5cm}rp{3.2cm}}
+\toprule Variant & Agreement & Verdict\\\midrule\endhead
+single month, vol/shrout & 0.707 & rejected\\
+twelve-month average & 0.699 & rejected\\
+mean daily turnover within the month & 0.706 & rejected\\
+Nasdaq volume scaled down 50\% pre-1997 and 38\% after & 0.679 & rejected\\
+dollar volume over market cap & 0.708 & rejected\\
+JKP turnover\_126d & 0.713 & rejected\\
+\bottomrule\end{longtable}
+\subsection*{SUV --- Standardised unexplained volume}
+\textbf{Group} trading frictions \quad \textbf{Source} Garfinkel (2009) \quad \textbf{Frequency} monthly (daily inputs) \quad \textbf{Agreement} 0.073\\[2pt]
+\textbf{Inputs.} \texttt{dlyvol, dlyret}
+
+\textbf{Formula.}
+\begin{quote}
+Within a month, regress log(1 + daily volume) on a constant and the\\
+absolute values of positive and negative daily returns:\\
+    ln(1+v\_i) = a + b*max(r\_i,0) + c*|min(r\_i,0)| + e\_i\\
+Estimated on the previous month and applied to the current one:\\
+    SUV[t] = ( sum\_i ln(1+v\_i) - predicted ) / ( n * sd(e) )\\
+with predicted and sd(e) from month t-1's fit. At least 15 days required.\\
+
+\end{quote}
+\textbf{Notes.} UNRESOLVED at 0.07. Neither Chen and Zimmermann nor JKP carry a Garfinkel signal, so there is no reference implementation anywhere. The level of the decile weights comes out close (8.85 against a published 8.94 on decile one) while the month-to-month variation does not, which is the signature of a measure that is right in construction but wrong in timing or in which residual is taken. Full daily data has been pulled to test day-level variants the monthly moments cannot express.
+
+
+\textbf{Rejected alternatives.}
+\begin{longtable}{p{10.5cm}rp{3.2cm}}
+\toprule Variant & Agreement & Verdict\\\midrule\endhead
+regression in volume levels rather than logs & 0.080 & rejected\\
+estimation window of 1, 6, 12 and 24 months applied out of sample & 0.092 & rejected at every length\\
+previous month taken on a dense grid so the lag cannot cross a gap & 0.072 & rejected\\
+in-sample residual dispersion rather than an out-of-sample residual & 0.002 & rejected\\
+standardised by sqrt(n) rather than n & 0.073 & rejected\\
+\bottomrule\end{longtable}
+\subsection*{DTO --- Detrended turnover}
+\textbf{Group} trading frictions \quad \textbf{Source} Garfinkel (2009) \quad \textbf{Frequency} monthly (daily inputs) \quad \textbf{Agreement} 0.363\\[2pt]
+\textbf{Inputs.} \texttt{dlyvol, shrout, primaryexch}
+
+\textbf{Formula.}
+\begin{quote}
+daily turnover, with Nasdaq volume scaled by 0.50 before 1997 and 0.38\\
+after, less the cross-sectional mean that day, then detrended by\\
+subtracting its own median over the previous 180 trading days.\\
+
+\end{quote}
+\textbf{Notes.} UNRESOLVED at 0.36, and the cause is known: the 180-trading-day median is not a moment of any month, so it cannot come out of the server-side aggregation the other eight daily characteristics use. It is currently approximated by a rolling median of nine monthly means. Full daily data has been pulled to compute the true median.
+
+
+\textbf{Rejected alternatives.}
+\begin{longtable}{p{10.5cm}rp{3.2cm}}
+\toprule Variant & Agreement & Verdict\\\midrule\endhead
+rolling median over 6, 9 and 12 months of monthly means & 0.367 & best available approximation so far\\
+\bottomrule\end{longtable}
+\subsection*{aBEME --- Industry-adjusted book to market}
+\textbf{Group} value \quad \textbf{Source} Asness, Porter and Stevens (2000) \quad \textbf{Frequency} monthly \quad \textbf{Agreement} 0.510\\[2pt]
+\textbf{Inputs.} \texttt{be, cap, siccd}
+
+\textbf{Formula.}
+\begin{quote}
+aBEME = BEME - mean(BEME) within the firm's Fama-French 48 industry that\\
+month, equal-weighted over ordinary common shares that have BEME.\\
+
+\end{quote}
+\textbf{Notes.} UNRESOLVED at 0.51, and the puzzle is that its parent BEME verifies at 0.97, so the adjustment itself is what fails. Our decile one matches (3.93 against a published 3.77) while decile ten does not (13.13 against 18.30): the published adjustment removes far less of the growth tilt than ours does. The search below has been exhaustive and nothing closes it. Most likely the industry classification comes from a source we do not have -- plausibly Baba-Yara, Boons and Tamoni's own file, since the paper says the characteristic set comes from that project as well as from FNW.
+
+
+\textbf{Rejected alternatives.}
+\begin{longtable}{p{10.5cm}rp{3.2cm}}
+\toprule Variant & Agreement & Verdict\\\midrule\endhead
+Fama-French 5, 10, 12, 17, 30, 38, 48 and 49 industries & 0.521 & ff30 marginally best, none close\\
+one-digit, two-digit and three-digit SIC & 0.477 & rejected\\
+Compustat historical SIC (sich), with and without CRSP fallback & 0.506 & rejected\\
+Compustat header SIC from comp.company & 0.468 & rejected\\
+a firm's modal SIC over its life & 0.509 & rejected\\
+industry median instead of mean & 0.511 & rejected\\
+capitalisation-weighted industry mean & 0.227 & rejected\\
+industry mean over all of CRSP rather than common shares only & 0.099 & rejected\\
+industry mean over NYSE firms only & 0.384 & rejected\\
+industry mean over the larger half of each industry & 0.401 & rejected\\
+ratio to the industry mean, and log of that ratio & 0.440 & rejected\\
+standardised within industry (divided by the industry sd) & 0.348 & rejected\\
+percentile rank within industry & 0.421 & rejected\\
+cross-sectional rank less the industry mean rank & 0.391 & rejected\\
+leave-one-out industry mean & 0.512 & rejected\\
+aggregate industry ratio (sum of book over sum of market) & 0.226 & rejected\\
+partial adjustment, subtracting 0.25, 0.5 or 0.75 of the industry mean & 0.458 & rejected\\
+previous year's industry mean & 0.343 & rejected\\
+\bottomrule\end{longtable}
+\subsection*{aSAT --- Industry-adjusted asset turnover}
+\textbf{Group} profitability \quad \textbf{Source} Soliman (2008) \quad \textbf{Frequency} annual \quad \textbf{Agreement} 0.447\\[2pt]
+\textbf{Inputs.} \texttt{sale, at, siccd}
+
+\textbf{Formula.}
+\begin{quote}
+aSAT = SAT - mean(SAT) within the Fama-French 48 industry that month,\\
+equal-weighted over ordinary common shares.\\
+
+\end{quote}
+\textbf{Notes.} UNRESOLVED at 0.45. Parent SAT verifies at 0.90. Same search as aBEME.
+
+
+\textbf{Rejected alternatives.}
+\begin{longtable}{p{10.5cm}rp{3.2cm}}
+\toprule Variant & Agreement & Verdict\\\midrule\endhead
+the full classification and operation search listed under aBEME & 0.448 & ff48 demeaning best, none close\\
+aggregate industry ratio (sum of sales over sum of assets) & 0.264 & rejected\\
+partial adjustment at 0.25, 0.5, 0.75 & 0.261 & rejected\\
+\bottomrule\end{longtable}
+\subsection*{aPM --- Industry-adjusted profit margin}
+\textbf{Group} profitability \quad \textbf{Source} Soliman (2008) \quad \textbf{Frequency} annual \quad \textbf{Agreement} 0.284\\[2pt]
+\textbf{Inputs.} \texttt{oiadp, sale, siccd}
+
+\textbf{Formula.}
+\begin{quote}
+aPM = PM - mean(PM) within the Fama-French 48 industry that month,\\
+equal-weighted over ordinary common shares.\\
+
+\end{quote}
+\textbf{Notes.} UNRESOLVED at 0.28, the worst of the industry-adjusted three even though parent PM verifies at 0.97. Separately, its one-month alpha is 0.00012 a month, statistically indistinguishable from zero, so which leg is "long" is not well defined for this characteristic in either dataset. Coverage is also poor in recent years (76\% missing in 2024-25) and should be looked at.
+
+
+\textbf{Rejected alternatives.}
+\begin{longtable}{p{10.5cm}rp{3.2cm}}
+\toprule Variant & Agreement & Verdict\\\midrule\endhead
+the full classification and operation search listed under aBEME & 0.340 & two-digit SIC marginally best, none close\\
+partial adjustment at 0.25, 0.5, 0.75 & 0.261 & rejected\\
+industry mean over the larger half, and the prior year's mean & 0.146 & rejected\\
+\bottomrule\end{longtable}
+\end{document}

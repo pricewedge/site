@@ -1,0 +1,1003 @@
+# Construction log for the 57 price-wedge anomaly signals.
+#
+# Source of truth, hand-edited as findings land. `build_signal_log.py` fills in
+# agreement scores and wedge errors from the latest validation run and renders
+# signals.tex from this file. Do not paste numbers into the entries below that
+# the script can compute.
+#
+# Conventions that apply to every signal unless its entry says otherwise:
+#
+#   sample        US common stock on NYSE, AMEX or Nasdaq. In CRSP's CIZ schema:
+#                 sharetype NS, securitytype EQTY, securitysubtype COM,
+#                 usincflg Y, issuertype in (CORP, ACOR), primaryexch in
+#                 (N, A, Q, R). Equivalent to share codes 10 and 11.
+#   timing        annual Compustat variables are merged with a six-month lag;
+#                 monthly variables enter as of the month named. The sort then
+#                 lags the characteristic one further month, so a signal stored
+#                 on row t is what a sort formed at t+1 uses.
+#   market equity CRSP mthcap, current month, converted from thousands to
+#                 millions to match Compustat. NOT December of the prior year,
+#                 despite Freyberger-Neuhierl-Weber saying so: see BEME.
+#   deltas        "d x" means x minus its value in the prior fiscal year.
+#   ranks         percentile rank within the month's cross-section, on [0,1].
+#
+# Fields: id, name, group, source, frequency, inputs, formula, notes, tried.
+# `tried` entries are {variant, score, verdict}; score is the decile-weight
+# agreement that variant achieved, so they are comparable to the headline.
+
+signals:
+
+# ============================ resolved this round ============================
+
+- id: OA
+  name: Operating accruals
+  group: intangibles
+  source: Sloan (1996), per Appendix Table A.1
+  frequency: annual
+  inputs: [act, che, lct, dlc, txp, dp, at]
+  formula: |
+    OA = ( d act - d che - ( d lct - d dlc - d txp - dp ) ) / at[t-1]
+    where d txp treats a missing value as zero.
+    Note the placement of dp: it sits INSIDE the bracket, so expanding gives
+    OA = d act - d che - d lct + d dlc + d txp + dp, i.e. depreciation is
+    ADDED to accruals.
+  notes: >
+    This is not Sloan (1996) and not what Table A.1's own wording says
+    ("changes in non-cash working capital minus depreciation"). It is
+    nevertheless unambiguously what the paper's data does: netting depreciation
+    out gives agreement 0.286, adding it gives 0.963, and decile one's share of
+    market capitalisation comes out at 5.29% against a published 5.30%. Chen
+    and Zimmermann's PctAcc.do carries the identical bracket placement while
+    their Accruals.do does not, which suggests a shared transcription. WORTH
+    RAISING WITH THE COAUTHORS: as published, OA and AOA are not accruals net
+    of depreciation, so capital-intensive firms sort toward the high-accrual
+    leg because of their depreciation rather than away from it.
+  tried:
+    - {variant: "Sloan's grouping with dp subtracted outside the bracket", score: 0.286, verdict: rejected}
+    - {variant: "literal reading of A.1, all three current-liability terms subtracted", score: 0.065, verdict: rejected}
+    - {variant: "dp subtracted, scaled by average rather than lagged total assets", score: 0.251, verdict: rejected}
+    - {variant: "dp subtracted, every delta zero-filled", score: 0.163, verdict: rejected}
+    - {variant: "change in net operating assets", score: 0.234, verdict: rejected}
+    - {variant: "change in working capital from wcap directly", score: -0.058, verdict: rejected}
+    - {variant: "cash-flow statement form, ni less oancf, over average assets", score: 0.087, verdict: rejected}
+    - {variant: "cash-flow form with balance-sheet fallback", score: 0.269, verdict: rejected}
+    - {variant: "scaled by sales, by absolute earnings, by current assets", score: 0.154, verdict: rejected}
+    - {variant: "winsorised 1/99 monthly, or |OA| capped at 1, 0.5, 0.3", score: 0.065, verdict: "no effect; outliers are not the cause"}
+    - {variant: "JKP oaccruals_at taken directly from their library", score: 0.278, verdict: "better than ours was, worse than the fix"}
+    - {variant: "shifted +/- 6 months against the published series", score: null, verdict: "no peak; not a timing offset"}
+
+- id: AOA
+  name: Absolute operating accruals
+  group: intangibles
+  source: Bandyopadhyay, Huang and Wirjanto (2010)
+  frequency: annual
+  inputs: [act, che, lct, dlc, txp, dp, at]
+  formula: |
+    AOA = |OA|, with OA exactly as above (depreciation added, not subtracted).
+  notes: >
+    Follows OA mechanically. Neither Chen and Zimmermann nor Jensen, Kelly and
+    Pedersen carry a Bandyopadhyay signal, so there is no third implementation
+    to compare against; it is verified only through OA.
+  tried:
+    - {variant: "absolute value of every rejected OA variant above", score: 0.087, verdict: rejected}
+
+- id: DP
+  name: Dividend yield
+  group: value
+  source: Litzenberger and Ramaswamy (1979)
+  frequency: monthly
+  inputs: [ret, retx, cap]
+  formula: |
+    dollars paid in month s = (ret[s] - retx[s]) * cap[s-1]
+    DP[t] = sum of those dollars over months t-11..t, divided by cap[t],
+    requiring at least six of the twelve months.
+  notes: >
+    Dividends in dollars over market capitalisation, not dividends per share
+    over price. Per share the share count drifts through the year and agreement
+    falls to 0.841. JKP's div12m_me, which is this same quantity, scores 0.928
+    against the package, and building it natively gives 0.924.
+  tried:
+    - {variant: "dividends per share over price (twelve-month sum)", score: 0.841, verdict: rejected}
+    - {variant: "per-share dividends restated for splits before summing", score: 0.735, verdict: "rejected; the more coherent calculation agrees worse"}
+    - {variant: "sum of twelve monthly dividend yields, no price", score: 0.743, verdict: rejected}
+    - {variant: "cash distributions from crsp.stkdistributions over price", score: 0.348, verdict: "rejected despite being the more principled source"}
+    - {variant: "dollar dividends over lagged rather than current market cap", score: 0.869, verdict: rejected}
+    - {variant: "JKP div_me (one month), div6m_me, div_at", score: 0.652, verdict: rejected}
+
+- id: ATO
+  name: Asset turnover
+  group: profitability
+  source: Soliman (2008)
+  frequency: annual
+  inputs: [sale, at, che, ivao, dlc, dltt, mib, pstk, ceq]
+  formula: |
+    operating assets      = at - che - ivao        (che, ivao missing -> 0)
+    operating liabilities = at - dlc - dltt - mib - pstk - ceq
+                            (dlc, dltt, mib, pstk missing -> 0; ceq REQUIRED)
+    net operating assets  = operating assets - operating liabilities
+    ATO = sale / NOA[t-1]
+  notes: >
+    Common equity must be required rather than zero-filled. Filled, operating
+    liabilities collapse to assets less debt, net operating assets go to nearly
+    zero, and anything divided by them explodes into the end deciles. Agreement
+    0.78 filled against 0.92 required. This is Chen and Zimmermann's convention
+    in RetNOA.do, where dlc, dltt, mib and pstk are zero-filled and ceq is not.
+  tried:
+    - {variant: "ceq zero-filled like the other liability terms", score: 0.780, verdict: rejected}
+    - {variant: "contemporaneous rather than lagged net operating assets", score: 0.582, verdict: rejected}
+    - {variant: "operating assets without subtracting ivao", score: 0.558, verdict: rejected}
+    - {variant: "observations with non-positive NOA discarded", score: 0.494, verdict: rejected}
+    - {variant: "Soliman's component-built operating assets (rect+invt+aco+ppent+intan-ap-lco-lo), averaged", score: 0.241, verdict: rejected}
+    - {variant: "lagged sales over lagged NOA", score: 0.625, verdict: rejected}
+
+- id: RNA
+  name: Return on net operating assets
+  group: profitability
+  source: Soliman (2008)
+  frequency: annual
+  inputs: [oiadp, at, che, ivao, dlc, dltt, mib, pstk, ceq]
+  formula: |
+    RNA = oiadp / NOA[t-1], with NOA exactly as defined under ATO
+    (ceq required, the other liability terms zero-filled).
+  notes: >
+    Same common-equity point as ATO: 0.76 with ceq filled, 0.95 required.
+  tried:
+    - {variant: "ceq zero-filled", score: 0.758, verdict: rejected}
+    - {variant: "contemporaneous NOA", score: 0.690, verdict: rejected}
+    - {variant: "operating assets without ivao", score: 0.551, verdict: rejected}
+    - {variant: "non-positive NOA discarded", score: 0.538, verdict: rejected}
+    - {variant: "Soliman component-built operating assets", score: 0.411, verdict: rejected}
+
+- id: dSOUT
+  name: Change in shares outstanding
+  group: investment
+  source: Pontiff and Woodgate (2008)
+  frequency: monthly
+  inputs: [shrout, mthcumfacshr]
+  formula: |
+    adjusted shares s[t] = shrout[t] * mthcumfacshr[t]
+    dSOUT[t] = 100 * ( s[t] / s[t-12] - 1 )
+  notes: >
+    CRSP's share counts are not split-adjusted, so raw growth reads every split
+    as a 100% issuance. The cumulative share factor is the exact adjustment.
+  tried:
+    - {variant: "raw shrout growth, unadjusted for splits", score: 0.513, verdict: rejected}
+    - {variant: "split adjustment backed out of market cap and the ex-dividend return", score: 0.883, verdict: "close, superseded"}
+
+- id: dPIA
+  name: Change in plant and inventory over assets
+  group: investment
+  source: Lyandres, Sun and Zhang (2008)
+  frequency: annual
+  inputs: [ppegt, invt, at]
+  formula: |
+    dPIA = ( d ppegt + d invt ) / at[t-1],
+    where each delta treats a missing component as no change (zero) rather than
+    discarding the firm.
+  tried:
+    - {variant: "both deltas required non-missing", score: 0.777, verdict: rejected}
+    - {variant: "scaled by average rather than lagged assets", score: 0.771, verdict: rejected}
+    - {variant: "net rather than gross plant (ppent)", score: 0.493, verdict: rejected}
+    - {variant: "scaled by lagged (ppegt + invt)", score: 0.420, verdict: rejected}
+
+- id: TNOVR
+  name: Share turnover
+  group: trading frictions
+  source: Datar, Naik and Radcliffe (1998)
+  frequency: monthly
+  inputs: [vol, shrout]
+  formula: |
+    TNOVR[t] = ( vol[t] + vol[t-1] + vol[t-2] ) / ( 3 * shrout[t] )
+  notes: >
+    Averaged over three months. Table A.1 reads as one month and the source
+    paper does not say; three tracks the published weights best. Still below the
+    verification threshold at 0.79, so this one is not settled.
+  tried:
+    - {variant: "single month, vol/shrout", score: 0.707, verdict: rejected}
+    - {variant: "twelve-month average", score: 0.699, verdict: rejected}
+    - {variant: "mean daily turnover within the month", score: 0.706, verdict: rejected}
+    - {variant: "Nasdaq volume scaled down 50% pre-1997 and 38% after", score: 0.679, verdict: rejected}
+    - {variant: "dollar volume over market cap", score: 0.708, verdict: rejected}
+    - {variant: "JKP turnover_126d", score: 0.713, verdict: rejected}
+
+# ========================= still unresolved =========================
+
+- id: SUV
+  name: Standardised unexplained volume
+  group: trading frictions
+  source: Garfinkel (2009)
+  frequency: monthly (daily inputs)
+  inputs: [dlyvol, dlyret]
+  formula: |
+    Within a month, regress log(1 + daily volume) on a constant and the
+    absolute values of positive and negative daily returns:
+        ln(1+v_i) = a + b*max(r_i,0) + c*|min(r_i,0)| + e_i
+    Estimated on the previous month and applied to the current one:
+        SUV[t] = ( sum_i ln(1+v_i) - predicted ) / ( n * sd(e) )
+    with predicted and sd(e) from month t-1's fit. At least 15 days required.
+  notes: >
+    UNRESOLVED at 0.07. Neither Chen and Zimmermann nor JKP carry a Garfinkel
+    signal, so there is no reference implementation anywhere. The level of the
+    decile weights comes out close (8.85 against a published 8.94 on decile
+    one) while the month-to-month variation does not, which is the signature of
+    a measure that is right in construction but wrong in timing or in which
+    residual is taken. Full daily data has been pulled to test day-level
+    variants the monthly moments cannot express.
+  tried:
+    - {variant: "regression in volume levels rather than logs", score: 0.080, verdict: rejected}
+    - {variant: "estimation window of 1, 6, 12 and 24 months applied out of sample", score: 0.092, verdict: "rejected at every length"}
+    - {variant: "previous month taken on a dense grid so the lag cannot cross a gap", score: 0.072, verdict: rejected}
+    - {variant: "in-sample residual dispersion rather than an out-of-sample residual", score: 0.002, verdict: rejected}
+    - {variant: "standardised by sqrt(n) rather than n", score: 0.073, verdict: rejected}
+
+- id: DTO
+  name: Detrended turnover
+  group: trading frictions
+  source: Garfinkel (2009)
+  frequency: monthly (daily inputs)
+  inputs: [dlyvol, shrout, primaryexch]
+  formula: |
+    daily turnover, with Nasdaq volume scaled by 0.50 before 1997 and 0.38
+    after, less the cross-sectional mean that day, then detrended by
+    subtracting its own median over the previous 180 trading days.
+  notes: >
+    UNRESOLVED at 0.36, and the cause is known: the 180-trading-day median is
+    not a moment of any month, so it cannot come out of the server-side
+    aggregation the other eight daily characteristics use. It is currently
+    approximated by a rolling median of nine monthly means. Full daily data has
+    been pulled to compute the true median.
+  tried:
+    - {variant: "rolling median over 6, 9 and 12 months of monthly means", score: 0.367, verdict: "best available approximation so far"}
+
+- id: aBEME
+  name: Industry-adjusted book to market
+  group: value
+  source: Asness, Porter and Stevens (2000)
+  frequency: monthly
+  inputs: [be, cap, siccd]
+  formula: |
+    aBEME = BEME - mean(BEME) within the firm's Fama-French 48 industry that
+    month, equal-weighted over ordinary common shares that have BEME.
+  notes: >
+    UNRESOLVED at 0.51, and the puzzle is that its parent BEME verifies at 0.97,
+    so the adjustment itself is what fails. Our decile one matches (3.93 against
+    a published 3.77) while decile ten does not (13.13 against 18.30): the
+    published adjustment removes far less of the growth tilt than ours does. The
+    search below has been exhaustive and nothing closes it. Most likely the
+    industry classification comes from a source we do not have -- plausibly
+    Baba-Yara, Boons and Tamoni's own file, since the paper says the
+    characteristic set comes from that project as well as from FNW.
+  tried:
+    - {variant: "Fama-French 5, 10, 12, 17, 30, 38, 48 and 49 industries", score: 0.521, verdict: "ff30 marginally best, none close"}
+    - {variant: "one-digit, two-digit and three-digit SIC", score: 0.477, verdict: rejected}
+    - {variant: "Compustat historical SIC (sich), with and without CRSP fallback", score: 0.506, verdict: rejected}
+    - {variant: "Compustat header SIC from comp.company", score: 0.468, verdict: rejected}
+    - {variant: "a firm's modal SIC over its life", score: 0.509, verdict: rejected}
+    - {variant: "industry median instead of mean", score: 0.511, verdict: rejected}
+    - {variant: "capitalisation-weighted industry mean", score: 0.227, verdict: rejected}
+    - {variant: "industry mean over all of CRSP rather than common shares only", score: 0.099, verdict: rejected}
+    - {variant: "industry mean over NYSE firms only", score: 0.384, verdict: rejected}
+    - {variant: "industry mean over the larger half of each industry", score: 0.401, verdict: rejected}
+    - {variant: "ratio to the industry mean, and log of that ratio", score: 0.440, verdict: rejected}
+    - {variant: "standardised within industry (divided by the industry sd)", score: 0.348, verdict: rejected}
+    - {variant: "percentile rank within industry", score: 0.421, verdict: rejected}
+    - {variant: "cross-sectional rank less the industry mean rank", score: 0.391, verdict: rejected}
+    - {variant: "leave-one-out industry mean", score: 0.512, verdict: rejected}
+    - {variant: "aggregate industry ratio (sum of book over sum of market)", score: 0.226, verdict: rejected}
+    - {variant: "partial adjustment, subtracting 0.25, 0.5 or 0.75 of the industry mean", score: 0.458, verdict: rejected}
+    - {variant: "previous year's industry mean", score: 0.343, verdict: rejected}
+
+- id: aSAT
+  name: Industry-adjusted asset turnover
+  group: profitability
+  source: Soliman (2008)
+  frequency: annual
+  inputs: [sale, at, siccd]
+  formula: |
+    aSAT = SAT - mean(SAT) within the Fama-French 48 industry that month,
+    equal-weighted over ordinary common shares.
+  notes: >
+    UNRESOLVED at 0.45. Parent SAT verifies at 0.90. Same search as aBEME.
+  tried:
+    - {variant: "the full classification and operation search listed under aBEME", score: 0.448, verdict: "ff48 demeaning best, none close"}
+    - {variant: "aggregate industry ratio (sum of sales over sum of assets)", score: 0.264, verdict: rejected}
+    - {variant: "partial adjustment at 0.25, 0.5, 0.75", score: 0.261, verdict: rejected}
+
+- id: aPM
+  name: Industry-adjusted profit margin
+  group: profitability
+  source: Soliman (2008)
+  frequency: annual
+  inputs: [oiadp, sale, siccd]
+  formula: |
+    aPM = PM - mean(PM) within the Fama-French 48 industry that month,
+    equal-weighted over ordinary common shares.
+  notes: >
+    UNRESOLVED at 0.28, the worst of the industry-adjusted three even though
+    parent PM verifies at 0.97. Separately, its one-month alpha is 0.00012 a
+    month, statistically indistinguishable from zero, so which leg is "long" is
+    not well defined for this characteristic in either dataset. Coverage is also
+    poor in recent years (76% missing in 2024-25) and should be looked at.
+  tried:
+    - {variant: "the full classification and operation search listed under aBEME", score: 0.340, verdict: "two-digit SIC marginally best, none close"}
+    - {variant: "partial adjustment at 0.25, 0.5, 0.75", score: 0.261, verdict: rejected}
+    - {variant: "industry mean over the larger half, and the prior year's mean", score: 0.146, verdict: rejected}
+
+- id: aSIZE
+  name: Industry-adjusted size
+  group: trading frictions
+  source: Asness, Porter and Stevens (2000)
+  frequency: monthly
+  inputs: [cap, siccd]
+  formula: |
+    aSIZE = SIZE - mean(SIZE) within the Fama-French 48 industry that month,
+    equal-weighted over ordinary common shares.
+  notes: >
+    Just above the threshold at 0.85, but its wedge is still 13 points from the
+    paper's on the long leg -- the widest gap of any characteristic that passes
+    the construction check. Treat as unresolved in practice.
+  tried:
+    - {variant: "Fama-French 10 and 30 industries", score: 0.866, verdict: "marginally better than 48, within noise"}
+    - {variant: "industry median instead of mean", score: 0.877, verdict: "marginally better, not adopted"}
+    - {variant: "log size demeaned within industry", score: 0.754, verdict: rejected}
+    - {variant: "partial adjustment at 0.75", score: 0.872, verdict: "marginally better, not adopted"}
+    - {variant: "capitalisation-weighted industry mean", score: 0.317, verdict: rejected}
+
+# ===================== verified constructions =====================
+
+- id: A2ME
+  name: Total assets (at) over market capitalization (prc x shrout)
+  group: value
+  source: bhandari1988
+  frequency: monthly
+  inputs:
+  - at
+  formula: 'at / me.
+
+    '
+  tried:
+  - variant: market equity as of December t-1
+    score: 0.7
+    verdict: rejected
+- id: AT
+  name: Total assets (at)
+  group: trading frictions
+  source: gandhi2015
+  frequency: annual
+  inputs:
+  - at
+  formula: 'Total assets.
+
+    '
+- id: BEME
+  name: Book equity to market equity. Book equity is shareholders' equity (seq
+  group: value
+  source: --
+  frequency: monthly
+  inputs:
+  - at
+  - ceq
+  - lt
+  - prc
+  - pstk
+  - pstkl
+  - pstrkrv
+  - seq
+  - shrout
+  - txditc
+  formula: 'be / me, with negative book equity discarded before sorting.
+
+    Book equity = seq, else ceq+pstk, else at-lt; plus txditc; minus the first
+
+    available of pstkrv, pstkl, pstk. Market equity is CRSP mthcap for the CURRENT
+
+    month, in millions.
+
+    '
+  notes: 'FNW state market equity as of December t-1 explicitly. The package''s own
+
+    stored panel says otherwise once its one-month row offset is accounted for:
+
+    lined up correctly the current month matches 94.9% of firm-months exactly and
+
+    December 3.9%. Implementing December drops agreement from 0.97 to about 0.70.'
+  tried:
+  - variant: market equity as of December of the prior year
+    score: 0.7
+    verdict: rejected
+  - variant: market equity lagged one month
+    score: 0.84
+    verdict: rejected; an artifact of a row-offset error in the comparison
+  - variant: market equity summed across share classes of the same permco
+    score: null
+    verdict: marginally better on values (95.7% vs 94.9%), not adopted
+- id: C2A
+  name: Cash and short-term investments (che) to total assets (at)
+  group: value
+  source: palazzo2012
+  frequency: annual
+  inputs:
+  - at
+  - che
+  formula: 'che / at.
+
+    '
+- id: C2D
+  name: Cashflow to debt. Cashflow is the sum of income and extraordinary item
+  group: value
+  source: ou1989
+  frequency: annual
+  inputs:
+  - dp
+  - ib
+  - lt
+  formula: '(ib + dp) / lt.
+
+    '
+- id: CAT
+  name: Sales (sale) to lagged total assets (at)
+  group: profitability
+  source: haugen1996
+  frequency: annual
+  inputs:
+  - at
+  - sale
+  formula: 'sale / at[t-1].
+
+    '
+- id: D2P
+  name: Debt to price. Debt is long-term debt (dltt) plus debt in current liab
+  group: value
+  source: litzenberger1979
+  frequency: monthly
+  inputs:
+  - dlc
+  - dltt
+  - prc
+  - shrout
+  formula: '(dltt + dlc) / me, each debt term missing treated as zero.
+
+    '
+  tried:
+  - variant: market equity as of December t-1
+    score: 0.71
+    verdict: rejected
+- id: dCEQ
+  name: Annual % change in book value of equity (ceq)
+  group: investment
+  source: richardson2005
+  frequency: annual
+  inputs:
+  - ceq
+  formula: 'Percent change in ceq.
+
+    '
+- id: dGS
+  name: '% change in gross margin minus % change in sales (sale). Gross margin'
+  group: profitability
+  source: abarbanell1997
+  frequency: annual
+  inputs:
+  - cogs
+  - sale
+  formula: 'Percent growth in gross margin (sale-cogs) less percent growth in sale.
+
+    '
+- id: dSO
+  name: Log change in the product of shares outstanding (csho) and the adjustm
+  group: value
+  source: fama2008
+  frequency: annual
+  inputs:
+  - ajex
+  - csho
+  formula: 'log( csho*ajex / (csho*ajex)[t-1] ), i.e. growth in split-adjusted Compustat
+
+    share count.
+
+    '
+- id: E2P
+  name: Income before extraordinary items (ib) to market capitalization (prc x
+  group: value
+  source: basu1983
+  frequency: monthly
+  inputs:
+  - ib
+  formula: 'ib / me.
+
+    '
+  tried:
+  - variant: market equity as of December t-1
+    score: 0.69
+    verdict: rejected
+- id: EPS
+  name: Income before extraordinary items (ib) to shares outstanding (shrout)
+  group: value
+  source: basu1977
+  frequency: monthly
+  inputs:
+  - ib
+  - shrout
+  formula: 'ib / (shrout/1000), i.e. earnings per share on CRSP''s share count.
+
+    '
+- id: IDIOV
+  name: Standard deviation of the residuals from a regression of excess return
+  group: trading frictions
+  source: ang2006
+  frequency: monthly
+  inputs: []
+  formula: 'Standard deviation of the residuals from a regression of daily excess returns
+
+    on the three Fama-French factors, within the month, at least 15 days.
+
+    '
+  notes: 'Emphatically monthly, unlike BETA_d: 0.93 at one month against 0.58 at twelve.
+
+    JKP corroborate, carrying ivol_ff3_21d at a 21-day window, and our series
+
+    correlates 0.997 with theirs.'
+  tried:
+  - variant: estimated over twelve months
+    score: 0.582
+    verdict: rejected
+- id: I2A
+  name: Annual % change in total assets (at)
+  group: investment
+  source: --
+  frequency: annual
+  inputs:
+  - at
+  formula: 'Percent change in at.
+
+    '
+- id: IPM
+  name: Pre-tax income (pi) over sales (sale)
+  group: profitability
+  source: --
+  frequency: annual
+  inputs:
+  - pi
+  - sale
+  formula: 'pi / sale.
+
+    '
+- id: IVC
+  name: Annual change in inventories (invt) in the last two fiscal years over
+  group: investment
+  source: thomas2002
+  frequency: annual
+  inputs:
+  - at
+  - invt
+  formula: '(invt - invt[t-1]) / ((at + at[t-1])/2).
+
+    '
+- id: SIZE
+  name: Price (prc) times shares outstanding (shrout)
+  group: trading frictions
+  source: fama1992
+  frequency: monthly
+  inputs:
+  - prc
+  - shrout
+  formula: 'Market equity, CRSP mthcap for the current month, in millions.
+
+    '
+- id: NOA
+  name: Operating assets minus operating liabilities to lagged total assets (a
+  group: investment
+  source: hirshleifer2004
+  frequency: annual
+  inputs:
+  - at
+  - ceq
+  - che
+  - dlc
+  - dltt
+  - ivao
+  - mib
+  - pstk
+  formula: '(operating assets - operating liabilities) / at[t-1], with operating assets
+
+    and liabilities as defined under ATO.
+
+    '
+  notes: 'Unaffected by the common-equity question that matters so much for ATO and RNA,
+
+    because NOA uses the level rather than dividing by it.'
+  tried:
+  - variant: ceq zero-filled
+    score: 0.917
+    verdict: no effect
+- id: OL
+  name: Sum of cost of goods sold (cogs) and selling, general and administrati
+  group: intangibles
+  source: novy2011
+  frequency: annual
+  inputs:
+  - at
+  - cogs
+  - xsga
+  formula: '(cogs + xsga) / at, each missing term treated as zero.
+
+    '
+- id: BETA_d
+  name: The sum of the regression coefficients of daily excess returns on mark
+  group: trading frictions
+  source: lewellen2006
+  frequency: monthly
+  inputs: []
+  formula: 'Sum of the coefficients on the market and its lag, from a regression of daily
+
+    excess returns on both, estimated over TWELVE months of daily data.
+
+    '
+  notes: 'Twelve months, not one. A one-month Dimson beta is too noisy to sort on:
+
+    0.35 at one month, 0.62 at six, 0.94 at twelve, 0.63 at twenty-four. The
+
+    moments are additive, so a twelve-month cross-product matrix is the sum of
+
+    twelve monthly ones.'
+  tried:
+  - variant: estimated over one month
+    score: 0.353
+    verdict: rejected
+  - variant: six months
+    score: 0.617
+    verdict: rejected
+  - variant: twenty-four and sixty months
+    score: 0.631
+    verdict: rejected
+- id: PCM
+  name: Net sales (sale) minus cost of goods sold (cogs) all scaled by net sal
+  group: profitability
+  source: gorodnichenko2016
+  frequency: annual
+  inputs:
+  - cogs
+  - sale
+  formula: '(sale - cogs) / sale.
+
+    '
+- id: PM
+  name: Operating Income after depreciation (oiadp) to sales (sale)
+  group: profitability
+  source: soliman2008
+  frequency: annual
+  inputs:
+  - oiadp
+  - sale
+  formula: 'oiadp / sale.
+
+    '
+  tried:
+  - variant: net income over revenue, as Chen and Zimmermann implement Soliman
+    score: 0.387
+    verdict: rejected
+  - variant: oiadp over average sales
+    score: 0.732
+    verdict: rejected
+- id: PROF
+  name: Gross profitability (gp) over book equity as defined in BEME
+  group: profitability
+  source: ball2015
+  frequency: annual
+  inputs:
+  - gp
+  formula: 'gp / be, with book equity as defined under BEME.
+
+    '
+- id: Q
+  name: Total assets (at) plus market value of equity (shrout x prc) minus boo
+  group: value
+  source: --
+  frequency: monthly
+  inputs:
+  - at
+  - ceq
+  - txdb
+  formula: '(at + me - ceq - txdb) / at, txdb missing treated as zero, me the current month''s market
+    equity in millions.
+
+    '
+  tried:
+  - variant: market equity as of December of the prior year
+    score: 0.61
+    verdict: rejected
+- id: MAXRET
+  name: Maximum daily return in the previous month
+  group: trading frictions
+  source: bali2011
+  frequency: monthly
+  inputs: []
+  formula: 'Maximum daily return within the month.
+
+    '
+  notes: Correlates 1.000 with JKP's rmax1_21d.
+- id: ROA
+  name: Income before extraordinary items (ib) to lagged total assets (at)
+  group: profitability
+  source: balakrishnan2010
+  frequency: annual
+  inputs:
+  - at
+  - ib
+  formula: 'ib / at[t-1].
+
+    '
+- id: ROC
+  name: Market value of equity (shrout x prc) plus long-term debt (dltt) minus
+  group: profitability
+  source: chandrashekar2009
+  frequency: monthly
+  inputs:
+  - at
+  - che
+  - dltt
+  formula: '(me + dltt - at) / che.
+
+    '
+- id: ROE
+  name: Income before extraordinary items (ib) to lagged book-value of equity
+  group: profitability
+  source: haugen1996
+  frequency: annual
+  inputs:
+  - ib
+  formula: 'ib / be[t-1].
+
+    '
+- id: ROIC
+  name: Earnings before interest and taxes (ebit) less non-operating income (n
+  group: profitability
+  source: brown2007
+  frequency: annual
+  inputs:
+  - ceq
+  - che
+  - ebit
+  - lt
+  - nopi
+  formula: '(ebit - nopi) / (ceq + lt - che), nopi missing treated as zero.
+
+    '
+  notes: 'Appendix Table A.1 words the denominator as a sum, which would add cash to
+
+    invested capital. Subtracting it is both what invested capital means and what
+
+    the data says: 0.64 adding against 0.93 subtracting.'
+  tried:
+  - variant: cash added to invested capital, as A.1 words it
+    score: 0.64
+    verdict: rejected
+  - variant: every component required non-missing
+    score: 0.64
+    verdict: no effect
+- id: R_12_2
+  name: Cumulative return from 12 months to 2 months ago
+  group: past returns
+  source: fama1996
+  frequency: monthly
+  inputs: []
+  formula: 'Compound return over months t-11..t-1, stored on row t.
+
+    '
+  notes: 'Stored ONE MONTH EARLIER than the name suggests. The sort''s own one-month lag
+
+    then produces the stated twelve-to-two window. Storing the literal window drops
+
+    agreement from 0.97 to 0.65.'
+  tried:
+  - variant: literal window, months t-12..t-2
+    score: 0.647
+    verdict: rejected
+- id: R_12_7
+  name: Cumulative return from 12 months to 7 months ago
+  group: past returns
+  source: novy2012
+  frequency: monthly
+  inputs: []
+  formula: 'Compound return over months t-11..t-6, stored on row t.
+
+    '
+  tried:
+  - variant: literal window t-12..t-7
+    score: 0.533
+    verdict: rejected
+- id: R_6_2
+  name: Cumulative return from 6 months to 2 months ago
+  group: past returns
+  source: jegadeesh1993
+  frequency: monthly
+  inputs: []
+  formula: 'Compound return over months t-5..t-1, stored on row t.
+
+    '
+  tried:
+  - variant: literal window t-6..t-2
+    score: 0.507
+    verdict: rejected
+- id: R_2_1
+  name: Lagged one month return
+  group: past returns
+  source: jegadeesh1990
+  frequency: monthly
+  inputs: []
+  formula: 'The CURRENT month''s return, stored on row t.
+
+    '
+  notes: 'The one-month shift matters most here: with a single month there is no overlap
+
+    to rescue a timing error, and the literal ''lagged one-month return'' gives 0.11
+
+    against 0.97.'
+  tried:
+  - variant: lagged one-month return, as A.1 words it
+    score: 0.108
+    verdict: rejected
+- id: R_36_13
+  name: Cumulative return from 36 months to 13 months ago
+  group: past returns
+  source: de1985
+  frequency: monthly
+  inputs: []
+  formula: 'Compound return over months t-35..t-12, stored on row t.
+
+    '
+  tried:
+  - variant: literal window t-36..t-13
+    score: 0.744
+    verdict: rejected
+- id: S2C
+  name: Net sales (sale) to cash and short-term investments (che)
+  group: value
+  source: ou1989
+  frequency: annual
+  inputs:
+  - che
+  - sale
+  formula: 'sale / che.
+
+    '
+- id: S2P
+  name: Net sales (sale) to market capitalization (shrout x prc)
+  group: value
+  source: lewellen2015
+  frequency: monthly
+  inputs:
+  - sale
+  formula: 'sale / me.
+
+    '
+  tried:
+  - variant: market equity as of December
+    score: 0.72
+    verdict: rejected
+- id: SG
+  name: '% growth rate in sales (sale)'
+  group: value
+  source: lakonishok1994
+  frequency: annual
+  inputs:
+  - sale
+  formula: 'Percent change in sale.
+
+    '
+- id: SAT
+  name: Sales (sale) to total assets (at)
+  group: profitability
+  source: soliman2008
+  frequency: annual
+  inputs:
+  - at
+  - sale
+  formula: 'sale / at.
+
+    '
+  tried:
+  - variant: sale over average assets
+    score: 0.786
+    verdict: rejected
+  - variant: sale over lagged assets
+    score: 0.736
+    verdict: rejected
+- id: SPREAD
+  name: Average daily bid-ask spread in the previous month
+  group: trading frictions
+  source: chung2014
+  frequency: monthly
+  inputs: []
+  formula: 'Mean over the month of the daily high-low range, 2*(high-low)/(high+low),
+
+    requiring at least 15 days.
+
+    '
+  notes: 'NOT the quoted bid-ask spread, although FNW cite Chung and Zhang (2014). CRSP
+
+    carries quotes for 9% of daily rows in the 1960s and 53% in the 1980s, so a
+
+    quoted spread cannot be computed over this sample: 0.02 against 0.94.'
+  tried:
+  - variant: quoted bid-ask spread, 2*(ask-bid)/(ask+bid)
+    score: 0.017
+    verdict: rejected
+  - variant: high-low range over the closing price
+    score: 0.933
+    verdict: marginally worse
+- id: sdTURN
+  name: Standard deviation of residuals from a regression of daily turnover on
+  group: trading frictions
+  source: chordia2001
+  frequency: monthly
+  inputs:
+  - shrout
+  - vol
+  formula: 'Standard deviation within the month of daily turnover (volume over shares
+
+    outstanding), requiring at least 15 days.
+
+    '
+  tried:
+  - variant: coefficient of variation of turnover (Chordia et al.)
+    score: 0.004
+    verdict: rejected
+- id: sdDVOL
+  name: Standard deviation of residuals from a regression of daily volume (vol
+  group: trading frictions
+  source: chordia2001
+  frequency: monthly
+  inputs:
+  - vol
+  formula: 'Standard deviation within the month of log(1 + daily dollar volume),
+
+    requiring at least 15 days.
+
+    '
+  notes: 'In LOGS. In levels the dispersion measures scale rather than variability:
+
+    0.06 against 0.87.'
+  tried:
+  - variant: standard deviation of dollar volume in levels
+    score: 0.057
+    verdict: rejected
+  - variant: standard deviation of log share volume
+    score: 0.632
+    verdict: rejected
+  - variant: coefficient of variation of dollar volume (Chordia et al.)
+    score: 0.521
+    verdict: rejected
+- id: TAN
+  name: Tangibility is defined as (0.715 x total receivables (rect) + 0.547 x
+  group: intangibles
+  source: hahn2009
+  frequency: annual
+  inputs:
+  - at
+  - che
+  - invt
+  - ppent
+  - rect
+  formula: '(0.715*rect + 0.547*invt + 0.535*ppent + che) / at, every component REQUIRED.
+
+    '
+  notes: 'Zero-filling a missing component reads as ''this firm holds no tangible
+
+    assets'' and sends firms with incomplete filings to the bottom decile: 0.48
+
+    against 0.96.'
+  tried:
+  - variant: missing components filled with zero
+    score: 0.478
+    verdict: rejected
+- id: RETVOL
+  name: Standard deviation of residuals from a regression of excess returns on
+  group: trading frictions
+  source: ang2006
+  frequency: monthly
+  inputs: []
+  formula: 'Standard deviation of daily excess returns within the month, at least 15 days.
+
+    '
+  notes: Correlates 1.000 with JKP's rvol_21d.

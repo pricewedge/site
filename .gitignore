@@ -32,3 +32,6 @@ pipeline/overlays/*
 !pipeline/overlays/README.md
 
 .DS_Store
+pipeline/doc/*.aux
+pipeline/doc/*.log
+pipeline/doc/*.out
