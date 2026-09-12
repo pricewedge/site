@@ -1,6 +1,6 @@
 \documentclass[11pt]{article}
 \usepackage[margin=2.2cm]{geometry}
-\usepackage{longtable,booktabs,amsmath,xcolor,microtype}
+\usepackage{longtable,booktabs,amsmath,xcolor,microtype,enumitem}
 \usepackage[colorlinks=true,linkcolor=black,urlcolor=blue]{hyperref}
 \usepackage{sectsty}\allsectionsfont{\sffamily}
 \setlength{\parindent}{0pt}\setlength{\parskip}{4pt}
@@ -89,6 +89,160 @@ aPM & profitability & 0.284 & 1.62 & 1.08 & \bad\\
 \bottomrule
 \end{longtable}
 
+\clearpage
+\section*{Where the paper and its data disagree}
+Graded deliberately. Only category A claims something is wrong. B and C are documentation that cannot be built from; D concerns the reported results rather than the signals; E records things that look like discrepancies and are not, so they are not re-opened.
+\subsection*{A. An error in the signal itself}
+\emph{The construction contradicts the formula the paper states, the wording of its own appendix, and the paper it cites, and the difference changes what the signal measures.}
+
+\paragraph{OA, AOA}\leavevmode\\[-6pt]
+\begin{description}
+\item[Documented:] Appendix Table A.1: "Operating Accruals: Changes in non-cash working capital minus depreciation (dp), all scaled by lagged total assets." Freyberger, Neuhierl and Weber word it identically and cite Sloan (1996), whose equation 1 subtracts depreciation.
+\item[Implemented:] Depreciation sits inside the current-liabilities bracket, so expanding gives "+ dp": accruals are computed net of everything except depreciation, which is added.
+\item[Evidence:] Netting depreciation out agrees with the package's own published decile weights at 0.286; adding it gives 0.963. Decile one's share of market capitalisation comes out at 5.29\% against a published 5.30\%, and the long-leg wedge error falls from +39.9 percentage points to -1.5. AOA, the absolute value, goes from 0.041 to 0.971.
+\item[Why it matters:] OA and AOA are not operating accruals. Depreciation is large and persistent for capital-intensive firms, so those firms are sorted toward the high-accrual leg by their depreciation rather than away from it. The sign of the depreciation term is the whole content of Sloan's measure.
+\item[Note:] Chen and Zimmermann's PctAcc.do carries the identical bracket placement while their Accruals.do does not, which suggests both inherited the same transcription rather than arriving at it independently.
+\end{description}
+\subsection*{B. The appendix cannot be built from}
+\emph{The implementation is defensible, often the only thing possible, but somebody working from Table A.1 alone would get a materially different series. Agreement scores below are what the literal reading achieves against what the data does.}
+
+\paragraph{SPREAD}\leavevmode\\[-6pt]
+\begin{description}
+\item[Documented:] "Average daily bid-ask spread in the previous month", citing Chung and Zhang (2014), whose estimator is the quoted spread.
+\item[Implemented:] The daily high-low range, 2(high-low)/(high+low), averaged over the month.
+\item[Evidence:] literal reading 0.02, implemented 0.94
+\item[Why it matters:] Not a defect in the data -- CRSP carries quotes for 9\% of daily rows in the 1960s and 53\% in the 1980s, so a quoted spread cannot be computed over this sample at all -- but the citation points at an estimator the sample cannot support, and the substitution is unstated.
+\end{description}
+\paragraph{sdDVOL}\leavevmode\\[-6pt]
+\begin{description}
+\item[Documented:] "Standard deviation of residuals from a regression of daily volume (vol) on a constant", i.e. the dispersion of daily share volume in levels.
+\item[Implemented:] The standard deviation of log(1 + daily *dollar* volume).
+\item[Evidence:] share volume in levels 0.06, log share volume 0.63, log dollar volume 0.87
+\item[Why it matters:] Two undocumented choices at once, the units and the logarithm, and in levels the measure captures firm size rather than variability.
+\end{description}
+\paragraph{dSOUT}\leavevmode\\[-6pt]
+\begin{description}
+\item[Documented:] "Annual \% change in shares outstanding (shrout)."
+\item[Implemented:] Growth in shrout multiplied by CRSP's cumulative share adjustment factor.
+\item[Evidence:] literal reading 0.51, implemented 0.97
+\item[Why it matters:] Taken literally the signal reads every two-for-one split as a 100\% issuance. This is the largest gap between a literal reading and the data of any signal outside category A.
+\end{description}
+\paragraph{ROIC}\leavevmode\\[-6pt]
+\begin{description}
+\item[Documented:] "...to the sum of common equity (ceq), total liabilities (lt), and cash and short-term investments (che)."
+\item[Implemented:] Cash is subtracted from invested capital, not added.
+\item[Evidence:] as worded 0.64, as implemented 0.93
+\item[Why it matters:] Here the wording is wrong and the implementation is right -- invested capital is capital tied up in the business, net of cash -- so this is a typo in the appendix rather than a problem with the data.
+\end{description}
+\paragraph{BETA\_d}\leavevmode\\[-6pt]
+\begin{description}
+\item[Documented:] "The sum of the regression coefficients of daily excess returns on market excess returns and the lag of market excess returns." No estimation window is given.
+\item[Implemented:] Estimated over twelve months of daily data.
+\item[Evidence:] one month 0.35, six 0.62, twelve 0.94, twenty-four 0.63
+\item[Why it matters:] The window is the difference between a usable signal and noise, and it is not stated. Separately, FNW's own entry under this name describes the Frazzini-Pedersen beta -- a correlation times a volatility ratio -- which is a different estimator from the Dimson sum A.1 describes.
+\end{description}
+\paragraph{DP}\leavevmode\\[-6pt]
+\begin{description}
+\item[Documented:] "Sum of monthly dividend over the last 12 months to last month's price (prc)."
+\item[Implemented:] Dividends in dollars over the *current* month's market capitalisation.
+\item[Evidence:] per share over price 0.84, dollars over market cap 0.92
+\item[Why it matters:] Minor, but per share the share count drifts through the year and the two are not the same quantity.
+\end{description}
+\paragraph{TAN}\leavevmode\\[-6pt]
+\begin{description}
+\item[Documented:] The formula is given; the missing-data rule is not.
+\item[Implemented:] Every component required non-missing.
+\item[Evidence:] zero-filling 0.48, requiring all 0.96
+\item[Why it matters:] Zero-filling reads as "this firm holds no tangible assets" and sends firms with incomplete filings to the bottom decile.
+\end{description}
+\subsection*{C. The appendix drops a qualifier its own source insists on}
+\emph{Table A.1 is a condensation of Freyberger, Neuhierl and Weber. In a few places the condensation loses something that changes the answer.}
+
+\paragraph{A2ME, E2P, S2P, BEME, SIZE}\leavevmode\\[-6pt]
+\begin{description}
+\item[Documented:] FNW state the market capitalisation timing explicitly -- "as of December t-1" for A2ME, E2P and BEME, "as of December" for S2P, "of the previous month" for SIZE. Table A.1 says only "market capitalization (prc x shrout)" with no timing at all.
+\item[Implemented:] The current month's market capitalisation.
+\item[Evidence:] contemporaneous 0.95-0.99 across the five, December of the prior year 0.61-0.97
+\item[Why it matters:] The data does not follow FNW here, and A.1 is silent rather than wrong. But anyone building these from FNW, as the citation invites, would use December and land a long way off -- Q falls from 0.98 to 0.61, E2P from 0.97 to 0.69.
+\end{description}
+\paragraph{Q}\leavevmode\\[-6pt]
+\begin{description}
+\item[Documented:] FNW write "the market value of equity (SHROUT times PRC) minus cash and short-term investments (CEQ)" -- CEQ is common equity, not cash.
+\item[Implemented:] Common equity, which is what CEQ means.
+\item[Why it matters:] A typo in FNW that Table A.1 silently corrects. Recorded because it runs the other way.
+\end{description}
+\subsection*{D. Issues in the reported results rather than the signals}
+\emph{Found while replicating the paper's own tables and out-of-sample tests.}
+
+\paragraph{Table of characteristics-to-wedge mappings}\leavevmode\\[-6pt]
+\begin{description}
+\item[Documented:] Profitability alone is reported with an R-squared of exactly 0.00, alongside a non-zero coefficient of +0.13.
+\item[Implemented:] We obtain 0.18 on the same 114 extreme portfolios.
+\item[Evidence:] every other entry in that table replicates within a few points: PC3 0.705 against 0.76, PC6 0.752 against 0.77, FF5 0.704 against 0.74, BEME 0.550 against 0.67
+\item[Why it matters:] A zero R-squared with a non-zero slope is hard to produce and is probably a reporting slip.
+\end{description}
+\paragraph{aPM, dGS}\leavevmode\\[-6pt]
+\begin{description}
+\item[Documented:] Each is signed so its long-short earns a positive one-month alpha, and reported with a long and a short leg.
+\item[Implemented:] Their one-month alphas in our data are 0.00012 and 0.0013 a month.
+\item[Evidence:] our sign convention agrees with the package for 55 of 57 characteristics; these are the two that differ
+\item[Why it matters:] For aPM especially the alpha is indistinguishable from zero, so which leg is "long" is arbitrary and the published long and short wedges for it could swap without anything being wrong.
+\end{description}
+\paragraph{The out-of-sample firm-level correlation of 0.98}\leavevmode\\[-6pt]
+\begin{description}
+\item[Documented:] Firm wedges from a pre-1998 mapping correlate 0.98 with full-sample firm wedges, offered as evidence the approach is robust out of sample.
+\item[Implemented:] Both series are linear functions of the same three principal components of the same firm characteristics, differing only in coefficients.
+\item[Evidence:] Refitting the mapping to portfolio wedges with HALF the spread gives firm wedges correlating 1.0000 with the correct ones; fitting to wedges plus noise of equal variance gives 0.9976.
+\item[Why it matters:] A mapping that gets every magnitude wrong by a factor of two passes this test perfectly. It establishes that the coefficient vector is stable, which is a real if modest claim, but it never compares a prediction against a realised wedge.
+\end{description}
+\paragraph{The out-of-sample portfolio correlation of 0.92}\leavevmode\\[-6pt]
+\begin{description}
+\item[Documented:] First-half portfolio wedges correlate 0.92 with full-sample wedges.
+\item[Implemented:] The first half is one half of the full sample, so the two overlap by construction.
+\item[Evidence:] For two halves correlating rho, each correlates with the whole at about sqrt((1+rho)/2). At the paper's footnoted rho of 0.77 that is 0.94; at ours, 0.58, it is 0.89 and we observe 0.95.
+\item[Why it matters:] The 0.92 is close to implied by the 0.77 in the footnote. The footnote is the informative number, and it is the one we cannot reproduce.
+\end{description}
+\paragraph{The mapping R-squared of 0.76}\leavevmode\\[-6pt]
+\begin{description}
+\item[Documented:] Three principal components explain 0.76 of portfolio price wedges.
+\item[Implemented:] Computed on the 114 extreme deciles only.
+\item[Evidence:] on all 570 portfolios the same mapping gives 0.543 in sample and 0.411 leaving a characteristic family out; the direct rank regression gives 0.822 and 0.749 on the same portfolios
+\item[Why it matters:] Restricting to the extremes flatters three principal components specifically -- the gap to a direct regression is 0.09 on the extremes and 0.31 on all ten deciles. Most firms sit in the middle deciles.
+\end{description}
+\paragraph{Time-split out-of-sample tests}\leavevmode\\[-6pt]
+\begin{description}
+\item[Documented:] Wedges are recomputed on subsamples of formation dates.
+\item[Implemented:] The market price of risk is calibrated once on the full sample and carried over.
+\item[Evidence:] Carried over, early cohorts average -37 percentage points and late ones +33, a seventy-point flip that is purely the difference in realised market returns across the cut. Re-solving it within each half -- 3.9 to 4.9 early against 2.4 to 2.9 late -- the flip disappears and root mean squared error falls from 37-77 points to 10-15.
+\item[Why it matters:] Correlations are location-invariant so the paper's reported correlations are unaffected. It does matter for the Panel B investment-q regressions, which use out-of-sample firm wedges as a regressor in levels.
+\end{description}
+\subsection*{E. Looks like a discrepancy, is not}
+\emph{Recorded so these are not re-opened. Each cost real time to resolve.}
+
+\paragraph{The five momentum sorts}\leavevmode\\[-6pt]
+\begin{description}
+\item[Documented:] "Cumulative return from 12 months to 2 months ago."
+\item[Implemented:] The panel stores, on row t, the return over months t-11 to t-1 -- one month later than the name. The sort then lags every characteristic by a further month, so the signal a portfolio formed at t actually sorts on is the return from t-12 to t-2, exactly as documented.
+\item[Evidence:] storing the literal window instead drops agreement from 0.97 to 0.65, and for R\_2\_1 from 0.97 to 0.11
+\item[Why it matters:] NOT an error. The economics is right and the stated definition is what gets used; only the storage convention is undocumented. It matters enormously for anyone rebuilding the panel and not at all for the paper's results.
+\end{description}
+\paragraph{R\_12\_2 stored as a gross return}\leavevmode\\[-6pt]
+\begin{description}
+\item[Documented:] A cumulative return.
+\item[Implemented:] Stored as 1 + r rather than r; the median difference against ours is exactly 1.0000.
+\item[Why it matters:] A units convention. Ranks are untouched, so no sort is affected.
+\end{description}
+\paragraph{Market capitalisation units}\leavevmode\\[-6pt]
+\begin{description}
+\item[Implemented:] Stored in millions in the package and in thousands in CRSP, a factor of exactly 1000.
+\item[Why it matters:] Value weighting is scale-invariant, so nothing is affected.
+\end{description}
+\paragraph{The panel's row alignment}\leavevmode\\[-6pt]
+\begin{description}
+\item[Implemented:] MainPart1.m slices the panel from one row *before* July 1926, so its rows are offset by a month relative to the obvious reading.
+\item[Evidence:] Comparing without noticing makes contemporaneous market equity look like a 3\% match and lagged market equity a 91\% match, which is backwards. Implementing the lagged version accordingly made the sorts worse -- 50 verified characteristics down to 48, BEME from 0.97 to 0.84 -- which is what exposed the error.
+\item[Why it matters:] A trap for anyone comparing against the shipped panel, not a problem with the paper.
+\end{description}
 \section*{Construction, signal by signal}
 \subsection*{OA --- Operating accruals}
 \textbf{Group} intangibles \quad \textbf{Source} Sloan (1996), per Appendix Table A.1 \quad \textbf{Frequency} annual \quad \textbf{Agreement} 0.963\\[2pt]

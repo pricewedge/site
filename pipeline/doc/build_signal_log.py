@@ -55,6 +55,38 @@ def esc(text: str) -> str:
     return "".join(parts)
 
 
+def discrepancy_section() -> str:
+    """Where the paper's documentation and its data disagree."""
+    path = HERE / "discrepancies.yaml"
+    if not path.exists():
+        return ""
+    data = yaml.safe_load(path.read_text())
+    out = [r"\clearpage", r"\section*{Where the paper and its data disagree}",
+           esc("Graded deliberately. Only category A claims something is wrong. "
+               "B and C are documentation that cannot be built from; D concerns the "
+               "reported results rather than the signals; E records things that look "
+               "like discrepancies and are not, so they are not re-opened.")]
+    for cat in data["categories"]:
+        out.append(r"\subsection*{" + esc(f"{cat['key']}. {cat['title']}") + "}")
+        out.append(r"\emph{" + esc(cat["blurb"].strip()) + "}\n")
+        for it in cat["items"]:
+            out.append(r"\paragraph{" + esc(it["signal"]) + "}" + "\\leavevmode" + r"\\[-6pt]")
+            out.append(r"\begin{description}[leftmargin=2.1cm,style=nextline]"
+                       .replace("[leftmargin=2.1cm,style=nextline]", ""))
+            if it.get("documented"):
+                out.append(r"\item[Documented:] " + esc(it["documented"].strip()))
+            if it.get("implemented"):
+                out.append(r"\item[Implemented:] " + esc(it["implemented"].strip()))
+            if it.get("evidence"):
+                out.append(r"\item[Evidence:] " + esc(it["evidence"].strip()))
+            if it.get("consequence"):
+                out.append(r"\item[Why it matters:] " + esc(it["consequence"].strip()))
+            if it.get("note"):
+                out.append(r"\item[Note:] " + esc(it["note"].strip()))
+            out.append(r"\end{description}")
+    return "\n".join(out)
+
+
 def render(signals: list[dict], numbers: dict) -> str:
     rows = []
     for s in signals:
@@ -71,7 +103,7 @@ def render(signals: list[dict], numbers: dict) -> str:
 
     lines = [r"""\documentclass[11pt]{article}
 \usepackage[margin=2.2cm]{geometry}
-\usepackage{longtable,booktabs,amsmath,xcolor,microtype}
+\usepackage{longtable,booktabs,amsmath,xcolor,microtype,enumitem}
 \usepackage[colorlinks=true,linkcolor=black,urlcolor=blue]{hyperref}
 \usepackage{sectsty}\allsectionsfont{\sffamily}
 \setlength{\parindent}{0pt}\setlength{\parskip}{4pt}
@@ -107,8 +139,9 @@ Signal & Group & Agreement & Long err. & Short err. & Status\\
                      f"{num(s['_short_err'])} & {status}\\\\")
     lines.append(r"""\bottomrule
 \end{longtable}
-
-\section*{Construction, signal by signal}""")
+""")
+    lines.append(discrepancy_section())
+    lines.append(r"\section*{Construction, signal by signal}")
     for s in ok + bad:
         lines.append(r"\subsection*{" + esc(s["id"]) + " --- " + esc(s.get("name","")) + "}")
         meta = [f"\\textbf{{Group}} {esc(s.get('group',''))}",
