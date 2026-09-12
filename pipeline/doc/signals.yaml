@@ -584,6 +584,12 @@ signals:
   formula: 'Market equity, CRSP mthcap for the current month, in millions.
 
     '
+  notes: >
+    Verified at the firm level against the paper panel SIZE.mat in
+    Persistence_BBOT/replicatePWsorts/DataIN: 96.3% of firm-months exact to
+    1e-6, 99.0% within 1%, rank correlation 0.9998. Current month, not lagged
+    and not December, and in millions -- CRSP thousands give a median ratio
+    of exactly 1000.
 - id: NOA
   name: Operating assets minus operating liabilities to lagged total assets (a
   group: investment
@@ -788,7 +794,10 @@ signals:
 
     then produces the stated twelve-to-two window. Storing the literal window drops
 
-    agreement from 0.97 to 0.65.'
+    agreement from 0.97 to 0.65.
+    Verified at the firm level against the paper panel: rank correlation
+    0.9989. Theirs is stored as the gross return, 1 + r, so no value matches to
+    the digit and the median ratio ours over theirs is 0.05; ranks are identical.'
   tried:
   - variant: literal window, months t-12..t-2
     score: 0.647

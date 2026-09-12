@@ -617,6 +617,9 @@ pi / sale.\\
 Market equity, CRSP mthcap for the current month, in millions.\\
 
 \end{quote}
+\textbf{Notes.} Verified at the firm level against the paper panel SIZE.mat in Persistence\_BBOT/replicatePWsorts/DataIN: 96.3\% of firm-months exact to 1e-6, 99.0\% within 1\%, rank correlation 0.9998. Current month, not lagged and not December, and in millions -- CRSP thousands give a median ratio of exactly 1000.
+
+
 \subsection*{NOA --- Operating assets minus operating liabilities to lagged total assets (a}
 \textbf{Group} investment \quad \textbf{Source} hirshleifer2004 \quad \textbf{Frequency} annual \quad \textbf{Agreement} 0.967\\[2pt]
 \textbf{Inputs.} \texttt{at, ceq, che, dlc, dltt, ivao, mib, pstk}
@@ -775,7 +778,7 @@ Compound return over months t-11..t-1, stored on row t.\\
 \end{quote}
 \textbf{Notes.} Stored ONE MONTH EARLIER than the name suggests. The sort's own one-month lag
 then produces the stated twelve-to-two window. Storing the literal window drops
-agreement from 0.97 to 0.65.
+agreement from 0.97 to 0.65. Verified at the firm level against the paper panel: rank correlation 0.9989. Theirs is stored as the gross return, 1 + r, so no value matches to the digit and the median ratio ours over theirs is 0.05; ranks are identical.
 
 \textbf{Rejected alternatives.}
 \begin{longtable}{p{10.5cm}rp{3.2cm}}
