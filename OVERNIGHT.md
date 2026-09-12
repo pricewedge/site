@@ -786,3 +786,56 @@ firm-level wedges as a regressor in levels. Our first-half wedges average -26
 percentage points and second-half wedges +28 when the full-sample price of risk
 is carried over; re-solving it within each half gives +0.3 and -5.2. Anything
 that depends on the level rather than the ranking inherits that.
+
+
+# Operating accruals: solved, and it is an error in the paper
+
+Chen and Zimmermann carry ten accrual-family signals and only Sloan's had been
+tried. Reading the rest turned up the answer in `PctAcc`, where depreciation
+sits **inside** the current-liabilities bracket:
+
+    (act - l12.act) - (che - l12.che)
+      - ( (lct - l12.lct) - (dlc - l12.dlc) - (txp - l12.txp) - dp )
+
+Expanded, that *adds* depreciation to accruals rather than subtracting it. It
+is not Sloan (1996), whom Appendix Table A.1 cites, and it contradicts the
+table's own wording, "changes in non-cash working capital minus depreciation".
+
+It is also, unambiguously, what the paper's data does:
+
+| | net of depreciation | with depreciation added |
+|---|---|---|
+| OA, agreement with published decile weights | 0.286 | **0.963** |
+| AOA | 0.041 | **0.971** |
+| OA decile 1 share of market cap (published 5.30%) | 10.92% | **5.29%** |
+| OA decile 10 share (published 9.59%) | 6.21% | **9.56%** |
+| AOA decile 1 (published 7.04%) | 8.58% | **7.09%** |
+| OA long-leg wedge error | +39.9 pp | **-1.5 pp** |
+| AOA long-leg wedge error | +22.9 pp | **-1.2 pp** |
+
+Chen and Zimmermann's own `Accruals.do` places the bracket correctly while
+their `PctAcc.do` does not, which suggests the two inherited the same
+transcription rather than arriving at it independently. Whatever the lineage,
+the published OA and AOA are not operating accruals net of depreciation:
+capital-intensive firms are pushed toward the high-accrual leg by their
+depreciation rather than away from it.
+
+**This is worth raising with the coauthors.** It changes what OA and AOA
+measure, and the paper describes them as Sloan's measure in both the text and
+the appendix.
+
+With this, the rebuild stands at:
+
+| | |
+|---|---|
+| verified above 0.85 | **50 of 57** |
+| mean error, long leg (all 57) | **1.28 pp** |
+| mean error, short leg (all 57) | **1.00 pp** |
+| correlation, all 57 | **0.984 / 0.991** |
+
+Seven remain: SUV (0.07), aPM (0.28), DTO (0.36), aSAT (0.45), aBEME (0.51),
+TNOVR (0.79), DP (0.84). Chen and Zimmermann cannot help with any of them --
+their library carries no Garfinkel signal, so nothing for SUV or DTO, and no
+industry-adjusted signals at all, so nothing for aPM, aSAT or aBEME. Their
+turnover and dividend-yield measures were tried and are worse than what is
+here.

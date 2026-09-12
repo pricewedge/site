@@ -3,7 +3,7 @@
 char       PW long  paper  diff  PW short  paper  diff  weights
 ----------------------------------------------------------------
 A2ME          -7.7  -11.3  +3.6      17.0   17.1  -0.1    0.972
-AOA           15.9   -8.3 +24.2      33.7   12.8 +20.9    0.095
+AOA           -9.5   -8.3  -1.2      12.9   12.8  +0.1    0.971
 AT           -18.6  -18.6  -0.0       3.0    2.9  +0.1    0.988
 ATO            8.1    9.0  -0.9       4.7    4.5  +0.2    0.974
 BEME         -32.9  -34.1  +1.2      18.8   19.5  -0.7    0.977
@@ -22,7 +22,7 @@ IPM           12.9   13.7  -0.8     -17.2  -15.8  -1.4    0.962
 IVC          -17.2  -16.2  -1.0      -5.8   -6.1  +0.3    0.970
 MAXRET       -10.6  -10.4  -0.2      -6.8   -5.6  -1.2    0.984
 NOA            6.9    8.0  -1.1       8.5    8.8  -0.3    0.967
-OA            30.7  -11.7 +42.4      16.2   13.9  +2.3    0.080
+OA           -13.2  -11.7  -1.5      14.0   13.9  +0.1    0.963
 OL           -10.5  -11.8  +1.3       7.5    7.7  -0.2    0.959
 PCM            5.8    6.2  -0.4     -20.4  -18.8  -1.6    0.977
 PM            11.1   11.7  -0.6     -17.1  -15.6  -1.5    0.973
@@ -61,11 +61,11 @@ sdDVOL       -28.8  -23.5  -5.3       4.9    5.0  -0.1    0.896
 sdTURN         1.3    1.3  +0.0      -2.6   -2.5  -0.1    0.991
 
 all characteristics (57)
-  mean |difference|   long  2.40pp   short  1.41pp
-  correlation         long 0.896   short 0.963
+  mean |difference|   long  1.28pp   short  1.00pp
+  correlation         long 0.984   short 0.991
 
-those whose decile weights agree above 0.85 (48)
-  mean |difference|   long  1.19pp   short  0.73pp
+those whose decile weights agree above 0.85 (50)
+  mean |difference|   long  1.20pp   short  0.71pp
   correlation         long 0.984   short 0.997
 
-  built differently from the package: SUV (0.07), OA (0.08), AOA (0.09), aPM (0.28), DTO (0.36), aSAT (0.45), aBEME (0.51), TNOVR (0.79), DP (0.84)
+  built differently from the package: SUV (0.07), aPM (0.28), DTO (0.36), aSAT (0.45), aBEME (0.51), TNOVR (0.79), DP (0.84)

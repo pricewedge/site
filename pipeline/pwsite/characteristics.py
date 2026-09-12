@@ -327,11 +327,24 @@ def annual_all(f: pd.DataFrame) -> pd.DataFrame:
     gm_prior = lag["sale"] - lag["cogs"]
     out["dGS"] = 100.0 * (gross_margin / gm_prior - 1.0) - _pct_change(f, "sale")
 
-    # Operating accruals: the change in non-cash working capital, less
-    # depreciation, scaled by the assets that produced it.
+    # Operating accruals. Depreciation sits *inside* the current-liabilities
+    # bracket, so it is added to accruals rather than subtracted from them.
+    #
+    # That is not Sloan (1996), whom Appendix Table A.1 cites, and not what the
+    # table's own wording says ("changes in non-cash working capital minus
+    # depreciation"). Accruals net of depreciation gives 0.29 against the
+    # package's published decile weights; this gives 0.963, and reproduces
+    # decile one's share of market capitalisation as 5.29% against a published
+    # 5.30%. AOA, its absolute value, goes from 0.04 to 0.971.
+    #
+    # Chen and Zimmermann's `PctAcc` carries the identical bracket placement
+    # while their `Accruals` does not, which suggests both this and that
+    # inherited the same transcription rather than arriving at it separately.
     delta = lambda c: f[c] - lag[c]  # noqa: E731
+    taxes = f["txp"].fillna(0) - lag["txp"].fillna(0)
     out["OA"] = (
-        delta("act") - delta("che") - delta("lct") - delta("dlc") - delta("txp") - f["dp"]
+        delta("act") - delta("che")
+        - (delta("lct") - delta("dlc") - taxes - f["dp"])
     ) / lag["at"]
     out["AOA"] = out["OA"].abs()
 
