@@ -31,6 +31,7 @@ Signal & Group & Agreement & Long err. & Short err. & Status\\
 \endhead
 OA & intangibles & 0.963 & -1.53 & 0.15 & \ok\\
 AOA & intangibles & 0.971 & -1.15 & 0.05 & \ok\\
+DP & value & 0.924 & 1.46 & -4.16 & \ok\\
 ATO & profitability & 0.974 & -0.86 & 0.16 & \ok\\
 RNA & profitability & 0.978 & 0.60 & -0.30 & \ok\\
 dSOUT & investment & 0.992 & -0.53 & -0.68 & \ok\\
@@ -79,7 +80,6 @@ sdTURN & trading frictions & 0.991 & 0.03 & -0.06 & \ok\\
 sdDVOL & trading frictions & 0.896 & -5.28 & -0.08 & \ok\\
 TAN & intangibles & 0.978 & -1.35 & -1.38 & \ok\\
 RETVOL & trading frictions & 0.988 & -0.14 & -0.32 & \ok\\
-DP & value & 0.841 & 1.39 & -3.39 & \bad\\
 TNOVR & trading frictions & 0.790 & 0.25 & 1.68 & \bad\\
 SUV & trading frictions & 0.073 & 3.76 & -3.27 & \bad\\
 DTO & trading frictions & 0.363 & 1.37 & -1.79 & \bad\\
@@ -292,6 +292,30 @@ AOA = |OA|, with OA exactly as above (depreciation added, not subtracted).\\
 \begin{longtable}{p{10.5cm}rp{3.2cm}}
 \toprule Variant & Agreement & Verdict\\\midrule\endhead
 absolute value of every rejected OA variant above & 0.087 & rejected\\
+\bottomrule\end{longtable}
+\subsection*{DP --- Dividend yield}
+\textbf{Group} value \quad \textbf{Source} Litzenberger and Ramaswamy (1979) \quad \textbf{Frequency} monthly \quad \textbf{Agreement} 0.924\\[2pt]
+\textbf{Inputs.} \texttt{ret, retx, cap}
+
+\textbf{Formula.}
+\begin{quote}
+dollars paid in month s = (ret[s] - retx[s]) * cap[s-1]\\
+DP[t] = sum of those dollars over months t-11..t, divided by cap[t],\\
+requiring at least six of the twelve months.\\
+
+\end{quote}
+\textbf{Notes.} Dividends in dollars over market capitalisation, not dividends per share over price. Per share the share count drifts through the year and agreement falls to 0.841. JKP's div12m\_me, which is this same quantity, scores 0.928 against the package, and building it natively gives 0.924.
+
+
+\textbf{Rejected alternatives.}
+\begin{longtable}{p{10.5cm}rp{3.2cm}}
+\toprule Variant & Agreement & Verdict\\\midrule\endhead
+dividends per share over price (twelve-month sum) & 0.841 & rejected\\
+per-share dividends restated for splits before summing & 0.735 & rejected; the more coherent calculation agrees worse\\
+sum of twelve monthly dividend yields, no price & 0.743 & rejected\\
+cash distributions from crsp.stkdistributions over price & 0.348 & rejected despite being the more principled source\\
+dollar dividends over lagged rather than current market cap & 0.869 & rejected\\
+JKP div\_me (one month), div6m\_me, div\_at & 0.652 & rejected\\
 \bottomrule\end{longtable}
 \subsection*{ATO --- Asset turnover}
 \textbf{Group} profitability \quad \textbf{Source} Soliman (2008) \quad \textbf{Frequency} annual \quad \textbf{Agreement} 0.974\\[2pt]
@@ -937,30 +961,6 @@ Standard deviation of daily excess returns within the month, at least 15 days.\\
 \end{quote}
 \textbf{Notes.} Correlates 1.000 with JKP's rvol\_21d.
 
-\subsection*{DP --- Dividend yield}
-\textbf{Group} value \quad \textbf{Source} Litzenberger and Ramaswamy (1979) \quad \textbf{Frequency} monthly \quad \textbf{Agreement} 0.841\\[2pt]
-\textbf{Inputs.} \texttt{ret, retx, cap}
-
-\textbf{Formula.}
-\begin{quote}
-dollars paid in month s = (ret[s] - retx[s]) * cap[s-1]\\
-DP[t] = sum of those dollars over months t-11..t, divided by cap[t],\\
-requiring at least six of the twelve months.\\
-
-\end{quote}
-\textbf{Notes.} Dividends in dollars over market capitalisation, not dividends per share over price. Per share the share count drifts through the year and agreement falls to 0.841. JKP's div12m\_me, which is this same quantity, scores 0.928 against the package, and building it natively gives 0.924.
-
-
-\textbf{Rejected alternatives.}
-\begin{longtable}{p{10.5cm}rp{3.2cm}}
-\toprule Variant & Agreement & Verdict\\\midrule\endhead
-dividends per share over price (twelve-month sum) & 0.841 & rejected\\
-per-share dividends restated for splits before summing & 0.735 & rejected; the more coherent calculation agrees worse\\
-sum of twelve monthly dividend yields, no price & 0.743 & rejected\\
-cash distributions from crsp.stkdistributions over price & 0.348 & rejected despite being the more principled source\\
-dollar dividends over lagged rather than current market cap & 0.869 & rejected\\
-JKP div\_me (one month), div6m\_me, div\_at & 0.652 & rejected\\
-\bottomrule\end{longtable}
 \subsection*{TNOVR --- Share turnover}
 \textbf{Group} trading frictions \quad \textbf{Source} Datar, Naik and Radcliffe (1998) \quad \textbf{Frequency} monthly \quad \textbf{Agreement} 0.790\\[2pt]
 \textbf{Inputs.} \texttt{vol, shrout}
