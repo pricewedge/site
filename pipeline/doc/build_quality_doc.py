@@ -11,6 +11,7 @@ import sys
 from pathlib import Path
 
 import numpy as np
+import json
 import pandas as pd
 
 HERE = Path(__file__).resolve().parent
@@ -34,6 +35,30 @@ def main() -> int:
     q = pd.read_csv(CACHE / "mapping_quality_paper.csv")
     e = pd.read_csv(CACHE / "mapping_expost_paper.csv")
     p = pd.read_csv(CACHE / "portfolio_precision.csv")
+    v = json.loads((CACHE / "validation.json").read_text())
+    unverified = sorted(r["char"] for r in v if (r["weight_agreement"] or 0) <= 0.85)
+    n_unverified = len(unverified); unverified_list = ", ".join(unverified) or "none"
+    n_verified = len(v) - n_unverified; n_portfolios = int(q["n"].max())
+    fam_direct = float(q[(q["test"] == "leave one family out") & (q["mapping"] == "direct, unweighted")]["r2"].iloc[0])
+    fam_all = 0.632   # mapping_quality.py --all-characteristics, 12 September 2026; not stored in the csv
+    def _spread(m, h, w):
+        return float(e[(e["mapping"] == m) & (e["horizon"] == h) & (e["weighting"] == w)]["spread"].iloc[0])
+    def _monotone(m):
+        rows = e[e["mapping"] == m]
+        bad = {}
+        for _, r in rows.iterrows():
+            if not all(r[f"d{i}"] > r[f"d{i+1}"] for i in range(1, 10)):
+                bad.setdefault({"cap": "capitalisation", "equal": "equal"}[r["weighting"]], []).append(int(r["horizon"]))
+        def _hz(h):
+            return ", ".join(str(x) for x in h[:-1]) + (" and " if len(h) > 1 else "") + str(h[-1]) + " months"
+        return [f"{w}-weighted at {_hz(sorted(h))}" for w, h in bad.items()]
+    sp60_cap, sp60_eq = _spread("direct", 60, "cap"), _spread("direct", 60, "equal")
+    sp60_cap_pc3, sp60_eq_pc3 = _spread("pc3", 60, "cap"), _spread("pc3", 60, "equal")
+    bd, bp = _monotone("direct"), _monotone("pc3")
+    mono_direct = ("and its deciles are monotone at every horizon and weighting." if not bd
+                   else "and its deciles are monotone except " + " and ".join(bd) + ".")
+    mono_pc3 = ("and are monotone throughout." if not bp
+                else "and are not monotone " + " or ".join(bp) + ".")
     q["m"] = q["mapping"].map(lambda s: SHORT.get(s, s))
 
     tests = ["leave one characteristic out", "leave one family out", "extremes held out"]
@@ -104,9 +129,11 @@ a website that reports a wedge rather than a score.
 \paragraph{Which portfolios count.} Only characteristics whose construction is
 verified against the replication package enter, as regressors \emph{and} as
 portfolios. A portfolio we cannot reproduce carries a wedge we cannot trust, so
-including it adds noise to the left-hand side as well as the right. Dropping the
-six unverified ones raises the leave-one-family-out fit of the direct mapping
-from 0.56 to 0.67.
+including it adds noise to the left-hand side as well as the right. With
+""" + f"{n_unverified}" + r""" characteristic still unverified (""" + unverified_list + r"""), the rule costs
+nothing: the leave-one-family-out fit of the direct mapping is """ + f"{fam_all:.2f}" + r""" with every
+characteristic in and """ + f"{fam_direct:.2f}" + r""" without it. When six were unverified it
+raised that fit from 0.56 to 0.67.
 
 \section*{Results}
 """ + "\n".join(body) + r"""
@@ -125,11 +152,9 @@ Mapping & Horizon & Weighting & Decile 1 & Decile 10 & Spread (pp)\\\midrule
 \bottomrule\end{longtable}
 
 The wedges predict returns strongly and with the right sign. Over five years the
-direct mapping separates the extreme deciles by 60 percentage points
-capitalisation-weighted and 82 equal-weighted, and its deciles are monotone at
-every horizon and weighting. Three principal components produce a materially
-smaller spread and are not monotone capitalisation-weighted at twelve or
-thirty-six months.
+direct mapping separates the extreme deciles by """ + f"{sp60_cap:.0f}" + r""" percentage points
+capitalisation-weighted and """ + f"{sp60_eq:.0f}" + r""" equal-weighted, """ + mono_direct + r""" Three principal components produce a
+smaller spread (""" + f"{sp60_cap_pc3:.0f}" + r""" and """ + f"{sp60_eq_pc3:.0f}" + r""" points) """ + mono_pc3 + r"""
 
 \section*{Can the mapping be improved?}
 
@@ -147,7 +172,7 @@ Standard error (pp) & """ + f"{se.median():.1f} & {se.quantile(.1):.1f} & {se.qu
 \bottomrule\end{tabular}\\[6pt]
 
 The ratio of the 90th to the 10th percentile is """ + f"{se.quantile(.9)/se.quantile(.1):.1f}" + r""". Precision is
-close to uniform across the 510 portfolios, so weighting by it has almost
+close to uniform across the """ + f"{n_portfolios}" + r""" portfolios, so weighting by it has almost
 nothing to exploit --- and in the event it is very slightly worse on all three
 criteria, presumably because the weights add estimation noise of their own.
 
@@ -163,16 +188,19 @@ any mapping.
 Adding squared ranks roughly halves out-of-sample fit and pushes the slope to
 0.6 or below. The design already carries the non-linearity that matters: using
 all ten deciles rather than the extremes lets the wedge be non-linear in each
-sorting characteristic, and squaring 51 standardised ranks mostly adds
-collinear regressors for 510 observations to overfit.
+sorting characteristic, and squaring """ + f"{n_verified}" + r""" standardised ranks mostly adds
+collinear regressors for """ + f"{n_portfolios}" + r""" observations to overfit.
 
 \subsection*{Shrinkage: yes, and it is the substance}
 
 Unpenalised, the direct regression fits best in sample and generalises worst.
 Penalised at the level chosen inside each fold, it is the best mapping on every
 criterion at once and is close to unbiased in magnitude. The penalty is not a
-technicality: without it the mapping overstates how mispriced an unfamiliar
-portfolio is by roughly a third.
+technicality: without it the fitted wedges of unfamiliar portfolios are more
+than twice too dispersed. On the leave-one-family-out test the realised wedge
+moves 0.42 for each point of fitted wedge with no penalty, against 0.89 with
+the penalty of 100 (run of 12 September 2026, \texttt{group\_cv.held\_out} on the
+verified portfolios).
 
 \subsection*{Number of components}
 

@@ -13,6 +13,8 @@ nothing lands there, which is a little over half the 0-9999 space.
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 
@@ -216,3 +218,97 @@ def industry_adjust(frame: pd.DataFrame, column: str, industry: str = "ff48",
     """
     group = frame.groupby([month, industry])[column]
     return frame[column] - group.transform("mean")
+
+
+# ---------------------------------------------------------------------------
+# Which SIC code
+# ---------------------------------------------------------------------------
+# The paper's industry adjustment uses CRSP's historical SIC code from the
+# name-history file (`crsp.msenames`, one spell per name change): checked
+# against the paper's own stored `siccd` panel it agrees for 99.5% of
+# firm-months, where the `siccd` column on CRSP's newer monthly table -- which
+# turns out to be constant over a security's life, effectively a header code --
+# agrees for 63.9%. The difference reaches the adjusted signals directly: their
+# industry means are formed over the wrong firms one time in three.
+
+def historical_sic(monthly: pd.DataFrame, spells: pd.DataFrame) -> pd.Series:
+    """The name-history SIC in force for each (permno, month), by spell dates.
+
+    `spells` has columns permno, start, end, siccd (as pulled from
+    crsp.msenames). A month is assigned the spell containing its last calendar
+    day; where none does, the value is missing and the caller falls back.
+    """
+    s = spells.dropna(subset=["siccd"]).copy()
+    s["permno"] = s["permno"].astype("int64")
+    s["end"] = pd.to_datetime(s["end"]).fillna(pd.Timestamp("2099-12-31"))
+    s["start"] = pd.to_datetime(s["start"])
+    m = monthly[["permno", "month"]].drop_duplicates().copy()
+    m["permno"] = m["permno"].astype("int64")
+    m["date"] = pd.to_datetime(m["month"].astype(str) + "01") + pd.offsets.MonthEnd(0)
+    j = m.merge(s, on="permno", how="left")
+    j = j[(j["date"] >= j["start"]) & (j["date"] <= j["end"])]
+    j = j.sort_values(["permno", "month", "start"]).drop_duplicates(["permno", "month"], keep="last")
+    out = monthly[["permno", "month"]].merge(j[["permno", "month", "siccd"]],
+                                            on=["permno", "month"], how="left")
+    return out["siccd"].to_numpy()
+
+
+# ---------------------------------------------------------------------------
+# The paper's own industry scheme
+# ---------------------------------------------------------------------------
+# Appendix Table A.1 says Fama-French 48. The paper's adjusted panels say
+# otherwise: within a month every firm in an industry cell shares the same
+# value of BEME - aBEME, so grouping SIC codes by that value recovers the cells
+# the paper actually used, with no naming needed. Done over 216 months, no SIC
+# code ever straddles two cells, so the scheme is a pure function of the code.
+# It has 27 industries: Fama-French 48 with most industries intact and the
+# consumer-goods and heavy-manufacturing industries merged into two large
+# groups. Under it, agreement with the published decile weights for aBEME,
+# aSAT and aSIZE goes from 0.51 / 0.45 / 0.86 to 0.92 / 0.91 / 0.99.
+#
+# The table is stored as data, not code, because it was learned rather than
+# transcribed: raw/their_industry_table.json maps each SIC code seen in the
+# paper's panels to an industry number.
+
+LEARNED_TABLE = Path(__file__).resolve().parents[2] / "raw" / "their_industry_table.json"
+RESIDUAL_INDUSTRY = 27   # the 27 learned groups are 0..26
+
+
+def learned_industry(siccd: pd.Series | np.ndarray) -> np.ndarray:
+    """Industry number under the paper's own scheme; -1 for a missing code.
+
+    Codes the paper's panels never contained are assigned by the scheme's own
+    contiguity: it is built from SIC ranges, so a code between two mapped
+    codes of the same industry belongs to it. A valid code outside every range
+    (1.8% of firm-months) goes to one residual group, RESIDUAL_INDUSTRY, since
+    the paper's panels carry an adjusted value for every firm that has the
+    underlying one; dropping those firms instead scores marginally worse.
+    """
+    import json
+    table = {int(k): v for k, v in json.load(open(LEARNED_TABLE))["sic_to_industry"].items()}
+    known = np.array(sorted(table)); labels = np.array([table[k] for k in known])
+    codes = pd.to_numeric(pd.Series(np.asarray(siccd).ravel()), errors="coerce")
+    out = np.full(len(codes), -1, dtype=np.int16)
+    ok = codes.notna().to_numpy()
+    c = codes[ok].astype(int).to_numpy()
+    lo = np.searchsorted(known, c, side="right") - 1
+    hi = np.clip(lo + 1, 0, len(known) - 1); lo = np.clip(lo, 0, len(known) - 1)
+    exact = known[lo] == c
+    between = (~exact) & (labels[lo] == labels[hi]) & (c > known[lo]) & (c < known[hi])
+    valid = (c >= 100) & (c <= 9999)      # 0 is CRSP's "no code"
+    lab = np.where(exact, labels[lo],
+                   np.where(between, labels[lo], np.where(valid, RESIDUAL_INDUSTRY, -1)))
+    out[ok] = lab
+    return out
+
+
+def adjust_learned(panel: pd.DataFrame, pairs: dict[str, str], ordinary: pd.Series) -> None:
+    """Industry-adjust each `pairs` value in place: the value less its
+    equal-weighted mean over ordinary common shares in the same learned
+    industry that month. Firms outside the ordinary universe, or without a
+    usable SIC, get no adjusted value."""
+    panel["industry"] = learned_industry(panel["siccd_hist"])
+    for name, source in pairs.items():
+        x = panel[source].where(ordinary & (panel["industry"] >= 0))
+        group = x.groupby([panel["month"], panel["industry"]])
+        panel[name] = x - group.transform("mean")

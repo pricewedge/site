@@ -40,6 +40,51 @@ categories:
       Chen and Zimmermann's PctAcc.do carries the identical bracket placement
       while their Accruals.do does not, which suggests both inherited the same
       transcription rather than arriving at it independently.
+  - signal: SUV
+    documented: >
+      Appendix Table A.1, citing Garfinkel (2009): "Difference between actual
+      volume and predicted volume. Predicted volume is from a regression of
+      previous month's daily volume on a constant and the absolute values of
+      positive and negative previous month's returns. Unexplained volume is
+      standardized by the standard deviation of the residuals from the
+      regression."
+    implemented: >
+      The regression is estimated on the current month's trading days, and the
+      signal is the last trading day's standardised residual from it -- one
+      day's volume surprise, not the month's.
+    evidence: >
+      Against the paper's own firm-month panel (t_by_n/SUV.mat, shared by
+      Andrea Tamoni in September 2026) the last day's within-month residual
+      matches at Spearman 0.9999 with a ratio of 1.0000; agreement with the
+      published decile weights 0.982. The documented reading, and every
+      month-level variant of it, agrees with the panel at between -0.001 and
+      -0.04, and with the published weights at 0.07.
+    consequence: >
+      The decile a firm is sorted into is decided by its volume on one trading
+      day relative to that month's own fit. This is the signature of a daily
+      series collapsed to monthly by taking the last observation rather than
+      the month's value, and the same signature appears in DTO. As published,
+      SUV is not Garfinkel's standardised unexplained volume.
+  - signal: DTO
+    documented: >
+      Appendix Table A.1, citing Garfinkel (2009): "Daily volume (vol) to
+      shares outstanding (shrout) minus the daily market turnover and
+      detrended by the 180 trading day median", with Nasdaq volume scaled down
+      by 50% before 1997 and 38% after.
+    implemented: >
+      The last trading day's turnover less the mean of its own previous 180
+      trading days. No market turnover is subtracted, Nasdaq volume is not
+      scaled, and the detrending uses a mean, not a median.
+    evidence: >
+      Spearman 0.998 against the paper's panel (Pearson 0.997); agreement with
+      the published decile weights 0.985. The 180-day median instead of the
+      mean gives 0.888 against the panel; subtracting the market's turnover or
+      scaling Nasdaq volume lowers it further (the documented form, sampled on
+      the last day, 0.56-0.64; averaged over the month, 0.18-0.31).
+    consequence: >
+      Without the market adjustment the signal is a firm's own one-day
+      turnover shock rather than abnormal turnover in Garfinkel's sense, and
+      as with SUV a single day stands in for the month.
 
 - key: B
   title: The appendix cannot be built from
@@ -51,8 +96,14 @@ categories:
   items:
   - signal: SPREAD
     documented: '"Average daily bid-ask spread in the previous month", citing Chung and Zhang (2014), whose estimator is the quoted spread.'
-    implemented: The daily high-low range, 2(high-low)/(high+low), averaged over the month.
-    evidence: "literal reading 0.02, implemented 0.94"
+    implemented: >
+      Each trading day contributes its high-low range, 2(high-low)/(high+low),
+      if it has one and its quoted spread otherwise; the month is the mean
+      over those days, with no minimum number of days.
+    evidence: >
+      literal reading 0.02, range alone 0.94. Built day by day, every
+      firm-month in 1975, 1985, 1995 and 2005 agrees with the paper's panel
+      within 1% and none the panel has is missing.
     consequence: >
       Not a defect in the data -- CRSP carries quotes for 9% of daily rows in
       the 1960s and 53% in the 1980s, so a quoted spread cannot be computed
@@ -60,9 +111,18 @@ categories:
       sample cannot support, and the substitution is unstated.
   - signal: sdDVOL
     documented: '"Standard deviation of residuals from a regression of daily volume (vol) on a constant", i.e. the dispersion of daily share volume in levels.'
-    implemented: The standard deviation of log(1 + daily *dollar* volume).
-    evidence: "share volume in levels 0.06, log share volume 0.63, log dollar volume 0.87"
-    consequence: Two undocumented choices at once, the units and the logarithm, and in levels the measure captures firm size rather than variability.
+    implemented: >
+      The standard deviation of the log of daily *dollar* volume over the days
+      that have volume; zero-volume days are left out.
+    evidence: >
+      share volume in levels 0.06, log share volume 0.63, log dollar volume
+      0.87. Against the paper's panel, including zero-volume days as ln(1 + 0)
+      disagrees by a factor of 1.6 to 5 for every firm-month that has one
+      (27% of them); leaving them out matches.
+    consequence: >
+      Three undocumented choices at once: the units, the logarithm, and the
+      exclusion of zero-volume days. In levels the measure captures firm size
+      rather than variability.
   - signal: dSOUT
     documented: '"Annual % change in shares outstanding (shrout)."'
     implemented: Growth in shrout multiplied by CRSP's cumulative share adjustment factor.
@@ -81,8 +141,14 @@ categories:
       typo in the appendix rather than a problem with the data.
   - signal: BETA_d
     documented: '"The sum of the regression coefficients of daily excess returns on market excess returns and the lag of market excess returns." No estimation window is given.'
-    implemented: Estimated over twelve months of daily data.
-    evidence: "one month 0.35, six 0.62, twelve 0.94, twenty-four 0.63"
+    implemented: >
+      Estimated over the firm's last 249 trading days, the market's lag taken
+      on the firm's own rows.
+    evidence: >
+      one month 0.35, six 0.62, twelve 0.94, twenty-four 0.63 on the published
+      weights. Against the paper's panel, 249 of the firm's days puts 84% of
+      firm-months within 1% with a rank correlation of 0.9996; 250 days 47%,
+      calendar twelve months 24%.
     consequence: >
       The window is the difference between a usable signal and noise, and it is
       not stated. Separately, FNW's own entry under this name describes the
@@ -98,6 +164,37 @@ categories:
     implemented: Every component required non-missing.
     evidence: "zero-filling 0.48, requiring all 0.96"
     consequence: Zero-filling reads as "this firm holds no tangible assets" and sends firms with incomplete filings to the bottom decile.
+  - signal: TNOVR
+    documented: '"Volume (vol) over shares outstanding (shrout)."'
+    implemented: The previous month's volume over the current month's shares outstanding.
+    evidence: "as documented 0.71, with the one-month lag 0.978; Spearman 1.0000 against the paper's panel"
+    consequence: >
+      A one-month misalignment of numerator and denominator. Harmless for most
+      firms, but a split or an issuance between the two months changes the
+      share count without the volume, so the signal halves or jumps for
+      exactly the firms whose turnover is in question.
+  - signal: aBEME, aPM, aSAT, aSIZE
+    documented: '"Industry level is defined as the Fama-French 48 industries."'
+    implemented: >
+      Twenty-seven industry groups that are not Fama-French 48, recovered from
+      the panels themselves: within a month the value less its adjusted value
+      is one constant per industry, and grouping SIC codes by that constant
+      month after month gives 27 groups that never contradict one another. The
+      SIC code is CRSP's name-history code (msenames), which reproduces the
+      panel's own siccd for 99.5% of firm-months.
+    evidence: >
+      Fama-French 48 with the same inputs agrees with the published decile
+      weights at 0.51 (aBEME), 0.45 (aSAT), 0.87 (aSIZE); the recovered scheme
+      at 0.92, 0.91, 0.99. One recovered group holds 410 SIC codes spanning
+      five FF48 industries (food, agriculture, textiles, clothing,
+      construction); another 281 codes across building materials, machinery,
+      steel, paper and household goods.
+    consequence: >
+      Coarser than FF48 across manufacturing and matching no published
+      classification we tried (FF 5, 10, 12, 17, 30, 38, 48, 49; one- to
+      three-digit SIC). It could be recovered only because the panels expose
+      the cell means; from the appendix alone these four signals cannot be
+      rebuilt.
 
 - key: C
   title: The appendix drops a qualifier its own source insists on

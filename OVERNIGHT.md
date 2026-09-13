@@ -895,3 +895,133 @@ points on the long leg and the seven unverified ones 1.90.
 The one improvement still available on this front is small: aggregating market
 equity across share classes of the same company, as Fama and French do, raises
 BEME's exact-match rate from 94.9% to 95.7% and Q's from 96.3% to 97.1%.
+
+
+# Phase 6 — the paper's own panels (12 September 2026)
+
+Andrea Tamoni shared the folder the paper's sorts were run from:
+`ReplicationPackage/t_by_n/`, one `.mat` file per characteristic (a months by
+firms matrix over the 24,742 PERMNOs of `PWshare.columnPERMNOS`), the raw
+inputs (book equity, market capitalisation, returns, shares, the share
+adjustment factor, exchange, share code and SIC), the decile allocation of
+every sort, and `MainPart4PWfirmLevel.m` with its PCA library. `pwsite/tbyn.py`
+reads the panels; `compare_panels.py` and `compare_allocation.py` diff ours
+against them at the firm-month level. Everything below was found by that
+comparison and then confirmed on the published decile weights.
+
+## What was settled
+
+**DTO.** The panel is the last trading day's turnover less the mean of its own
+previous 180 trading days: Spearman 0.998 and Pearson 0.997 against the panel.
+Every element Table A.1 describes lowers that number. The 180-day median
+instead of the mean gives 0.888; subtracting the day's market turnover gives
+0.739 (value-weighted) or 0.666 (equal-weighted); scaling Nasdaq volume by
+0.50 and 0.38 gives 0.877 alone and 0.564 to 0.643 combined with a market
+adjustment; averaging the daily series over the month instead of taking its
+last day gives 0.18 to 0.31. Agreement with the published decile weights went
+from 0.36 to 0.985.
+
+**SUV.** The panel is the last trading day's standardised residual from a
+regression of that day's share volume on a constant and the day's positive and
+negative return, the regression estimated on the calendar month's own trading
+days with the last day included, and the residual divided by the residual
+standard deviation with n - 1 degrees of freedom. Spearman 0.9999, Pearson
+0.9998, and the ratio of the panel's values to ours is 1.0000 at every
+quantile; n - 3 gives 1.054 and n gives 0.976. What is left is float32
+rounding in our daily file. The month-level reading Table A.1 gives, in every
+variant tried over the night, agrees with the panel at between -0.001 and
+-0.04. Agreement with the published weights went from 0.07 to 0.982, with
+decile one's share of market capitalisation 8.94% against a published 8.94%.
+
+Both are the last day's value of a daily series. That is what a daily file
+collapsed to monthly by keeping the last observation produces, and it is not
+what either signal is meant to measure. Both are recorded in category A of
+`doc/discrepancies.yaml` alongside OA.
+
+**TNOVR.** The previous month's volume over the current month's shares
+outstanding. Spearman 1.0000 against the panel; published weights 0.978
+against 0.79 for the three-month average that had been the best guess.
+
+**SPREAD.** The range alone left months missing that the panel fills, and the
+quoted spread fills exactly those. The rule works day by day: a trading day
+contributes its high-low range if it has one and its quoted spread otherwise,
+the month is the mean over those days, and there is no minimum number of
+days. Built that way, the full 1960-2017 panel matches the paper's exactly
+for 99.4% of firm-months and within 1% for all of them. A month-level
+fallback (range when fifteen days have it, else quotes) had reached 0.973 on
+the published weights but agreed with the panel for only 69-88% of
+firm-months.
+
+**BETA_d.** Table A.1 states no window. Against the panel, a window of the
+firm's last 249 trading days ending on the month's last trading day, with the
+market's lag taken on the firm's own rows, puts 84% of firm-months within 1%
+at a rank correlation of 0.9996 and a median ratio of 1.0000. It is 249 and
+not 250 because the lag consumes the window's first day: 250 rows give 47%,
+248 give 49%, calendar twelve months 24%, and a window counted on the
+market's calendar, which shortens a thin trader's sample, 76%. The
+firm-months outside 1% have betas below 0.2 in absolute value, where a
+relative criterion is harsh; the ranking is exact. Over the full panel the
+rebuilt series is within 1% for 90% of firm-months at a rank correlation of
+0.9994. `pwsite/beta_daily.py` builds it from the daily file in seconds.
+
+`pipeline/panel-agreement-latest.txt` is the full firm-month comparison,
+every characteristic against the paper's panel.
+
+**sdDVOL, IDIOV, DP.** Three more conventions from the same comparison. The
+paper's sdDVOL leaves zero-volume days out: every firm-month with such a day
+(27% of them) disagreed with ln(1 + dollar volume) over all days by a factor
+of 1.6 to 5, because the zero enters as ln(1) = 0 and dominates the month's
+dispersion; leaving them out, the rebuilt series is exact for 91% of
+firm-months and within 1% for all. Its IDIOV divides the residual sum of
+squares by n - 1 rather than n - 4; the squared ratio of ours to theirs by
+number of trading days was (n - 1)/(n - 4) to four decimals at every n, and
+with n - 1 the series is within 1% for 76% of firm-months at a rank
+correlation of 0.9998, the remainder being the factor vintage on small
+values. DP is different in kind: it
+agrees exactly where both are zero, but three quarters of the non-zero
+firm-months differ by more than 1% with the ratio spread from 0.87 to 1.10,
+and the paper carries 26% fewer firm-months. No formula variant narrows that,
+so the dividend series itself differs, most plausibly because the paper takes
+dividends from CRSP's distribution events rather than from ret - retx. DP is
+verified at the sort level and remains the best target.
+
+**The industry adjustment.** Within a month, a characteristic less its
+adjusted value is one constant for every firm in an industry. Grouping SIC
+codes by that constant, month after month, gives 27 groups, and no code-month
+pair ever sits in two of them. They are not Fama-French 48: one group holds 410
+SIC codes spanning food, agriculture, textiles, clothing and construction;
+another 281 codes across building materials, machinery, steel, paper and
+household goods; retail and wholesale are separate. The SIC code that
+reproduces the panel's own `siccd` is CRSP's name-history code from
+`crsp.msenames`, at 99.5% of firm-months. With the recovered scheme and that
+code, aBEME went from 0.51 to 0.90, aSAT from 0.45 to 0.90 and aSIZE from 0.84
+to 0.99.
+
+**aPM, and an error of ours.** PM, PCM and IPM were infinite where sales were
+zero. The paper's panel has no infinities; ours carried 39,607, and one
+infinity inside an industry mean wiped out every firm in that industry-month.
+Making those missing took aPM from 0.37 to 0.78. It stays below the threshold
+because the equal-weighted mean of PM is dominated by firms with sales near
+zero, so any difference in which firms carry a PM value moves a whole
+industry-month. The paper's own panel shows the fragility: recomputing its
+cell means from its own PM reproduces its aPM exactly for 16% of firm-months,
+against 43% for aSAT and 58% for aSIZE.
+
+## Where that leaves the replication
+
+56 of 57 characteristics verified above 0.85, from 51. Table 1 wedges reproduce
+to 0.79 percentage points on the long leg and 0.71 on the short, correlations
+0.996 and 0.997, from 1.20 and 0.77. Beyond the five that had failed, the
+panel comparison also moved SPREAD from 0.973 to 0.985, sdDVOL from 0.896 to
+0.989 and BETA_d from 0.952 to 0.990 on the published decile weights.
+
+Against the panels themselves, 5 to 9% of firm-months differ for a typical
+characteristic, evenly across decades, with our coverage 1 to 3% higher. That
+is the CRSP and Compustat vintage, not the construction: the same
+characteristic, built the same way from a later download, differs by that
+much.
+
+The paper's PC3 mapping is reproduced from `Allocation/chars.mat` and the
+bias-corrected wedges in `PWCAPMTable1_block180.mat`: adjusted R-squared 0.758
+against the paper's 0.76. `PriceWedges.mat` in the folder is identical to
+`PWshare.mat`.

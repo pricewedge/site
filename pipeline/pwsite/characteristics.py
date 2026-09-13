@@ -483,11 +483,14 @@ def crsp_characteristics(monthly: pd.DataFrame) -> pd.DataFrame:
     twelve = pd.DataFrame(paid).T.rolling(12, min_periods=6).sum().T.to_numpy()
     out["DP"] = (twelve / cap_).ravel()
 
-    # Turnover averaged over three months rather than one. Datar, Naik and
-    # Radcliffe (1998) is silent on the window and Table A.1 reads as one
-    # month, but three tracks the published decile weights better (0.80 against
-    # 0.71, and 0.70 for twelve).
+    # Turnover of the PREVIOUS month, stored on row t. The paper's own TNOVR
+    # panel says so at the firm level -- Spearman 0.998 against the previous
+    # month's volume over shares, 0.87 against the current month's -- and the
+    # three-month average adopted earlier was only ever a smoothed proxy for
+    # that lag (0.80 against the published decile weights, against 0.95 here).
+    # Precisely: last month's volume over THIS month's shares outstanding, which
+    # matches the paper's panel at a Spearman correlation of 1.0000 (lagging
+    # both gives 0.9983; lagging neither 0.87).
     volume = by_firm(m["vol"].to_numpy(float))
-    three = volume + shift(volume, 1) + shift(volume, 2)
-    out["TNOVR"] = (three / (3.0 * by_firm(m["shrout"].to_numpy(float)))).ravel()
+    out["TNOVR"] = (shift(volume, 1) / by_firm(m["shrout"].to_numpy(float))).ravel()
     return out.dropna(how="all", subset=[c for c in out.columns if c not in ("permno", "month")])

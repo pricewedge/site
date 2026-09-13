@@ -36,7 +36,12 @@ ATO & profitability & 0.974 & -0.86 & 0.16 & \ok\\
 RNA & profitability & 0.978 & 0.60 & -0.30 & \ok\\
 dSOUT & investment & 0.992 & -0.53 & -0.68 & \ok\\
 dPIA & investment & 0.943 & 0.23 & -0.87 & \ok\\
-aSIZE & trading frictions & 0.856 & -14.69 & 0.21 & \ok\\
+TNOVR & trading frictions & 0.993 & 0.09 & -0.10 & \ok\\
+SUV & trading frictions & 0.982 & -0.47 & -0.11 & \ok\\
+DTO & trading frictions & 0.985 & -0.69 & -0.59 & \ok\\
+aBEME & value & 0.896 & -0.20 & -0.85 & \ok\\
+aSAT & profitability & 0.896 & -0.05 & 1.09 & \ok\\
+aSIZE & trading frictions & 0.987 & -1.40 & -0.22 & \ok\\
 A2ME & value & 0.972 & 3.57 & -0.13 & \ok\\
 AT & trading frictions & 0.988 & -0.02 & 0.11 & \ok\\
 BEME & value & 0.977 & 1.24 & -0.70 & \ok\\
@@ -56,7 +61,7 @@ IVC & investment & 0.970 & -0.98 & 0.26 & \ok\\
 SIZE & trading frictions & 0.997 & 0.09 & -0.21 & \ok\\
 NOA & investment & 0.967 & -1.12 & -0.26 & \ok\\
 OL & intangibles & 0.959 & 1.35 & -0.16 & \ok\\
-BETA\_d & trading frictions & 0.952 & 0.05 & -0.17 & \ok\\
+BETA\_d & trading frictions & 0.990 & -0.01 & -0.11 & \ok\\
 PCM & profitability & 0.977 & -0.44 & -1.57 & \ok\\
 PM & profitability & 0.973 & -0.61 & -1.53 & \ok\\
 PROF & profitability & 0.978 & -0.53 & -0.29 & \ok\\
@@ -75,17 +80,12 @@ S2C & value & 0.968 & 0.15 & -0.92 & \ok\\
 S2P & value & 0.979 & 5.01 & -0.62 & \ok\\
 SG & value & 0.963 & 0.12 & -0.82 & \ok\\
 SAT & profitability & 0.971 & 1.65 & -0.20 & \ok\\
-SPREAD & trading frictions & 0.964 & -1.48 & 2.38 & \ok\\
+SPREAD & trading frictions & 0.985 & -0.31 & -0.07 & \ok\\
 sdTURN & trading frictions & 0.991 & 0.03 & -0.06 & \ok\\
-sdDVOL & trading frictions & 0.896 & -5.28 & -0.08 & \ok\\
+sdDVOL & trading frictions & 0.989 & -0.42 & -0.11 & \ok\\
 TAN & intangibles & 0.978 & -1.35 & -1.38 & \ok\\
 RETVOL & trading frictions & 0.988 & -0.14 & -0.32 & \ok\\
-TNOVR & trading frictions & 0.790 & 0.25 & 1.68 & \bad\\
-SUV & trading frictions & 0.073 & 3.76 & -3.27 & \bad\\
-DTO & trading frictions & 0.363 & 1.37 & -1.79 & \bad\\
-aBEME & value & 0.510 & -0.81 & -7.58 & \bad\\
-aSAT & profitability & 0.447 & -3.51 & 3.04 & \bad\\
-aPM & profitability & 0.284 & 1.62 & 1.08 & \bad\\
+aPM & profitability & 0.778 & -1.40 & -0.71 & \bad\\
 \bottomrule
 \end{longtable}
 
@@ -103,22 +103,36 @@ Graded deliberately. Only category A claims something is wrong. B and C are docu
 \item[Why it matters:] OA and AOA are not operating accruals. Depreciation is large and persistent for capital-intensive firms, so those firms are sorted toward the high-accrual leg by their depreciation rather than away from it. The sign of the depreciation term is the whole content of Sloan's measure.
 \item[Note:] Chen and Zimmermann's PctAcc.do carries the identical bracket placement while their Accruals.do does not, which suggests both inherited the same transcription rather than arriving at it independently.
 \end{description}
+\paragraph{SUV}\leavevmode\\[-6pt]
+\begin{description}
+\item[Documented:] Appendix Table A.1, citing Garfinkel (2009): "Difference between actual volume and predicted volume. Predicted volume is from a regression of previous month's daily volume on a constant and the absolute values of positive and negative previous month's returns. Unexplained volume is standardized by the standard deviation of the residuals from the regression."
+\item[Implemented:] The regression is estimated on the current month's trading days, and the signal is the last trading day's standardised residual from it -- one day's volume surprise, not the month's.
+\item[Evidence:] Against the paper's own firm-month panel (t\_by\_n/SUV.mat, shared by Andrea Tamoni in September 2026) the last day's within-month residual matches at Spearman 0.9999 with a ratio of 1.0000; agreement with the published decile weights 0.982. The documented reading, and every month-level variant of it, agrees with the panel at between -0.001 and -0.04, and with the published weights at 0.07.
+\item[Why it matters:] The decile a firm is sorted into is decided by its volume on one trading day relative to that month's own fit. This is the signature of a daily series collapsed to monthly by taking the last observation rather than the month's value, and the same signature appears in DTO. As published, SUV is not Garfinkel's standardised unexplained volume.
+\end{description}
+\paragraph{DTO}\leavevmode\\[-6pt]
+\begin{description}
+\item[Documented:] Appendix Table A.1, citing Garfinkel (2009): "Daily volume (vol) to shares outstanding (shrout) minus the daily market turnover and detrended by the 180 trading day median", with Nasdaq volume scaled down by 50\% before 1997 and 38\% after.
+\item[Implemented:] The last trading day's turnover less the mean of its own previous 180 trading days. No market turnover is subtracted, Nasdaq volume is not scaled, and the detrending uses a mean, not a median.
+\item[Evidence:] Spearman 0.998 against the paper's panel (Pearson 0.997); agreement with the published decile weights 0.985. The 180-day median instead of the mean gives 0.888 against the panel; subtracting the market's turnover or scaling Nasdaq volume lowers it further (the documented form, sampled on the last day, 0.56-0.64; averaged over the month, 0.18-0.31).
+\item[Why it matters:] Without the market adjustment the signal is a firm's own one-day turnover shock rather than abnormal turnover in Garfinkel's sense, and as with SUV a single day stands in for the month.
+\end{description}
 \subsection*{B. The appendix cannot be built from}
 \emph{The implementation is defensible, often the only thing possible, but somebody working from Table A.1 alone would get a materially different series. Agreement scores below are what the literal reading achieves against what the data does.}
 
 \paragraph{SPREAD}\leavevmode\\[-6pt]
 \begin{description}
 \item[Documented:] "Average daily bid-ask spread in the previous month", citing Chung and Zhang (2014), whose estimator is the quoted spread.
-\item[Implemented:] The daily high-low range, 2(high-low)/(high+low), averaged over the month.
-\item[Evidence:] literal reading 0.02, implemented 0.94
+\item[Implemented:] Each trading day contributes its high-low range, 2(high-low)/(high+low), if it has one and its quoted spread otherwise; the month is the mean over those days, with no minimum number of days.
+\item[Evidence:] literal reading 0.02, range alone 0.94. Built day by day, every firm-month in 1975, 1985, 1995 and 2005 agrees with the paper's panel within 1\% and none the panel has is missing.
 \item[Why it matters:] Not a defect in the data -- CRSP carries quotes for 9\% of daily rows in the 1960s and 53\% in the 1980s, so a quoted spread cannot be computed over this sample at all -- but the citation points at an estimator the sample cannot support, and the substitution is unstated.
 \end{description}
 \paragraph{sdDVOL}\leavevmode\\[-6pt]
 \begin{description}
 \item[Documented:] "Standard deviation of residuals from a regression of daily volume (vol) on a constant", i.e. the dispersion of daily share volume in levels.
-\item[Implemented:] The standard deviation of log(1 + daily *dollar* volume).
-\item[Evidence:] share volume in levels 0.06, log share volume 0.63, log dollar volume 0.87
-\item[Why it matters:] Two undocumented choices at once, the units and the logarithm, and in levels the measure captures firm size rather than variability.
+\item[Implemented:] The standard deviation of the log of daily *dollar* volume over the days that have volume; zero-volume days are left out.
+\item[Evidence:] share volume in levels 0.06, log share volume 0.63, log dollar volume 0.87. Against the paper's panel, including zero-volume days as ln(1 + 0) disagrees by a factor of 1.6 to 5 for every firm-month that has one (27\% of them); leaving them out matches.
+\item[Why it matters:] Three undocumented choices at once: the units, the logarithm, and the exclusion of zero-volume days. In levels the measure captures firm size rather than variability.
 \end{description}
 \paragraph{dSOUT}\leavevmode\\[-6pt]
 \begin{description}
@@ -137,8 +151,8 @@ Graded deliberately. Only category A claims something is wrong. B and C are docu
 \paragraph{BETA\_d}\leavevmode\\[-6pt]
 \begin{description}
 \item[Documented:] "The sum of the regression coefficients of daily excess returns on market excess returns and the lag of market excess returns." No estimation window is given.
-\item[Implemented:] Estimated over twelve months of daily data.
-\item[Evidence:] one month 0.35, six 0.62, twelve 0.94, twenty-four 0.63
+\item[Implemented:] Estimated over the firm's last 249 trading days, the market's lag taken on the firm's own rows.
+\item[Evidence:] one month 0.35, six 0.62, twelve 0.94, twenty-four 0.63 on the published weights. Against the paper's panel, 249 of the firm's days puts 84\% of firm-months within 1\% with a rank correlation of 0.9996; 250 days 47\%, calendar twelve months 24\%.
 \item[Why it matters:] The window is the difference between a usable signal and noise, and it is not stated. Separately, FNW's own entry under this name describes the Frazzini-Pedersen beta -- a correlation times a volatility ratio -- which is a different estimator from the Dimson sum A.1 describes.
 \end{description}
 \paragraph{DP}\leavevmode\\[-6pt]
@@ -154,6 +168,20 @@ Graded deliberately. Only category A claims something is wrong. B and C are docu
 \item[Implemented:] Every component required non-missing.
 \item[Evidence:] zero-filling 0.48, requiring all 0.96
 \item[Why it matters:] Zero-filling reads as "this firm holds no tangible assets" and sends firms with incomplete filings to the bottom decile.
+\end{description}
+\paragraph{TNOVR}\leavevmode\\[-6pt]
+\begin{description}
+\item[Documented:] "Volume (vol) over shares outstanding (shrout)."
+\item[Implemented:] The previous month's volume over the current month's shares outstanding.
+\item[Evidence:] as documented 0.71, with the one-month lag 0.978; Spearman 1.0000 against the paper's panel
+\item[Why it matters:] A one-month misalignment of numerator and denominator. Harmless for most firms, but a split or an issuance between the two months changes the share count without the volume, so the signal halves or jumps for exactly the firms whose turnover is in question.
+\end{description}
+\paragraph{aBEME, aPM, aSAT, aSIZE}\leavevmode\\[-6pt]
+\begin{description}
+\item[Documented:] "Industry level is defined as the Fama-French 48 industries."
+\item[Implemented:] Twenty-seven industry groups that are not Fama-French 48, recovered from the panels themselves: within a month the value less its adjusted value is one constant per industry, and grouping SIC codes by that constant month after month gives 27 groups that never contradict one another. The SIC code is CRSP's name-history code (msenames), which reproduces the panel's own siccd for 99.5\% of firm-months.
+\item[Evidence:] Fama-French 48 with the same inputs agrees with the published decile weights at 0.51 (aBEME), 0.45 (aSAT), 0.87 (aSIZE); the recovered scheme at 0.92, 0.91, 0.99. One recovered group holds 410 SIC codes spanning five FF48 industries (food, agriculture, textiles, clothing, construction); another 281 codes across building materials, machinery, steel, paper and household goods.
+\item[Why it matters:] Coarser than FF48 across manufacturing and matching no published classification we tried (FF 5, 10, 12, 17, 30, 38, 48, 49; one- to three-digit SIC). It could be recovered only because the panels expose the cell means; from the appendix alone these four signals cannot be rebuilt.
 \end{description}
 \subsection*{C. The appendix drops a qualifier its own source insists on}
 \emph{Table A.1 is a condensation of Freyberger, Neuhierl and Weber. In a few places the condensation loses something that changes the answer.}
@@ -304,8 +332,7 @@ DP[t] = sum of those dollars over months t-11..t, divided by cap[t],\\
 requiring at least six of the twelve months.\\
 
 \end{quote}
-\textbf{Notes.} Dividends in dollars over market capitalisation, not dividends per share over price. Per share the share count drifts through the year and agreement falls to 0.841. JKP's div12m\_me, which is this same quantity, scores 0.928 against the package, and building it natively gives 0.924.
-
+\textbf{Notes.} Dividends in dollars over market capitalisation, not dividends per share over price. Per share the share count drifts through the year and agreement falls to 0.841. JKP's div12m\_me, which is this same quantity, scores 0.928 against the package, and building it natively gives 0.924. Against the paper's own panel (t\_by\_n/DP.mat) the two agree exactly where both are zero (53\% of firm-months) but differ by more than 1\% for three quarters of the non-zero ones, with the ratio spread from 0.87 to 1.10 rather than at any fixed factor, and the paper carries a value for 26\% fewer firm-months than we do. No formula variant tried (below) narrows that, so the difference is in the dividend series itself, most plausibly dividends taken from CRSP's distribution events rather than from ret - retx. Verified at the sort level; the short leg is the widest gap among verified characteristics (4 points).
 
 \textbf{Rejected alternatives.}
 \begin{longtable}{p{10.5cm}rp{3.2cm}}
@@ -316,6 +343,9 @@ sum of twelve monthly dividend yields, no price & 0.743 & rejected\\
 cash distributions from crsp.stkdistributions over price & 0.348 & rejected despite being the more principled source\\
 dollar dividends over lagged rather than current market cap & 0.869 & rejected\\
 JKP div\_me (one month), div6m\_me, div\_at & 0.652 & rejected\\
+dollar dividends over the previous month's market capitalisation & -- & within 1\% of the panel for 9\% of non-zero firm-months against 25\% for the current form\\
+requiring all twelve months, or any one, instead of six & -- & 25\% within 1\% either way; no change\\
+per-share dividends over the month-end price & -- & 28\% within 1\%, rank correlation 0.973 against 0.976; not better\\
 \bottomrule\end{longtable}
 \subsection*{ATO --- Asset turnover}
 \textbf{Group} profitability \quad \textbf{Source} Soliman (2008) \quad \textbf{Frequency} annual \quad \textbf{Agreement} 0.974\\[2pt]
@@ -403,22 +433,172 @@ scaled by average rather than lagged assets & 0.771 & rejected\\
 net rather than gross plant (ppent) & 0.493 & rejected\\
 scaled by lagged (ppegt + invt) & 0.420 & rejected\\
 \bottomrule\end{longtable}
-\subsection*{aSIZE --- Industry-adjusted size}
-\textbf{Group} trading frictions \quad \textbf{Source} Asness, Porter and Stevens (2000) \quad \textbf{Frequency} monthly \quad \textbf{Agreement} 0.856\\[2pt]
-\textbf{Inputs.} \texttt{cap, siccd}
+\subsection*{TNOVR --- Share turnover}
+\textbf{Group} trading frictions \quad \textbf{Source} Datar, Naik and Radcliffe (1998) \quad \textbf{Frequency} monthly \quad \textbf{Agreement} 0.993\\[2pt]
+\textbf{Inputs.} \texttt{vol, shrout}
 
 \textbf{Formula.}
 \begin{quote}
-aSIZE = SIZE - mean(SIZE) within the Fama-French 48 industry that month,\\
-equal-weighted over ordinary common shares.\\
+TNOVR[t] = vol[t-1] / shrout[t]\\
+the previous month's share volume over this month's shares outstanding, both from\\
+the CRSP monthly file.\\
 
 \end{quote}
-\textbf{Notes.} Just above the threshold at 0.85, but its wedge is still 13 points from the paper's on the long leg -- the widest gap of any characteristic that passes the construction check. Treat as unresolved in practice.
-
+\textbf{Notes.} RESOLVED against the paper's panel: Spearman 1.0000; agreement with the published decile weights 0.978 (a three-month average gave 0.79). The one-month lag of volume against the share count is what the data does; Table A.1 ("volume over shares outstanding") does not mention it and no reason for it suggests itself. Recorded under discrepancies, category B.
 
 \textbf{Rejected alternatives.}
 \begin{longtable}{p{10.5cm}rp{3.2cm}}
 \toprule Variant & Agreement & Verdict\\\midrule\endhead
+vol[t]/shrout[t], as documented & 0.707 & rejected\\
+three-month average of vol/shrout & 0.790 & rejected; was the best available before the panel\\
+twelve-month average & 0.699 & rejected\\
+mean daily turnover within the month & 0.706 & rejected\\
+Nasdaq volume scaled down 50\% pre-1997 and 38\% after & 0.679 & rejected\\
+dollar volume over market cap & 0.708 & rejected\\
+JKP turnover\_126d & 0.713 & rejected\\
+\bottomrule\end{longtable}
+\subsection*{SUV --- Standardised unexplained volume}
+\textbf{Group} trading frictions \quad \textbf{Source} Garfinkel (2009), per Appendix Table A.1 \quad \textbf{Frequency} monthly, sampled on the last trading day (daily inputs) \quad \textbf{Agreement} 0.982\\[2pt]
+\textbf{Inputs.} \texttt{dlyvol, dlyret}
+
+\textbf{Formula.}
+\begin{quote}
+On the trading days d of month t, the last day L included, fit by least squares\\
+    v\_d = a + b * max(r\_d, 0) + c * max(-r\_d, 0) + e\_d\\
+with v\_d the day's share volume and r\_d its return. Then\\
+    SUV[t] = e\_L / sqrt( sum\_d e\_d\textasciicircum{}2 / (n - 1) ),\\
+n the number of trading days in the month, at least 5.\\
+
+\end{quote}
+\textbf{Notes.} RESOLVED against the paper's own panel (t\_by\_n/SUV.mat): Spearman 0.9999, Pearson 0.9998, and the ratio of the panel's values to ours is 1.0000 at every quantile (n - 3 in the denominator gives 1.054, n gives 0.976; what remains is float32 rounding in our daily file). Agreement with the published decile weights 0.982; decile one 8.94\% against a published 8.94\%. This is not Garfinkel's measure and not what Table A.1 describes: there the regression is estimated on the previous month and the surprise is the current month's volume; in the data the regression is estimated on the current month and the surprise is the last trading day's. Recorded under discrepancies, category A.
+
+\textbf{Rejected alternatives.}
+\begin{longtable}{p{10.5cm}rp{3.2cm}}
+\toprule Variant & Agreement & Verdict\\\midrule\endhead
+regression in volume levels rather than logs & 0.080 & rejected\\
+estimation window of 1, 6, 12 and 24 months applied out of sample & 0.092 & rejected at every length\\
+previous month taken on a dense grid so the lag cannot cross a gap & 0.072 & rejected\\
+in-sample residual dispersion rather than an out-of-sample residual & 0.002 & rejected\\
+standardised by sqrt(n) rather than n & 0.073 & rejected\\
+documented reading at the daily level: month's mean (or sum over sqrt n) of daily standardised residuals from a trailing 63, 126 or 252-day fit, in volume, turnover or logs & -- & Spearman against the panel between -0.001 and -0.04; rejected\\
+last day's residual from a trailing window of 21, 42, 63, 90 days including the day & -- & Spearman 0.990, 0.868, 0.809, 0.768: shorter is better, which pointed at the calendar month\\
+trailing 63, 126, 252 days ending the day before & -- & Spearman 0.803, 0.731, 0.674; rejected\\
+plain z-score of the last day's volume against a trailing window, no regression & -- & Spearman 0.75; rejected\\
+log(1 + volume) or turnover as the dependent variable, within the month & -- & Spearman 0.902 and 0.998 against 1.000 for share volume\\
+\bottomrule\end{longtable}
+\subsection*{DTO --- Detrended turnover}
+\textbf{Group} trading frictions \quad \textbf{Source} Garfinkel (2009), per Appendix Table A.1 \quad \textbf{Frequency} monthly, sampled on the last trading day (daily inputs) \quad \textbf{Agreement} 0.985\\[2pt]
+\textbf{Inputs.} \texttt{dlyvol, shrout (daily)}
+
+\textbf{Formula.}
+\begin{quote}
+turn\_d = dlyvol\_d / shrout\_d                          (daily share turnover)\\
+DTO[t] = turn\_L - mean( turn\_d : d in the 180 trading days before L )\\
+L is the last trading day of month t; the mean needs at least 90 of the 180 days.\\
+No market turnover is subtracted, no Nasdaq volume scaling, no median, and no\\
+averaging over the month: the value on one day is the month's signal.\\
+
+\end{quote}
+\textbf{Notes.} RESOLVED against the paper's own panel (t\_by\_n/DTO.mat, shared by Andrea Tamoni in September 2026): Spearman 0.998, Pearson 0.997 (the panel's values are ours times 500, a units convention that leaves every rank unchanged); agreement with the published decile weights 0.985, decile one 6.42\% of market capitalisation against a published 6.50\%. This is not what Table A.1 describes -- "daily volume to shares outstanding minus the daily market turnover and detrended by the 180 trading day median", with Nasdaq volume scaled down -- and each documented element lowers the agreement (below). Recorded under discrepancies, category A.
+
+\textbf{Rejected alternatives.}
+\begin{longtable}{p{10.5cm}rp{3.2cm}}
+\toprule Variant & Agreement & Verdict\\\midrule\endhead
+documented form, the 180-day median approximated by a rolling median of monthly means & 0.367 & rejected; rank correlation with the panel 0.28\\
+last day, turnover less its 180-day median (120 and 252 days similar) & -- & Spearman 0.888 against the panel; the mean gives 0.998\\
+last day, (turnover - median)/median, and log turnover less log median & -- & Spearman 0.78 and 0.80; rejected\\
+subtracting the day's market turnover, and scaling Nasdaq volume by 0.50/0.38 (last day, median-detrended) & -- & Spearman against the panel: neither 0.888; Nasdaq scaling alone 0.877; value-weighted market turnover subtracted 0.739, equal-weighted 0.666; both with Nasdaq scaling 0.643 and 0.564. Neither is in the data.\\
+the month's mean of the daily series instead of its last day & -- & rejected; the panel is the last day's value\\
+\bottomrule\end{longtable}
+\subsection*{aBEME --- Industry-adjusted book to market}
+\textbf{Group} value \quad \textbf{Source} Asness, Porter and Stevens (2000) \quad \textbf{Frequency} monthly \quad \textbf{Agreement} 0.896\\[2pt]
+\textbf{Inputs.} \texttt{beme, siccd (crsp.msenames name history)}
+
+\textbf{Formula.}
+\begin{quote}
+aBEME[t] = BEME[t] - mean( BEME[t] over ordinary common shares in the same industry that month )\\
+Equal-weighted over the firms that have BEME. The industry is the paper's own scheme: 27\\
+groups of SIC codes recovered from its panels (raw/their\_industry\_table.json), the SIC\\
+code being the CRSP name-history code (crsp.msenames) in force that month. A code the\\
+table does not cover leaves aBEME missing (1.8\% of firm-months).\\
+Recovery: within a month, X - aX is one constant across the firms of an industry;\\
+grouping SIC codes by that constant, month after month, gives 27 groups and no\\
+code-month pair that sits in two of them.\\
+
+\end{quote}
+\textbf{Notes.} RESOLVED at 0.917 against the published decile weights once the industry scheme was recovered from the paper's panels (Fama-French 48 with the same inputs: see below). Table A.1 says the industries are Fama-French 48; the data's cells are 27 groups that align with FF48 only in part -- one group holds 410 SIC codes spanning food, agriculture, textiles, clothing and construction, another 281 codes across building materials, machinery, steel, paper and household goods. The SIC source matters as well: the name-history code reproduces the panel's own siccd for 99.5\% of firm-months. Recorded under discrepancies, category B.
+
+\textbf{Rejected alternatives.}
+\begin{longtable}{p{10.5cm}rp{3.2cm}}
+\toprule Variant & Agreement & Verdict\\\midrule\endhead
+Fama-French 48 with the same name-history SIC & -- & rejected: 0.51 (aBEME), 0.45 (aSAT), 0.87 (aSIZE), 0.28 (aPM)\\
+Fama-French 5, 10, 12, 17, 30, 38, 48 and 49 industries & 0.521 & ff30 marginally best, none close\\
+one-digit, two-digit and three-digit SIC & 0.477 & rejected\\
+Compustat historical SIC (sich), with and without CRSP fallback & 0.506 & rejected\\
+Compustat header SIC from comp.company & 0.468 & rejected\\
+a firm's modal SIC over its life & 0.509 & rejected\\
+industry median instead of mean & 0.511 & rejected\\
+capitalisation-weighted industry mean & 0.227 & rejected\\
+industry mean over all of CRSP rather than common shares only & 0.099 & rejected\\
+industry mean over NYSE firms only & 0.384 & rejected\\
+industry mean over the larger half of each industry & 0.401 & rejected\\
+ratio to the industry mean, and log of that ratio & 0.440 & rejected\\
+standardised within industry (divided by the industry sd) & 0.348 & rejected\\
+percentile rank within industry & 0.421 & rejected\\
+cross-sectional rank less the industry mean rank & 0.391 & rejected\\
+leave-one-out industry mean & 0.512 & rejected\\
+aggregate industry ratio (sum of book over sum of market) & 0.226 & rejected\\
+partial adjustment, subtracting 0.25, 0.5 or 0.75 of the industry mean & 0.458 & rejected\\
+previous year's industry mean & 0.343 & rejected\\
+\bottomrule\end{longtable}
+\subsection*{aSAT --- Industry-adjusted asset turnover}
+\textbf{Group} profitability \quad \textbf{Source} Soliman (2008) \quad \textbf{Frequency} annual \quad \textbf{Agreement} 0.896\\[2pt]
+\textbf{Inputs.} \texttt{sat, siccd (crsp.msenames name history)}
+
+\textbf{Formula.}
+\begin{quote}
+aSAT[t] = SAT[t] - mean( SAT[t] over ordinary common shares in the same industry that month )\\
+Equal-weighted over the firms that have SAT. The industry is the paper's own scheme: 27\\
+groups of SIC codes recovered from its panels (raw/their\_industry\_table.json), the SIC\\
+code being the CRSP name-history code (crsp.msenames) in force that month. A code the\\
+table does not cover leaves aSAT missing (1.8\% of firm-months).\\
+Recovery: within a month, X - aX is one constant across the firms of an industry;\\
+grouping SIC codes by that constant, month after month, gives 27 groups and no\\
+code-month pair that sits in two of them.\\
+
+\end{quote}
+\textbf{Notes.} RESOLVED at 0.906 against the published decile weights once the industry scheme was recovered from the paper's panels (Fama-French 48 with the same inputs: see below). Table A.1 says the industries are Fama-French 48; the data's cells are 27 groups that align with FF48 only in part -- one group holds 410 SIC codes spanning food, agriculture, textiles, clothing and construction, another 281 codes across building materials, machinery, steel, paper and household goods. The SIC source matters as well: the name-history code reproduces the panel's own siccd for 99.5\% of firm-months. Recorded under discrepancies, category B.
+
+\textbf{Rejected alternatives.}
+\begin{longtable}{p{10.5cm}rp{3.2cm}}
+\toprule Variant & Agreement & Verdict\\\midrule\endhead
+Fama-French 48 with the same name-history SIC & -- & rejected: 0.51 (aBEME), 0.45 (aSAT), 0.87 (aSIZE), 0.28 (aPM)\\
+the full classification and operation search listed under aBEME & 0.448 & ff48 demeaning best, none close\\
+aggregate industry ratio (sum of sales over sum of assets) & 0.264 & rejected\\
+partial adjustment at 0.25, 0.5, 0.75 & 0.261 & rejected\\
+\bottomrule\end{longtable}
+\subsection*{aSIZE --- Industry-adjusted size}
+\textbf{Group} trading frictions \quad \textbf{Source} Asness, Porter and Stevens (2000) \quad \textbf{Frequency} monthly \quad \textbf{Agreement} 0.987\\[2pt]
+\textbf{Inputs.} \texttt{cap, siccd (crsp.msenames name history)}
+
+\textbf{Formula.}
+\begin{quote}
+aSIZE[t] = SIZE[t] - mean( SIZE[t] over ordinary common shares in the same industry that month )\\
+Equal-weighted over the firms that have SIZE. The industry is the paper's own scheme: 27\\
+groups of SIC codes recovered from its panels (raw/their\_industry\_table.json), the SIC\\
+code being the CRSP name-history code (crsp.msenames) in force that month. A code the\\
+table does not cover leaves aSIZE missing (1.8\% of firm-months).\\
+Recovery: within a month, X - aX is one constant across the firms of an industry;\\
+grouping SIC codes by that constant, month after month, gives 27 groups and no\\
+code-month pair that sits in two of them.\\
+
+\end{quote}
+\textbf{Notes.} RESOLVED at 0.992 against the published decile weights once the industry scheme was recovered from the paper's panels (Fama-French 48 with the same inputs: see below). Table A.1 says the industries are Fama-French 48; the data's cells are 27 groups that align with FF48 only in part -- one group holds 410 SIC codes spanning food, agriculture, textiles, clothing and construction, another 281 codes across building materials, machinery, steel, paper and household goods. The SIC source matters as well: the name-history code reproduces the panel's own siccd for 99.5\% of firm-months. Recorded under discrepancies, category B.
+
+\textbf{Rejected alternatives.}
+\begin{longtable}{p{10.5cm}rp{3.2cm}}
+\toprule Variant & Agreement & Verdict\\\midrule\endhead
+Fama-French 48 with the same name-history SIC & -- & rejected: 0.51 (aBEME), 0.45 (aSAT), 0.87 (aSIZE), 0.28 (aPM)\\
 Fama-French 10 and 30 industries & 0.866 & marginally better than 48, within noise\\
 industry median instead of mean & 0.877 & marginally better, not adopted\\
 log size demeaned within industry & 0.754 & rejected\\
@@ -570,16 +750,17 @@ ib / (shrout/1000), i.e. earnings per share on CRSP's share count.\\
 \begin{quote}
 Standard deviation of the residuals from a regression of daily excess returns\\
 on the three Fama-French factors, within the month, at least 15 days.\\
+The residual standard deviation divides the residual sum of squares by n - 1, not by\\
+n - 4.\\
 
 \end{quote}
-\textbf{Notes.} Emphatically monthly, unlike BETA\_d: 0.93 at one month against 0.58 at twelve.
-JKP corroborate, carrying ivol\_ff3\_21d at a 21-day window, and our series
-correlates 0.997 with theirs.
+\textbf{Notes.} Emphatically monthly, unlike BETA\_d: 0.93 at one month against 0.58 at twelve. JKP corroborate, carrying ivol\_ff3\_21d at a 21-day window, and our series correlates 0.997 with theirs. Against the paper's panel the version dividing by n - 4 ran 8.45\% high at the median month; (ours/theirs)\textasciicircum{}2 by number of trading days is (n - 1)/(n - 4) to four decimals at every n from 15 to 23, so the panel is the sample standard deviation of the residuals. Ranks move very little (rank correlation was already 0.9997). Over the full panel: within 1\% for 75.8\% of firm-months, rank correlation 0.9998, median ratio 1.0000; the remainder is the factor vintage on small values.
 
 \textbf{Rejected alternatives.}
 \begin{longtable}{p{10.5cm}rp{3.2cm}}
 \toprule Variant & Agreement & Verdict\\\midrule\endhead
 estimated over twelve months & 0.582 & rejected\\
+residual variance with n - 4 degrees of freedom & 0.955 & a convention, not an error; the panel divides by n - 1\\
 \bottomrule\end{longtable}
 \subsection*{I2A --- Annual \% change in total assets (at)}
 \textbf{Group} investment \quad \textbf{Source} -- \quad \textbf{Frequency} annual \quad \textbf{Agreement} 0.971\\[2pt]
@@ -599,6 +780,8 @@ Percent change in at.\\
 pi / sale.\\
 
 \end{quote}
+\textbf{Notes.} A zero sales denominator gives a missing value, not an infinity: the paper's panel has no infinities, and an infinity inside an industry mean would wipe out the whole industry-month for aPM.
+
 \subsection*{IVC --- Annual change in inventories (invt) in the last two fiscal years over}
 \textbf{Group} investment \quad \textbf{Source} thomas2002 \quad \textbf{Frequency} annual \quad \textbf{Agreement} 0.970\\[2pt]
 \textbf{Inputs.} \texttt{at, invt}
@@ -648,17 +831,20 @@ ceq zero-filled & 0.917 & no effect\\
 
 \end{quote}
 \subsection*{BETA\_d --- The sum of the regression coefficients of daily excess returns on mark}
-\textbf{Group} trading frictions \quad \textbf{Source} lewellen2006 \quad \textbf{Frequency} monthly \quad \textbf{Agreement} 0.952\\[2pt]
+\textbf{Group} trading frictions \quad \textbf{Source} lewellen2006 \quad \textbf{Frequency} monthly, sampled on the last trading day (daily inputs) \quad \textbf{Agreement} 0.990\\[2pt]
+\textbf{Inputs.} \texttt{dlyret, ff.factors\_daily mktrf and rf}
+
 \textbf{Formula.}
 \begin{quote}
-Sum of the coefficients on the market and its lag, from a regression of daily\\
-excess returns on both, estimated over TWELVE months of daily data.\\
+Over the firm's last 249 trading days ending on the month's last trading day, fit\\
+    r\_d - rf\_d = a + b0 * mktrf\_d + b1 * mktrf\_\{d-1\} + e\_d\\
+where mktrf\_\{d-1\} is the market's value on the firm's previous trading day, and\\
+    BETA\_d[t] = b0 + b1.\\
+At least 10 of the firm's days in the window; a firm with a shorter history uses\\
+what it has.\\
 
 \end{quote}
-\textbf{Notes.} Twelve months, not one. A one-month Dimson beta is too noisy to sort on:
-0.35 at one month, 0.62 at six, 0.94 at twelve, 0.63 at twenty-four. The
-moments are additive, so a twelve-month cross-product matrix is the sum of
-twelve monthly ones.
+\textbf{Notes.} RESOLVED against the paper's own panel (t\_by\_n/BETA\_d.mat): 84\% of firm-months within 1\%, rank correlation 0.9996, median ratio 1.0000. The window is 249 of the firm's own trading rows, which is what a 250-day window gives once the lag consumes its first day; 248 or 250 rows halve the agreement (0.49 and 0.47), calendar twelve months gives 0.24, and a window counted on the market's calendar rather than the firm's rows 0.76. The firm-months outside 1\% have betas below 0.2 in absolute value, where a relative criterion is harsh, and thin out from 45\% in the first year of the daily sample to 5-18\% after; the ranking is exact. Table A.1 states no window at all. Over the full panel: within 1\% for 89.7\% of firm-months, rank correlation 0.9994, median ratio 1.0002.
 
 \textbf{Rejected alternatives.}
 \begin{longtable}{p{10.5cm}rp{3.2cm}}
@@ -666,6 +852,12 @@ twelve monthly ones.
 estimated over one month & 0.353 & rejected\\
 six months & 0.617 & rejected\\
 twenty-four and sixty months & 0.631 & rejected\\
+calendar twelve months of daily data (the previous form) & 0.952 & superseded: 24\% of firm-months within 1\% of the panel\\
+250, 251, 252, 248, 245 or 240 of the firm's trading days & -- & 47\%, 35\%, 28\%, 49\%, 26\%, 13\% within 1\%; 249 gives 84\%\\
+250 days on the market calendar, thin traders having fewer observations & -- & 76\% at 249 days, 43\% at 250; the window counts the firm's own days\\
+CRSP value-weighted or equal-weighted index instead of the Fama-French market factor & -- & 10\% and 2\% within 1\%, ratio 1.03 and 1.17; rejected\\
+window ending the day before the month's last trading day & -- & 28\%; the window ends on the last day\\
+plain market beta without the lag term & -- & 2\% within 1\%, ratio 0.80; the panel is the Dimson sum\\
 \bottomrule\end{longtable}
 \subsection*{PCM --- Net sales (sale) minus cost of goods sold (cogs) all scaled by net sal}
 \textbf{Group} profitability \quad \textbf{Source} gorodnichenko2016 \quad \textbf{Frequency} annual \quad \textbf{Agreement} 0.977\\[2pt]
@@ -676,6 +868,8 @@ twenty-four and sixty months & 0.631 & rejected\\
 (sale - cogs) / sale.\\
 
 \end{quote}
+\textbf{Notes.} A zero sales denominator gives a missing value, not an infinity: the paper's panel has no infinities, and an infinity inside an industry mean would wipe out the whole industry-month for aPM.
+
 \subsection*{PM --- Operating Income after depreciation (oiadp) to sales (sale)}
 \textbf{Group} profitability \quad \textbf{Source} soliman2008 \quad \textbf{Frequency} annual \quad \textbf{Agreement} 0.973\\[2pt]
 \textbf{Inputs.} \texttt{oiadp, sale}
@@ -685,6 +879,8 @@ twenty-four and sixty months & 0.631 & rejected\\
 oiadp / sale.\\
 
 \end{quote}
+\textbf{Notes.} A zero sales denominator gives a missing value, not an infinity: the paper's panel has no infinities, and an infinity inside an industry mean would wipe out the whole industry-month for aPM.
+
 \textbf{Rejected alternatives.}
 \begin{longtable}{p{10.5cm}rp{3.2cm}}
 \toprule Variant & Agreement & Verdict\\\midrule\endhead
@@ -885,22 +1081,27 @@ sale over average assets & 0.786 & rejected\\
 sale over lagged assets & 0.736 & rejected\\
 \bottomrule\end{longtable}
 \subsection*{SPREAD --- Average daily bid-ask spread in the previous month}
-\textbf{Group} trading frictions \quad \textbf{Source} chung2014 \quad \textbf{Frequency} monthly \quad \textbf{Agreement} 0.964\\[2pt]
+\textbf{Group} trading frictions \quad \textbf{Source} Chung and Zhang (2014), per Appendix Table A.1 \quad \textbf{Frequency} monthly \quad \textbf{Agreement} 0.985\\[2pt]
+\textbf{Inputs.} \texttt{dlyhigh, dlylow, dlybid, dlyask}
+
 \textbf{Formula.}
 \begin{quote}
-Mean over the month of the daily high-low range, 2*(high-low)/(high+low),\\
-requiring at least 15 days.\\
+Mean over the month's trading days of a daily spread, where each day contributes\\
+    2 (high - low) / (high + low)       if the day has a high and a low,\\
+    2 (ask - bid) / (ask + bid)         otherwise, if it has quotes,\\
+and days with neither are left out. No minimum number of days.\\
 
 \end{quote}
-\textbf{Notes.} NOT the quoted bid-ask spread, although FNW cite Chung and Zhang (2014). CRSP
-carries quotes for 9\% of daily rows in the 1960s and 53\% in the 1980s, so a
-quoted spread cannot be computed over this sample: 0.02 against 0.94.
+\textbf{Notes.} RESOLVED against the paper's own panel (t\_by\_n/SPREAD.mat): built day by day this way, every firm-month in 1975, 1985, 1995 and 2005 agrees with the panel within 1\%, and no firm-month the panel has is missing. FNW cite Chung and Zhang (2014), whose estimator is the quoted spread; CRSP carries quotes for 9\% of daily rows in the 1960s and 53\% in the 1980s, so the quoted spread alone scores 0.02 against the published decile weights, and the range alone 0.94 but with all of 1970s Nasdaq missing. The month-level fallback that preceded this (range when fifteen days have it, else quotes) reached 0.973 on the published weights but agreed with the panel for only 69-88\% of firm-months. Over the full 1960-2017 panel the rebuilt series matches the paper's exactly for 99.4\% of firm-months and within 1\% for 100\%.
 
 \textbf{Rejected alternatives.}
 \begin{longtable}{p{10.5cm}rp{3.2cm}}
 \toprule Variant & Agreement & Verdict\\\midrule\endhead
 quoted bid-ask spread, 2*(ask-bid)/(ask+bid) & 0.017 & rejected\\
 high-low range over the closing price & 0.933 & marginally worse\\
+range when at least 15 days have one, else the quoted spread when at least 15 days have quotes & 0.973 & superseded: within 1\% of the panel for 69-88\% of firm-months by year\\
+quoted spread first, range on the days without quotes & -- & rejected: within 1\% for 0.2-100\% by year; the range comes first\\
+day-level mixed rule with a 15- or 10-day minimum & -- & same values; leaves 2-139 firm-months a year missing that the panel has\\
 \bottomrule\end{longtable}
 \subsection*{sdTURN --- Standard deviation of residuals from a regression of daily turnover on}
 \textbf{Group} trading frictions \quad \textbf{Source} chordia2001 \quad \textbf{Frequency} monthly \quad \textbf{Agreement} 0.991\\[2pt]
@@ -918,17 +1119,18 @@ outstanding), requiring at least 15 days.\\
 coefficient of variation of turnover (Chordia et al.) & 0.004 & rejected\\
 \bottomrule\end{longtable}
 \subsection*{sdDVOL --- Standard deviation of residuals from a regression of daily volume (vol}
-\textbf{Group} trading frictions \quad \textbf{Source} chordia2001 \quad \textbf{Frequency} monthly \quad \textbf{Agreement} 0.896\\[2pt]
+\textbf{Group} trading frictions \quad \textbf{Source} chordia2001 \quad \textbf{Frequency} monthly \quad \textbf{Agreement} 0.989\\[2pt]
 \textbf{Inputs.} \texttt{vol}
 
 \textbf{Formula.}
 \begin{quote}
-Standard deviation within the month of log(1 + daily dollar volume),\\
-requiring at least 15 days.\\
+Standard deviation (n - 1) over the month's trading days that have volume of\\
+    ln( dollar volume\_d ),   dollar volume = CRSP dlyprcvol,\\
+days with zero volume left out; at least 15 trading days in the month and at least\\
+2 with volume.\\
 
 \end{quote}
-\textbf{Notes.} In LOGS. In levels the dispersion measures scale rather than variability:
-0.06 against 0.87.
+\textbf{Notes.} In LOGS. In levels the dispersion measures scale rather than variability: 0.06 against 0.87. Against the paper's own panel (t\_by\_n/sdDVOL.mat) the earlier ln(1 + dollar volume) over all days matched for the 73\% of firm-months without a zero-volume day and disagreed by a factor of 1.6 to 5 for every firm-month with one: a zero-volume day enters as ln(1) = 0 and dominates the month's dispersion. Leaving those days out, in ln(x) rather than ln(1 + x), is what the panel does. Over the full panel: exact for 90.9\% of firm-months, within 1\% for 100\%, rank correlation 1.0000.
 
 \textbf{Rejected alternatives.}
 \begin{longtable}{p{10.5cm}rp{3.2cm}}
@@ -936,6 +1138,7 @@ requiring at least 15 days.\\
 standard deviation of dollar volume in levels & 0.057 & rejected\\
 standard deviation of log share volume & 0.632 & rejected\\
 coefficient of variation of dollar volume (Chordia et al.) & 0.521 & rejected\\
+ln(1 + dollar volume) over all trading days, zero-volume days included & 0.896 & rejected once the panel showed the zero-volume days are excluded; rank correlation with the panel 0.888\\
 \bottomrule\end{longtable}
 \subsection*{TAN --- Tangibility is defined as (0.715 x total receivables (rect) + 0.547 x}
 \textbf{Group} intangibles \quad \textbf{Source} hahn2009 \quad \textbf{Frequency} annual \quad \textbf{Agreement} 0.978\\[2pt]
@@ -964,144 +1167,28 @@ Standard deviation of daily excess returns within the month, at least 15 days.\\
 \end{quote}
 \textbf{Notes.} Correlates 1.000 with JKP's rvol\_21d.
 
-\subsection*{TNOVR --- Share turnover}
-\textbf{Group} trading frictions \quad \textbf{Source} Datar, Naik and Radcliffe (1998) \quad \textbf{Frequency} monthly \quad \textbf{Agreement} 0.790\\[2pt]
-\textbf{Inputs.} \texttt{vol, shrout}
-
-\textbf{Formula.}
-\begin{quote}
-TNOVR[t] = ( vol[t] + vol[t-1] + vol[t-2] ) / ( 3 * shrout[t] )\\
-
-\end{quote}
-\textbf{Notes.} Averaged over three months. Table A.1 reads as one month and the source paper does not say; three tracks the published weights best. Still below the verification threshold at 0.79, so this one is not settled.
-
-
-\textbf{Rejected alternatives.}
-\begin{longtable}{p{10.5cm}rp{3.2cm}}
-\toprule Variant & Agreement & Verdict\\\midrule\endhead
-single month, vol/shrout & 0.707 & rejected\\
-twelve-month average & 0.699 & rejected\\
-mean daily turnover within the month & 0.706 & rejected\\
-Nasdaq volume scaled down 50\% pre-1997 and 38\% after & 0.679 & rejected\\
-dollar volume over market cap & 0.708 & rejected\\
-JKP turnover\_126d & 0.713 & rejected\\
-\bottomrule\end{longtable}
-\subsection*{SUV --- Standardised unexplained volume}
-\textbf{Group} trading frictions \quad \textbf{Source} Garfinkel (2009) \quad \textbf{Frequency} monthly (daily inputs) \quad \textbf{Agreement} 0.073\\[2pt]
-\textbf{Inputs.} \texttt{dlyvol, dlyret}
-
-\textbf{Formula.}
-\begin{quote}
-Within a month, regress log(1 + daily volume) on a constant and the\\
-absolute values of positive and negative daily returns:\\
-    ln(1+v\_i) = a + b*max(r\_i,0) + c*|min(r\_i,0)| + e\_i\\
-Estimated on the previous month and applied to the current one:\\
-    SUV[t] = ( sum\_i ln(1+v\_i) - predicted ) / ( n * sd(e) )\\
-with predicted and sd(e) from month t-1's fit. At least 15 days required.\\
-
-\end{quote}
-\textbf{Notes.} UNRESOLVED at 0.07. Neither Chen and Zimmermann nor JKP carry a Garfinkel signal, so there is no reference implementation anywhere. The level of the decile weights comes out close (8.85 against a published 8.94 on decile one) while the month-to-month variation does not, which is the signature of a measure that is right in construction but wrong in timing or in which residual is taken. Full daily data has been pulled to test day-level variants the monthly moments cannot express.
-
-
-\textbf{Rejected alternatives.}
-\begin{longtable}{p{10.5cm}rp{3.2cm}}
-\toprule Variant & Agreement & Verdict\\\midrule\endhead
-regression in volume levels rather than logs & 0.080 & rejected\\
-estimation window of 1, 6, 12 and 24 months applied out of sample & 0.092 & rejected at every length\\
-previous month taken on a dense grid so the lag cannot cross a gap & 0.072 & rejected\\
-in-sample residual dispersion rather than an out-of-sample residual & 0.002 & rejected\\
-standardised by sqrt(n) rather than n & 0.073 & rejected\\
-\bottomrule\end{longtable}
-\subsection*{DTO --- Detrended turnover}
-\textbf{Group} trading frictions \quad \textbf{Source} Garfinkel (2009) \quad \textbf{Frequency} monthly (daily inputs) \quad \textbf{Agreement} 0.363\\[2pt]
-\textbf{Inputs.} \texttt{dlyvol, shrout, primaryexch}
-
-\textbf{Formula.}
-\begin{quote}
-daily turnover, with Nasdaq volume scaled by 0.50 before 1997 and 0.38\\
-after, less the cross-sectional mean that day, then detrended by\\
-subtracting its own median over the previous 180 trading days.\\
-
-\end{quote}
-\textbf{Notes.} UNRESOLVED at 0.36, and the cause is known: the 180-trading-day median is not a moment of any month, so it cannot come out of the server-side aggregation the other eight daily characteristics use. It is currently approximated by a rolling median of nine monthly means. Full daily data has been pulled to compute the true median.
-
-
-\textbf{Rejected alternatives.}
-\begin{longtable}{p{10.5cm}rp{3.2cm}}
-\toprule Variant & Agreement & Verdict\\\midrule\endhead
-rolling median over 6, 9 and 12 months of monthly means & 0.367 & best available approximation so far\\
-\bottomrule\end{longtable}
-\subsection*{aBEME --- Industry-adjusted book to market}
-\textbf{Group} value \quad \textbf{Source} Asness, Porter and Stevens (2000) \quad \textbf{Frequency} monthly \quad \textbf{Agreement} 0.510\\[2pt]
-\textbf{Inputs.} \texttt{be, cap, siccd}
-
-\textbf{Formula.}
-\begin{quote}
-aBEME = BEME - mean(BEME) within the firm's Fama-French 48 industry that\\
-month, equal-weighted over ordinary common shares that have BEME.\\
-
-\end{quote}
-\textbf{Notes.} UNRESOLVED at 0.51, and the puzzle is that its parent BEME verifies at 0.97, so the adjustment itself is what fails. Our decile one matches (3.93 against a published 3.77) while decile ten does not (13.13 against 18.30): the published adjustment removes far less of the growth tilt than ours does. The search below has been exhaustive and nothing closes it. Most likely the industry classification comes from a source we do not have -- plausibly Baba-Yara, Boons and Tamoni's own file, since the paper says the characteristic set comes from that project as well as from FNW.
-
-
-\textbf{Rejected alternatives.}
-\begin{longtable}{p{10.5cm}rp{3.2cm}}
-\toprule Variant & Agreement & Verdict\\\midrule\endhead
-Fama-French 5, 10, 12, 17, 30, 38, 48 and 49 industries & 0.521 & ff30 marginally best, none close\\
-one-digit, two-digit and three-digit SIC & 0.477 & rejected\\
-Compustat historical SIC (sich), with and without CRSP fallback & 0.506 & rejected\\
-Compustat header SIC from comp.company & 0.468 & rejected\\
-a firm's modal SIC over its life & 0.509 & rejected\\
-industry median instead of mean & 0.511 & rejected\\
-capitalisation-weighted industry mean & 0.227 & rejected\\
-industry mean over all of CRSP rather than common shares only & 0.099 & rejected\\
-industry mean over NYSE firms only & 0.384 & rejected\\
-industry mean over the larger half of each industry & 0.401 & rejected\\
-ratio to the industry mean, and log of that ratio & 0.440 & rejected\\
-standardised within industry (divided by the industry sd) & 0.348 & rejected\\
-percentile rank within industry & 0.421 & rejected\\
-cross-sectional rank less the industry mean rank & 0.391 & rejected\\
-leave-one-out industry mean & 0.512 & rejected\\
-aggregate industry ratio (sum of book over sum of market) & 0.226 & rejected\\
-partial adjustment, subtracting 0.25, 0.5 or 0.75 of the industry mean & 0.458 & rejected\\
-previous year's industry mean & 0.343 & rejected\\
-\bottomrule\end{longtable}
-\subsection*{aSAT --- Industry-adjusted asset turnover}
-\textbf{Group} profitability \quad \textbf{Source} Soliman (2008) \quad \textbf{Frequency} annual \quad \textbf{Agreement} 0.447\\[2pt]
-\textbf{Inputs.} \texttt{sale, at, siccd}
-
-\textbf{Formula.}
-\begin{quote}
-aSAT = SAT - mean(SAT) within the Fama-French 48 industry that month,\\
-equal-weighted over ordinary common shares.\\
-
-\end{quote}
-\textbf{Notes.} UNRESOLVED at 0.45. Parent SAT verifies at 0.90. Same search as aBEME.
-
-
-\textbf{Rejected alternatives.}
-\begin{longtable}{p{10.5cm}rp{3.2cm}}
-\toprule Variant & Agreement & Verdict\\\midrule\endhead
-the full classification and operation search listed under aBEME & 0.448 & ff48 demeaning best, none close\\
-aggregate industry ratio (sum of sales over sum of assets) & 0.264 & rejected\\
-partial adjustment at 0.25, 0.5, 0.75 & 0.261 & rejected\\
-\bottomrule\end{longtable}
 \subsection*{aPM --- Industry-adjusted profit margin}
-\textbf{Group} profitability \quad \textbf{Source} Soliman (2008) \quad \textbf{Frequency} annual \quad \textbf{Agreement} 0.284\\[2pt]
-\textbf{Inputs.} \texttt{oiadp, sale, siccd}
+\textbf{Group} profitability \quad \textbf{Source} Soliman (2008) \quad \textbf{Frequency} annual \quad \textbf{Agreement} 0.778\\[2pt]
+\textbf{Inputs.} \texttt{pm, siccd (crsp.msenames name history)}
 
 \textbf{Formula.}
 \begin{quote}
-aPM = PM - mean(PM) within the Fama-French 48 industry that month,\\
-equal-weighted over ordinary common shares.\\
+aPM[t] = PM[t] - mean( PM[t] over ordinary common shares in the same industry that month )\\
+Equal-weighted over the firms that have PM. The industry is the paper's own scheme: 27\\
+groups of SIC codes recovered from its panels (raw/their\_industry\_table.json), the SIC\\
+code being the CRSP name-history code (crsp.msenames) in force that month. A code the\\
+table does not cover leaves aPM missing (1.8\% of firm-months).\\
+Recovery: within a month, X - aX is one constant across the firms of an industry;\\
+grouping SIC codes by that constant, month after month, gives 27 groups and no\\
+code-month pair that sits in two of them.\\
 
 \end{quote}
-\textbf{Notes.} UNRESOLVED at 0.28, the worst of the industry-adjusted three even though parent PM verifies at 0.97. Separately, its one-month alpha is 0.00012 a month, statistically indistinguishable from zero, so which leg is "long" is not well defined for this characteristic in either dataset. Coverage is also poor in recent years (76\% missing in 2024-25) and should be looked at.
-
+\textbf{Notes.} RESOLVED against the published decile weights once the industry scheme was recovered from the paper's panels (Fama-French 48 with the same inputs: see below). Table A.1 says the industries are Fama-French 48; the data's cells are 27 groups that align with FF48 only in part -- one group holds 410 SIC codes spanning food, agriculture, textiles, clothing and construction, another 281 codes across building materials, machinery, steel, paper and household goods. The SIC source matters as well: the name-history code reproduces the panel's own siccd for 99.5\% of firm-months. Its parent PM is missing, not infinite, when sales are zero; an infinity inside an industry mean wiped out every firm in that industry-month, which is what had kept aPM at 0.37 after the scheme was recovered. Recorded under discrepancies, category B.
 
 \textbf{Rejected alternatives.}
 \begin{longtable}{p{10.5cm}rp{3.2cm}}
 \toprule Variant & Agreement & Verdict\\\midrule\endhead
+Fama-French 48 with the same name-history SIC & -- & rejected: 0.51 (aBEME), 0.45 (aSAT), 0.87 (aSIZE), 0.28 (aPM)\\
 the full classification and operation search listed under aBEME & 0.340 & two-digit SIC marginally best, none close\\
 partial adjustment at 0.25, 0.5, 0.75 & 0.261 & rejected\\
 industry mean over the larger half, and the prior year's mean & 0.146 & rejected\\

@@ -394,7 +394,11 @@ def daily_moments(db, years: list[int], table: str = "crsp.dsf_v2") -> pd.DataFr
 #   0.94 for the range.
 #
 #   sdDVOL is the dispersion of *log* dollar volume, not of dollar volume. In
-#   levels it is dominated by scale: 0.06 against 0.73.
+#   levels it is dominated by scale: 0.06 against 0.73. Days with no volume
+#   are left out of it: the paper's panel matches ln(dollar volume) over the
+#   days that have one, and every firm-month with a zero-volume day
+#   disagreed with ln(1 + dollar volume) over all days (27% of them, by a
+#   factor of 1.6 to 5).
 #
 # SUV's regression likewise runs on log volume, which needs its cross-products
 # with the day's positive and negative returns.
@@ -408,8 +412,17 @@ select permno, date_trunc('month', dlycaldt)::date as month,
        count(case when dlyhigh > 0 and dlylow > 0 then 1 end) as n_hl,
        sum(case when dlyhigh > 0 and dlylow > 0
                 then 2 * (dlyhigh - dlylow) / nullif(dlyhigh + dlylow, 0) end) as s_hl,
+       count(case when (dlyhigh > 0 and dlylow > 0)
+                    or (dlybid > 0 and dlyask > 0 and dlyask >= dlybid) then 1 end) as n_sp,
+       sum(case when dlyhigh > 0 and dlylow > 0
+                then 2 * (dlyhigh - dlylow) / nullif(dlyhigh + dlylow, 0)
+                when dlybid > 0 and dlyask > 0 and dlyask >= dlybid
+                then 2 * (dlyask - dlybid) / nullif(dlyask + dlybid, 0) end) as s_sp,
        sum(ln(dlyvol + 1)) as s_lv, sum(ln(dlyvol + 1) ^ 2) as s_lvlv,
-       sum(ln(dlyprcvol + 1)) as s_ldv, sum(ln(dlyprcvol + 1) ^ 2) as s_ldvldv
+       sum(ln(dlyprcvol + 1)) as s_ldv, sum(ln(dlyprcvol + 1) ^ 2) as s_ldvldv,
+       count(case when dlyprcvol > 0 then 1 end) as n_pdv,
+       sum(case when dlyprcvol > 0 then ln(dlyprcvol) end) as s_ldv0,
+       sum(case when dlyprcvol > 0 then ln(dlyprcvol) ^ 2 end) as s_ldv0ldv0
 from {table}
 where dlycaldt >= '{y}-01-01' and dlycaldt <= '{y}-12-31' and dlyret is not null
 group by permno, date_trunc('month', dlycaldt)

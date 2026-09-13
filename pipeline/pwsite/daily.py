@@ -9,9 +9,11 @@ characteristic below is recovered from those sums exactly:
   and the residual sum of squares follows from the fitted coefficients;
 * a maximum and a mean are already there.
 
-The one exception is DTO, whose 180-trading-day median is not a moment of any
-month. It is approximated here from a rolling window of monthly means, and
-said so.
+DTO and SUV are computed here too, but the versions the panel carries come
+from pwsite.lastday: the paper's own panels show both are the last trading
+day's value of a daily series, which no monthly moment can express. What this
+module builds for them is the documented (Appendix Table A.1) reading, kept
+only so the two can be compared.
 
 Sample rule: at least fifteen daily observations in the month, as Appendix
 Table A.1 requires. Below that the month is left missing rather than estimated
@@ -112,16 +114,30 @@ def daily_characteristics(moments: pd.DataFrame, monthly: pd.DataFrame) -> pd.Da
     out["MAXRET"] = np.where(enough, col("max_r"), np.nan)
     # Log dollar volume. In levels the dispersion is dominated by scale and
     # agrees with the published decile weights far worse (0.06 against 0.73).
-    out["sdDVOL"] = np.where(enough, _sd(n, col("s_ldv"), col("s_ldvldv")), np.nan)
+    # Over the days that have volume, in ln(dollar volume): a zero-volume day
+    # taken as ln(1 + 0) = 0 dominates the month's dispersion, and the
+    # paper's panel shows those days are not in it.
+    n_pdv = col("n_pdv")
+    out["sdDVOL"] = np.where(enough & (n_pdv >= 2),
+                             _sd(n_pdv, col("s_ldv0"), col("s_ldv0ldv0")), np.nan)
     nt = col("n_turn")
     out["sdTURN"] = np.where(nt >= MIN_DAYS, _sd(nt, col("s_t"), col("s_tt")), np.nan)
     # The daily high-low range rather than the quoted bid-ask spread. CRSP
     # carries quotes for only a minority of daily rows before 2000 -- 9% in the
     # 1960s, 53% in the 1980s -- and a spread built from them agrees with the
     # published decile weights at 0.02 against 0.94 for the range.
-    nhl = col("n_hl")
+    # ... and the quoted spread on the days that have no range. The paper's
+    # own SPREAD panel settles the rule at the day level: each trading day
+    # contributes its high-low range if it has one and its quoted spread
+    # otherwise, the month is the mean over those days, and there is no
+    # minimum number of days. Built that way, every firm-month in 1975, 1985,
+    # 1995 and 2005 agrees with the panel within 1% and none is missing that
+    # the panel has. A month-level fallback (range if fifteen days have it,
+    # else quotes) agreed for 69-88% of firm-months; the range alone left all
+    # of 1970s Nasdaq missing.
+    nsp = col("n_sp")
     with np.errstate(invalid="ignore", divide="ignore"):
-        out["SPREAD"] = np.where(nhl >= MIN_DAYS, col("s_hl") / nhl, np.nan)
+        out["SPREAD"] = np.where(nsp >= 1, col("s_sp") / nsp, np.nan)
 
     # --- BETA_d: the sum of the coefficients on the market and its lag ------
     wide = (
@@ -148,9 +164,12 @@ def daily_characteristics(moments: pd.DataFrame, monthly: pd.DataFrame) -> pd.Da
     ], axis=1)
     r4 = np.stack([col("s_re"), col("s_rem"), col("s_res"), col("s_reh")], axis=1)
     coef = _solve(g4, r4)
+    # The residual variance divides by n - 1, not n - 4: the paper's panel is
+    # the sample standard deviation of the residuals, and against it ours ran
+    # 8.45% high at the median month, which is sqrt(20/17) exactly.
     with np.errstate(invalid="ignore"):
         rss = col("s_rere") - (coef * r4).sum(axis=1)
-        idiov = np.sqrt(np.where(rss > 0, rss, np.nan) / (n - 4))
+        idiov = np.sqrt(np.where(rss > 0, rss, np.nan) / (n - 1))
     out["IDIOV"] = np.where(enough, idiov, np.nan)
 
     # --- SUV: this month's volume against last month's volume-return fit ----
