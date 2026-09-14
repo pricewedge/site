@@ -169,6 +169,198 @@ Ten principal components come close to the direct regression and beat three
 decisively on every criterion. If a dimension-reduced mapping is wanted for
 interpretability, ten is the defensible choice; three is not.
 
+
+\section*{Is the cross-section of wedges stable over time, and which sample should the site use?}
+
+Every portfolio wedge is $-\log$ of the mean, over formation cohorts, of the
+discounted fifteen-year cash flow per dollar of price. The full available
+sample has 559 cohorts, formed 196407 to 201101,
+with cash flows to 202512. Cohorts overlap in 179 of their 180 months, so the
+sample holds about three independent fifteen-year windows, and any subsample
+of it one or two. The question is whether the cross-section of wedges is the
+same object in different parts of the sample, and if not, which part the site
+should rest on.
+
+\texttt{stability.py} re-estimates all 570 decile wedges on subsets of the
+cohorts: the paper's own window, halves, thirds, and every window that starts
+in a later year. On each subset the market price of risk is re-solved so that
+the market wedge is zero there, as it is on the full sample; without that, a
+subsample's wedges shift as a block with the market's realised return. All
+comparisons below use the 560 portfolios of the verified characteristics.
+
+\subsection*{Each subsample against the full sample}
+
+\begin{longtable}{lrrrrrrrrrr}\toprule
+Cohorts formed & N & $\lambda$ & sd & noise & corr & rank & slope & RMSE & LS corr & flips\\\midrule
+\endhead
+full 1964-2011 & 559 & 3.53 & 9.3 & 3.4 & 1.00 & 1.00 & 1.00 & 0.0 & 1.00 & 0\\
+paper 1964-2002 & 462 & 3.97 & 10.0 & 3.4 & 0.99 & 0.99 & 1.06 & 1.4 & 0.99 & 1\\
+first half 1964-1987 & 282 & 4.52 & 10.7 & 3.5 & 0.91 & 0.90 & 1.04 & 4.6 & 0.94 & 5\\
+second half 1988-2011 & 277 & 2.86 & 10.3 & 3.4 & 0.76 & 0.76 & 0.83 & 6.9 & 0.78 & 8\\
+third 1964-1979 & 186 & 5.58 & 12.1 & 3.0 & 0.83 & 0.81 & 1.08 & 7.3 & 0.85 & 8\\
+third 1980-1995 & 192 & 2.49 & 5.6 & 3.2 & 0.17 & 0.18 & 0.10 & 10.9 & -0.02 & 29\\
+third 1996-2011 & 181 & 2.85 & 15.0 & 4.1 & 0.76 & 0.78 & 1.23 & 10.2 & 0.80 & 5\\
+from 1975 & 433 & 2.62 & 8.2 & 3.4 & 0.81 & 0.79 & 0.71 & 5.5 & 0.87 & 4\\
+from 1980 & 373 & 2.64 & 8.6 & 3.1 & 0.76 & 0.75 & 0.70 & 6.3 & 0.80 & 7\\
+from 1985 & 313 & 2.78 & 9.3 & 3.4 & 0.75 & 0.74 & 0.74 & 6.7 & 0.78 & 9\\
+from 1990 & 253 & 2.90 & 11.3 & 3.2 & 0.77 & 0.77 & 0.93 & 7.4 & 0.79 & 5\\
+from 1995 & 193 & 2.92 & 14.3 & 3.8 & 0.76 & 0.78 & 1.17 & 9.6 & 0.79 & 6\\
+from 2000 & 133 & 2.16 & 13.9 & 4.4 & 0.52 & 0.53 & 0.77 & 12.2 & 0.49 & 11\\
+\bottomrule\end{longtable}
+
+\noindent\emph{sd}: cross-sectional standard deviation of the subsample's wedges, pp.
+\emph{noise}: median idiosyncratic standard error of a wedge in that subsample, pp,
+from a moving-block bootstrap over its cohorts with each draw demeaned across
+portfolios so the component common to all portfolios drops out (block length
+120 cohorts, or a third of the subsample when shorter; 300 draws). \emph{corr},
+\emph{rank}, \emph{slope}, \emph{RMSE}: the subsample's wedges against the full
+sample's, slope of subsample on full. \emph{LS corr} and \emph{flips}: the
+correlation of the 56 long-short spreads with the full sample's, and how many
+change sign.
+
+Two things stand out. Adding the 2003--2011 cohorts to the paper's window
+changes almost nothing: correlation 0.99, one sign flip, RMSE 1.4~pp. Dropping
+the early cohorts is a different matter. Every window that starts in 1980 or
+later correlates 0.5 to 0.8 with the full cross-section, and the 1980--1995
+third is nearly flat (sd 5.6~pp against 9.3) and unrelated to the rest.
+
+\subsection*{The two halves against each other}
+
+The halves are independent cohorts, so this is the cleanest test. Their
+wedges correlate 0.45 (rank 0.46), with a slope of second on first of
+0.43. Given each half's idiosyncratic noise, two halves of a \emph{constant}
+cross-section would correlate about 0.68. The change across
+portfolios has a standard deviation of 11.0~pp, of which noise accounts for
+5.3~pp and about 8.6~pp is left, on a cross-sectional spread of
+9.3~pp. 27\% of portfolios move by more than two idiosyncratic
+standard errors. So the cross-section moves between halves by roughly its own
+size. That is the honest reading, with one caveat in the other direction: a
+block bootstrap with blocks shorter than the 180-month overlap understates
+sampling noise, so some of the 8.6~pp may still be sampling variation. The
+gap between 0.45 and 0.68 is too large for all of it to be.
+Judged against the \emph{total} Newey--West standard errors, which include the
+component common to all portfolios, no portfolio's change is significant
+(median total noise 51~pp); that statistic answers a different question,
+whether a single wedge is known, and the answer to that was already no.
+
+\subsection*{Where the change sits}
+
+Long-short spread of each characteristic (long leg less short leg, pp) by
+subsample, ordered by how much it moves between the halves.
+77\% of characteristics keep the sign of their spread across halves; the
+spreads correlate 0.54 across halves.
+
+\begin{longtable}{lrrrrrrr}\toprule
+ & full & paper & 1964--87 & 1988--2011 & 1964--79 & 1980--95 & 1996--2011\\\midrule
+\endhead
+D2P & -16 & -23 & -39 & 40 & -43 & -4 & 61\\
+A2ME & -20 & -27 & -42 & 22 & -47 & -12 & 40\\
+E2P & -26 & -30 & -51 & 12 & -59 & -14 & 18\\
+ROC & -43 & -49 & -61 & -14 & -65 & 2 & -27\\
+C2D & 10 & 13 & 19 & -15 & 18 & 7 & -25\\
+SAT & -20 & -15 & -3 & -34 & 11 & 0 & -61\\
+ROE & 26 & 29 & 38 & 7 & 37 & -15 & 23\\
+CAT & -14 & -8 & 3 & -28 & 17 & 0 & -53\\
+RNA & 14 & 16 & 27 & -4 & 28 & 4 & -3\\
+ATO & 4 & 0 & -13 & 17 & -26 & 4 & 22\\
+S2P & -42 & -46 & -49 & -20 & -47 & 3 & -43\\
+PROF & 13 & 17 & 27 & 1 & 36 & -23 & 12\\
+OL & -21 & -16 & -6 & -32 & 8 & 2 & -61\\
+AOA & -22 & -24 & -31 & -7 & -33 & -5 & -14\\
+sdDVOL & -27 & -26 & -15 & -38 & -7 & -13 & -49\\
+C2A & 26 & 30 & 32 & 10 & 34 & -13 & 26\\
+NOA & -2 & 0 & 5 & -17 & 9 & -27 & -9\\
+ROIC & 27 & 29 & 35 & 13 & 34 & -7 & 25\\
+R\_12\_2 & 23 & 24 & 13 & 33 & 15 & 9 & 48\\
+ROA & 23 & 27 & 32 & 12 & 33 & -10 & 25\\
+sdTURN & 5 & 1 & -2 & 16 & -14 & 6 & 17\\
+EPS & 7 & 4 & -4 & 13 & -17 & -14 & 23\\
+R\_12\_7 & 23 & 24 & 14 & 31 & 16 & 10 & 44\\
+TAN & 17 & 17 & 16 & -0 & 12 & -6 & 9\\
+R\_6\_2 & 14 & 15 & 7 & 22 & 8 & 3 & 33\\
+TNOVR & -7 & -11 & -13 & 2 & -27 & 5 & -5\\
+DTO & -6 & -8 & -12 & 1 & -18 & 4 & -5\\
+AT & 22 & 20 & 22 & 9 & 9 & -6 & 13\\
+aBEME & -52 & -55 & -57 & -44 & -63 & 7 & -68\\
+MAXRET & -3 & -6 & -1 & -12 & -12 & -6 & -21\\
+PCM & 26 & 27 & 28 & 17 & 23 & -15 & 34\\
+dSOUT & -38 & -39 & -34 & -44 & -36 & -30 & -54\\
+IVC & -11 & -13 & -16 & -7 & -22 & 1 & -8\\
+PM & 29 & 26 & 21 & 30 & 9 & -12 & 56\\
+aSAT & -12 & -12 & -9 & -18 & -4 & -7 & -20\\
+RETVOL & -8 & -12 & -7 & -15 & -20 & -6 & -27\\
+I2A & -18 & -19 & -15 & -23 & -22 & 6 & -38\\
+BETA\_d & -32 & -37 & -35 & -41 & -53 & -8 & -67\\
+OA & -28 & -27 & -30 & -24 & -32 & -21 & -28\\
+dCEQ & -22 & -25 & -26 & -20 & -34 & 7 & -39\\
+SIZE & -44 & -44 & -41 & -35 & -30 & 11 & -51\\
+SG & -17 & -19 & -14 & -19 & -20 & 10 & -39\\
+R\_2\_1 & 6 & 6 & 3 & 8 & 4 & 1 & 12\\
+dSO & -34 & -34 & -31 & -36 & -31 & -25 & -41\\
+S2C & -22 & -21 & -17 & -21 & -16 & 16 & -47\\
+SPREAD & -14 & -18 & -14 & -18 & -28 & 3 & -35\\
+dGS & 10 & 11 & 7 & 11 & 8 & 6 & 14\\
+DP & -25 & -33 & -29 & -25 & -51 & 11 & -52\\
+SUV & -6 & -6 & -6 & -3 & -5 & 1 & -6\\
+IPM & 29 & 28 & 25 & 22 & 13 & 1 & 34\\
+dPIA & -22 & -24 & -23 & -21 & -27 & -5 & -29\\
+IDIOV & 7 & 4 & 5 & 3 & -7 & -7 & 2\\
+BEME & -48 & -52 & -48 & -47 & -54 & -6 & -70\\
+R\_36\_13 & -44 & -46 & -43 & -42 & -46 & -20 & -56\\
+aSIZE & -22 & -22 & -19 & -20 & -13 & 6 & -28\\
+Q & -45 & -49 & -44 & -44 & -52 & -2 & -66\\
+\bottomrule\end{longtable}
+
+The value ratios reverse between halves, the profitability spreads shrink,
+and momentum grows; book-to-market, Q, size, long-term reversal and the
+investment-type sorts are the stable core. The 1980--1995 column is flat for
+almost everything.
+
+\subsection*{What it does to the firm-level wedges}
+
+The direct mapping refitted on each subsample's portfolio wedges, applied to
+the same firm-months, against the full-sample firm wedges (sd 28~pp).
+
+\begin{longtable}{lrrrrrrr}\toprule
+Fitted on & corr & rank & mean diff & sd diff & $|$diff$|>10$ & corr 2020--25 & sd diff 2020--25\\\midrule
+\endhead
+full 1964-2011 & 1.00 & 1.00 & +0.0 & 0.0 & 0\% & 1.00 & 0.0\\
+paper 1964-2002 & 1.00 & 1.00 & +0.5 & 2.4 & 0\% & 1.00 & 2.0\\
+first half 1964-1987 & 0.96 & 0.96 & +4.8 & 7.5 & 27\% & 0.96 & 7.0\\
+second half 1988-2011 & 0.92 & 0.91 & +1.3 & 11.9 & 40\% & 0.91 & 10.9\\
+third 1964-1979 & 0.91 & 0.90 & +12.1 & 12.1 & 63\% & 0.90 & 11.0\\
+third 1980-1995 & 0.44 & 0.42 & +30.9 & 25.2 & 85\% & 0.28 & 24.1\\
+third 1996-2011 & 0.90 & 0.89 & -9.9 & 20.5 & 67\% & 0.90 & 19.3\\
+from 1975 & 0.95 & 0.94 & +5.1 & 9.2 & 35\% & 0.94 & 8.6\\
+from 1980 & 0.91 & 0.90 & +8.1 & 11.9 & 50\% & 0.89 & 11.0\\
+from 1985 & 0.91 & 0.91 & +4.6 & 11.5 & 42\% & 0.91 & 10.6\\
+from 1990 & 0.92 & 0.91 & -0.9 & 12.9 & 43\% & 0.91 & 11.9\\
+from 1995 & 0.90 & 0.90 & -7.4 & 18.8 & 63\% & 0.90 & 17.6\\
+from 2000 & 0.75 & 0.74 & +1.7 & 21.2 & 63\% & 0.75 & 18.6\\
+\bottomrule\end{longtable}
+
+The ranking of firms is robust to the sample: correlations 0.90 to 0.96 for
+every window except the 1980--1995 third and the post-2000 window. The
+magnitudes are not: refitting on the second half moves two fifths of firms by
+more than 10~pp, a later window more. The halves against each other at the
+firm level correlate 0.79 with a standard deviation of the difference of
+18~pp.
+
+\subsection*{Which sample}
+
+The full available sample is the headline choice. It is the only one with
+about three independent fifteen-year windows; every later window rests on one
+or two cycles, which is why the price of risk swings from 5.6 to 2.5 to 2.8
+across the thirds, and the windows ending after 2008 carry a different scale
+(slopes 1.2 to 1.35 on the extremes). Extending the paper's window to 2011
+cohorts and 2025 cash flows is safe. Switching to a later window is not a
+better estimate of the same quantity: it changes the answer in the direction
+of the post-1990 weakness of the value ratios and the 2000 and 2008 episodes,
+which is regime. What the drift does argue for is showing it: the full-sample
+firm wedge with the two half-sample estimates as a range, or ``since 1988'' as
+a labelled alternative specification, with the statement that rankings agree
+at 0.9 and magnitudes differ by about $\pm$12~pp.
+
 \section*{Recommendation}
 
 Use the penalised direct regression of portfolio wedges on portfolio

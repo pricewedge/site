@@ -31,6 +31,157 @@ def table(df, cols, fmt):
     return "\n".join(out)
 
 
+def _tex(x: str) -> str:
+    return str(x).replace("_", r"\_")
+
+
+def _stability_section() -> str:
+    """Wedges on subsamples of the formation cohorts (stability.py current)."""
+    sm = CACHE / "stability_current_summary.csv"
+    if not sm.exists():
+        return ""
+    S = pd.read_csv(sm); B = pd.read_csv(CACHE / "stability_current_by_characteristic.csv")
+    F = pd.read_csv(CACHE / "stability_current_firm.csv")
+    h = json.loads((CACHE / "stability_current_halves.json").read_text())
+    order = ["full 1964-2011", "paper 1964-2002", "first half 1964-1987", "second half 1988-2011",
+             "third 1964-1979", "third 1980-1995", "third 1996-2011",
+             "from 1975", "from 1980", "from 1985", "from 1990", "from 1995", "from 2000"]
+    S = S.set_index("subsample").loc[order]; F = F.set_index("subsample").loc[order]
+    rows = []
+    for lab, r in S.iterrows():
+        rows.append(f"{lab} & {int(r.cohorts)} & {r['lambda']:.2f} & {r.wedge_sd:.1f} & {r.median_se_idio:.1f} & "
+                    f"{r.corr_full:.2f} & {r.rank_full:.2f} & {r.slope_on_full:.2f} & {r.rmse_full:.1f} & "
+                    f"{r.ls_corr:.2f} & {int(r.ls_sign_flips)}\\\\")
+    t1 = "\n".join(rows)
+    B = B.copy(); B["move"] = (B["ls_second1988"] - B["ls_first1964"]).abs(); B = B.sort_values("move", ascending=False)
+    rows = []
+    for _, r in B.iterrows():
+        rows.append(f"{_tex(r.char)} & {r.ls_full:.0f} & {r.ls_paper:.0f} & {r.ls_first1964:.0f} & {r.ls_second1988:.0f} & "
+                    f"{r.ls_1964:.0f} & {r.ls_1980:.0f} & {r.ls_1996:.0f}\\\\")
+    t3 = "\n".join(rows)
+    same = float(np.mean(np.sign(B.ls_first1964) == np.sign(B.ls_second1988)))
+    ls_corr_halves = float(B.ls_first1964.corr(B.ls_second1988))
+    rows = []
+    for lab, r in F.iterrows():
+        rows.append(f"{lab} & {r['corr']:.2f} & {r['rank']:.2f} & {r.mean_diff:+.1f} & {r.sd_diff:.1f} & "
+                    f"{100*r.share_abs_diff_gt10:.0f}\\% & {r.corr_recent:.2f} & {r.sd_diff_recent:.1f}\\\\")
+    t4 = "\n".join(rows)
+    fw_sd = float(F.loc["full 1964-2011", "wedge_sd"])
+    return r"""
+\section*{Is the cross-section of wedges stable over time, and which sample should the site use?}
+
+Every portfolio wedge is $-\log$ of the mean, over formation cohorts, of the
+discounted fifteen-year cash flow per dollar of price. The full available
+sample has """ + f"{h['cohorts']}" + r""" cohorts, formed """ + f"{h['first_cohort']}" + r""" to """ + f"{h['last_cohort']}" + r""",
+with cash flows to """ + f"{h['last_month']}" + r""". Cohorts overlap in 179 of their 180 months, so the
+sample holds about three independent fifteen-year windows, and any subsample
+of it one or two. The question is whether the cross-section of wedges is the
+same object in different parts of the sample, and if not, which part the site
+should rest on.
+
+\texttt{stability.py} re-estimates all 570 decile wedges on subsets of the
+cohorts: the paper's own window, halves, thirds, and every window that starts
+in a later year. On each subset the market price of risk is re-solved so that
+the market wedge is zero there, as it is on the full sample; without that, a
+subsample's wedges shift as a block with the market's realised return. All
+comparisons below use the """ + f"{h['n_verified']}" + r""" portfolios of the verified characteristics.
+
+\subsection*{Each subsample against the full sample}
+
+\begin{longtable}{lrrrrrrrrrr}\toprule
+Cohorts formed & N & $\lambda$ & sd & noise & corr & rank & slope & RMSE & LS corr & flips\\\midrule
+\endhead
+""" + t1 + r"""
+\bottomrule\end{longtable}
+
+\noindent\emph{sd}: cross-sectional standard deviation of the subsample's wedges, pp.
+\emph{noise}: median idiosyncratic standard error of a wedge in that subsample, pp,
+from a moving-block bootstrap over its cohorts with each draw demeaned across
+portfolios so the component common to all portfolios drops out (block length
+120 cohorts, or a third of the subsample when shorter; """ + f"{h['draws']}" + r""" draws). \emph{corr},
+\emph{rank}, \emph{slope}, \emph{RMSE}: the subsample's wedges against the full
+sample's, slope of subsample on full. \emph{LS corr} and \emph{flips}: the
+correlation of the 56 long-short spreads with the full sample's, and how many
+change sign.
+
+Two things stand out. Adding the 2003--2011 cohorts to the paper's window
+changes almost nothing: correlation 0.99, one sign flip, RMSE 1.4~pp. Dropping
+the early cohorts is a different matter. Every window that starts in 1980 or
+later correlates 0.5 to 0.8 with the full cross-section, and the 1980--1995
+third is nearly flat (sd 5.6~pp against 9.3) and unrelated to the rest.
+
+\subsection*{The two halves against each other}
+
+The halves are independent cohorts, so this is the cleanest test. Their
+wedges correlate """ + f"{h['corr']:.2f}" + r""" (rank """ + f"{h['rank']:.2f}" + r"""), with a slope of second on first of
+""" + f"{h['slope']:.2f}" + r""". Given each half's idiosyncratic noise, two halves of a \emph{constant}
+cross-section would correlate about """ + f"{h['expected_corr_constant']:.2f}" + r""". The change across
+portfolios has a standard deviation of """ + f"{h['sd_change']:.1f}" + r"""~pp, of which noise accounts for
+""" + f"{h['noise_idio']:.1f}" + r"""~pp and about """ + f"{h['sd_true_change']:.1f}" + r"""~pp is left, on a cross-sectional spread of
+""" + f"{h['wedge_sd_full']:.1f}" + r"""~pp. """ + f"{100*h['share_gt2_idio']:.0f}" + r"""\% of portfolios move by more than two idiosyncratic
+standard errors. So the cross-section moves between halves by roughly its own
+size. That is the honest reading, with one caveat in the other direction: a
+block bootstrap with blocks shorter than the 180-month overlap understates
+sampling noise, so some of the """ + f"{h['sd_true_change']:.1f}" + r"""~pp may still be sampling variation. The
+gap between """ + f"{h['corr']:.2f}" + r""" and """ + f"{h['expected_corr_constant']:.2f}" + r""" is too large for all of it to be.
+Judged against the \emph{total} Newey--West standard errors, which include the
+component common to all portfolios, no portfolio's change is significant
+(median total noise """ + f"{h['noise_total']:.0f}" + r"""~pp); that statistic answers a different question,
+whether a single wedge is known, and the answer to that was already no.
+
+\subsection*{Where the change sits}
+
+Long-short spread of each characteristic (long leg less short leg, pp) by
+subsample, ordered by how much it moves between the halves.
+""" + f"{100*same:.0f}" + r"""\% of characteristics keep the sign of their spread across halves; the
+spreads correlate """ + f"{ls_corr_halves:.2f}" + r""" across halves.
+
+\begin{longtable}{lrrrrrrr}\toprule
+ & full & paper & 1964--87 & 1988--2011 & 1964--79 & 1980--95 & 1996--2011\\\midrule
+\endhead
+""" + t3 + r"""
+\bottomrule\end{longtable}
+
+The value ratios reverse between halves, the profitability spreads shrink,
+and momentum grows; book-to-market, Q, size, long-term reversal and the
+investment-type sorts are the stable core. The 1980--1995 column is flat for
+almost everything.
+
+\subsection*{What it does to the firm-level wedges}
+
+The direct mapping refitted on each subsample's portfolio wedges, applied to
+the same firm-months, against the full-sample firm wedges (sd """ + f"{fw_sd:.0f}" + r"""~pp).
+
+\begin{longtable}{lrrrrrrr}\toprule
+Fitted on & corr & rank & mean diff & sd diff & $|$diff$|>10$ & corr 2020--25 & sd diff 2020--25\\\midrule
+\endhead
+""" + t4 + r"""
+\bottomrule\end{longtable}
+
+The ranking of firms is robust to the sample: correlations 0.90 to 0.96 for
+every window except the 1980--1995 third and the post-2000 window. The
+magnitudes are not: refitting on the second half moves two fifths of firms by
+more than 10~pp, a later window more. The halves against each other at the
+firm level correlate """ + f"{h['firm_halves_corr']:.2f}" + r""" with a standard deviation of the difference of
+""" + f"{h['firm_halves_sd_diff']:.0f}" + r"""~pp.
+
+\subsection*{Which sample}
+
+The full available sample is the headline choice. It is the only one with
+about three independent fifteen-year windows; every later window rests on one
+or two cycles, which is why the price of risk swings from 5.6 to 2.5 to 2.8
+across the thirds, and the windows ending after 2008 carry a different scale
+(slopes 1.2 to 1.35 on the extremes). Extending the paper's window to 2011
+cohorts and 2025 cash flows is safe. Switching to a later window is not a
+better estimate of the same quantity: it changes the answer in the direction
+of the post-1990 weakness of the value ratios and the 2000 and 2008 episodes,
+which is regime. What the drift does argue for is showing it: the full-sample
+firm wedge with the two half-sample estimates as a range, or ``since 1988'' as
+a labelled alternative specification, with the statement that rankings agree
+at 0.9 and magnitudes differ by about $\pm$12~pp.
+"""
+
+
 def main() -> int:
     q = pd.read_csv(CACHE / "mapping_quality_paper.csv")
     e = pd.read_csv(CACHE / "mapping_expost_paper.csv")
@@ -60,6 +211,7 @@ def main() -> int:
     mono_pc3 = ("and are monotone throughout." if not bp
                 else "and are not monotone " + " or ".join(bp) + ".")
     q["m"] = q["mapping"].map(lambda s: SHORT.get(s, s))
+    stability_section = _stability_section()
 
     tests = ["leave one characteristic out", "leave one family out", "extremes held out"]
     body = []
@@ -208,6 +360,7 @@ Ten principal components come close to the direct regression and beat three
 decisively on every criterion. If a dimension-reduced mapping is wanted for
 interpretability, ten is the defensible choice; three is not.
 
+""" + stability_section + r"""
 \section*{Recommendation}
 
 Use the penalised direct regression of portfolio wedges on portfolio

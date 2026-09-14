@@ -117,7 +117,7 @@ def main() -> int:
             wd = -np.log(np.nanmean(R[:, take], axis=1)) * 100
             draws[b] = wd - np.nanmean(wd)
         se_idio = np.nanstd(draws, axis=0, ddof=1)
-        res[label] = dict(mask=mask, lam=lam, w=w, w_fixed=w_fixed, se=se, se_idio=se_idio, n=int(mask.sum()))
+        res[label] = dict(mask=mask, lam=lam, w=w, w_fixed=w_fixed, se=se, se_idio=se_idio, n=int(mask.sum()), block=block)
         print(f"  {label:24} cohorts {mask.sum():4}  lambda {lam:6.3f}  "
               f"wedge sd {np.nanstd(w):5.1f}  median se {np.nanmedian(se):5.1f}  idiosyncratic {np.nanmedian(se_idio):4.1f}")
 
@@ -157,7 +157,7 @@ def main() -> int:
         print(f"{label:24}{s['corr']:7.3f}{s['rank']:7.3f}{s['slope']:7.3f}{s['icept']:7.2f}{s['rmse']:7.2f}{s['mad']:6.2f}"
               f" | {e['corr']:14.3f}{e['slope']:7.3f} | {np.corrcoef(ls_full, ls)[0,1]:15.3f}{flips:6d}{np.mean(np.abs(ls_full-ls)):6.2f}"
               f" | {sfix['corr']:7.3f}")
-        rows.append(dict(subsample=label, cohorts=r["n"], **{"lambda": r["lam"]}, wedge_sd=np.nanstd(r["w"][keep]),
+        rows.append(dict(subsample=label, cohorts=r["n"], **{"lambda": r["lam"]}, block=r["block"], wedge_sd=np.nanstd(r["w"][keep]),
                          median_se=np.nanmedian(r["se"][keep]), median_se_idio=np.nanmedian(r["se_idio"][keep]),
                          corr_full=s["corr"], rank_full=s["rank"], slope_on_full=s["slope"], icept=s["icept"],
                          rmse_full=s["rmse"], mad_full=s["mad"], corr_extremes=e["corr"], slope_extremes=e["slope"],
@@ -185,6 +185,15 @@ def main() -> int:
     sd_true = np.sqrt(max(np.nancov(h1['w'][keep], h2['w'][keep])[0, 1], 0)) if hasattr(np, "nancov") else np.sqrt(max(np.cov(h1['w'][keep], h2['w'][keep])[0, 1], 0))
     exp_corr = sd_true ** 2 / np.sqrt((sd_true ** 2 + np.nanmean(h1['se_idio'][keep] ** 2)) * (sd_true ** 2 + np.nanmean(h2['se_idio'][keep] ** 2)))
     print(f"  the correlation two halves of a CONSTANT cross-section would show, given each half's noise: {exp_corr:.3f}")
+    halves = dict(corr=s12["corr"], rank=s12["rank"], slope=s12["slope"], rmse=s12["rmse"],
+                  corr_extremes=e12["corr"], slope_extremes=e12["slope"], sd_change=float(np.nanstd(d)),
+                  noise_idio=float(np.nanmedian(noise_idio)), noise_total=float(np.nanmedian(noise_total)),
+                  share_gt2_idio=float(np.nanmean(np.abs(ti) > 2)), share_gt2_total=float(np.nanmean(np.abs(tt) > 2)),
+                  sd_true_change=float(np.sqrt(var_true)), expected_corr_constant=float(exp_corr),
+                  wedge_sd_full=float(np.nanstd(full["w"][keep])), n_h1=h1["n"], n_h2=h2["n"],
+                  block_h1=h1["block"], block_h2=h2["block"], draws=DRAWS, cohorts=int(ncoh),
+                  first_cohort=int(cm[0]), last_cohort=int(cm[-1]), last_month=int(g.months[-1]),
+                  lambda_full=lam_full, n_verified=int(keep.sum()))
 
     # ---- per characteristic ------------------------------------------------
     per = []
@@ -247,9 +256,12 @@ def main() -> int:
     fa, fb = firm["first half 1964-1987"], firm["second half 1988-2011"]
     print(f"  first half vs second half at the firm level: corr {np.corrcoef(fa, fb)[0,1]:.3f}, "
           f"rank {spearmanr(fa, fb)[0]:.3f}, sd of difference {np.std(fa - fb):.2f}pp (wedge sd {f0.std():.1f}pp)")
+    halves.update(firm_halves_corr=float(np.corrcoef(fa, fb)[0, 1]), firm_halves_rank=float(spearmanr(fa, fb)[0]),
+                  firm_halves_sd_diff=float(np.std(fa - fb)), firm_wedge_sd=float(f0.std()))
+    (CACHE / f"stability_{TAG}_halves.json").write_text(json.dumps(halves, indent=1))
     wide = pd.DataFrame({"char": chars, "decile": decs})
     for label, r in res.items():
-        wide[label] = r["w"]; wide[label + " se"] = r["se"]
+        wide[label] = r["w"]; wide[label + " se"] = r["se"]; wide[label + " se_idio"] = r["se_idio"]
     wide.to_csv(CACHE / f"stability_{TAG}_wedges.csv", index=False)
     print(f"\nwrote raw/stability_{TAG}_summary.csv, _by_characteristic.csv, _firm.csv, _wedges.csv")
     return 0
