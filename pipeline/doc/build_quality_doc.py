@@ -88,11 +88,11 @@ comparisons below use the """ + f"{h['n_verified']}" + r""" portfolios of the ve
 
 \subsection*{Each subsample against the full sample}
 
-\begin{longtable}{lrrrrrrrrrr}\toprule
+{\small\begin{longtable}{lrrrrrrrrrr}\toprule
 Cohorts formed & N & $\lambda$ & sd & noise & corr & rank & slope & RMSE & LS corr & flips\\\midrule
 \endhead
 """ + t1 + r"""
-\bottomrule\end{longtable}
+\bottomrule\end{longtable}}
 
 \noindent\emph{sd}: cross-sectional standard deviation of the subsample's wedges, pp.
 \emph{noise}: median idiosyncratic standard error of a wedge in that subsample, pp,
