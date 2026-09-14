@@ -75,16 +75,21 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--refresh", action="store_true",
                         help="refetch every table instead of reusing the cache")
+    parser.add_argument("--end", default=END,
+                        help="last month of the panel, e.g. 2025-12-31 for the site's current panel")
+    parser.add_argument("--suffix", default="",
+                        help="suffix for the cached pulls and the output, e.g. _today")
     args = parser.parse_args()
+    end, sfx = args.end, args.suffix
 
     os.environ["WRDS_USERNAME"] = _username()
     print("pulling from WRDS")
     db = connect()
-    monthly = _cached("crsp_monthly", lambda: ch.crsp_monthly(db, START, END), args.refresh)
-    annual = _cached("compustat_annual",
-                     lambda: ch.compustat_annual(db, COMPUSTAT_START, END), args.refresh)
-    link = _cached("ccm_link", lambda: ch.ccm_link(db), args.refresh)
-    years = list(range(int(START[:4]), int(END[:4]) + 1))
+    monthly = _cached(f"crsp_monthly{sfx}", lambda: ch.crsp_monthly(db, START, end), args.refresh)
+    annual = _cached(f"compustat_annual{sfx}",
+                     lambda: ch.compustat_annual(db, COMPUSTAT_START, end), args.refresh)
+    link = _cached(f"ccm_link{sfx}", lambda: ch.ccm_link(db), args.refresh)
+    years = list(range(int(START[:4]), int(end[:4]) + 1))
     print("  daily moments (aggregated on WRDS's server, one row per firm-month)")
     moments = daily_moments(db, years)
     moments = moments.merge(range_moments(db, years).drop(columns=["n"]),
@@ -161,7 +166,7 @@ def main() -> int:
     adjust_learned(panel, INDUSTRY_ADJUSTED, ordinary)
 
     CACHE.mkdir(parents=True, exist_ok=True)
-    panel.to_parquet(CACHE / "full_panel.parquet", index=False)
+    panel.to_parquet(CACHE / f"full_panel{sfx}.parquet", index=False)
 
     from pwsite.spec_ids import ALL_CHARACTERISTICS
     built = [c for c in ALL_CHARACTERISTICS if c in panel.columns]

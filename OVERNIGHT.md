@@ -262,7 +262,8 @@ The binding constraint on *portfolio* wedges is the fifteen-year resolution
 horizon, not the data: a cohort formed in month t needs 180 months of
 subsequent cash flows, so the last formable cohort is **December 2010**. That
 gives **559 formation cohorts against the paper's 463**, a 21% increase, and a
-recalibrated price of risk of **3.5474**.
+recalibrated price of risk of **3.5311** (rebuilt 13 September 2026 on the
+corrected characteristics; 4,904,234 firm-months).
 
 Both tables are written to `raw/portfolio_wedges_paper.csv` and
 `raw/portfolio_wedges_current.csv`, with all ten deciles, the one-month alpha,

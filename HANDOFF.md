@@ -90,6 +90,33 @@ firm-months differ for a typical characteristic, flat across decades, with our
 coverage 1 to 3% higher. `pipeline/panel-agreement-latest.txt` is the full
 firm-month comparison and `raw/validation.json` the sort-level agreement.
 
+## The two panels, and a trap
+
+`raw/full_panel.parquet` stops in December 2017 and is what every validation
+runs on. The site's current panel is `raw/full_panel_today.parquet`, built by
+`build_panel.py --end 2025-12-31 --suffix _today` from the `_today` caches,
+and every current-tag script needs `--panel ../raw/full_panel_today.parquet
+--factors ../raw/ff_monthly_today.parquet --end 202512`. Without those flags
+`--tag current` silently re-runs the 2017 panel (that happened on 12
+September; the current outputs were regenerated correctly on 13 September:
+559 cohorts, lambda 3.5311, 4,904,234 firm-months).
+
+## Which sample for the wedges (13 September 2026)
+
+`stability.py current` re-estimates all 570 decile wedges on subsamples of
+the 559 formation cohorts, re-solving lambda on each. The cross-section is
+not stable: the two halves (1964-87 and 1988-2011) correlate 0.45 where two
+halves of a constant cross-section would correlate about 0.68 given their
+sampling noise; 13 of 56 long-short spreads change sign, the value ratios
+(E2P, A2ME, D2P) reverse and momentum triples; the 1980-95 third is nearly
+flat and unrelated to the rest (0.17). Adding the 2003-2011 cohorts to the
+paper's window changes almost nothing (0.99). Refitting the firm mapping on
+either half keeps the firm ranking (correlation 0.92-0.96 with the
+full-sample firm wedges) but moves magnitudes by 8-12 pp, a third to two
+fifths of firms by more than 10 pp. Recommendation recorded there and in the
+chat of 13 September: headline on the full available sample, show the
+half-sample sensitivity, do not switch to a later window.
+
 ## The firm-level mapping
 
 Settled: regress portfolio wedges on portfolio characteristic ranks, ridge
@@ -116,7 +143,9 @@ characteristics (0.63 with the penalty chosen inside each fold).
 
 ## Scripts
 
-    build_panel.py        pull and build the 57-characteristic panel
+    build_panel.py        pull and build the 57-characteristic panel (to 2017);
+                          --end 2025-12-31 --suffix _today builds the site's current panel
+    stability.py          wedges on cohort subsamples: is the cross-section stable, which sample to use
     compare_panels.py     diff every characteristic against the paper's own panels
     compare_allocation.py diff decile membership against the paper's own sorts
     pwsite/lastday.py     DTO and SUV from the daily file (last trading day)
