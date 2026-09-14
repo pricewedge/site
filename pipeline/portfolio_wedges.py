@@ -107,7 +107,14 @@ def main() -> int:
     p.add_argument("--horizon", type=int, default=C.HORIZON_MONTHS)
     p.add_argument("--chars", default=None)
     p.add_argument("--refresh", action="store_true")
+    p.add_argument("--weighting", default="cap", choices=["cap", "equal"],
+                   help="equal forms equal-weighted deciles, caches them under <tag>_ew and prices "
+                        "them at the cap run's lambda (the market wedge is zero for the cap-weighted "
+                        "universe; that calibration is kept)")
     args = p.parse_args()
+    if args.weighting == "equal":
+        lam_cap = pd.read_csv(CACHE / f"portfolio_wedges_{args.tag}.csv")["lambda"].iloc[0]
+        args.tag = f"{args.tag}_ew"
 
     grids = build_grids(args.panel, args.factors, args.start, args.end,
                         args.first_formation)
@@ -115,7 +122,10 @@ def main() -> int:
           f"{len(grids.permnos):,} firms; formation starts {grids.months[grids.first-1]}")
 
     names = args.chars.split(",") if args.chars else ALL_CHARACTERISTICS
-    print(f"\nsorting {len(names)} characteristics")
+    if args.weighting == "equal":
+        weight = grids.fixed["PORT_WEGHT"]
+        grids.fixed["PORT_WEGHT"] = np.where(np.isfinite(weight), 1.0, np.nan)
+    print(f"\nsorting {len(names)} characteristics ({args.weighting}-weighted)")
     built = run_sorts(grids, args.tag, names, args.refresh)
 
     # The sorts start at the first formation month; the discount factor is
@@ -124,7 +134,8 @@ def main() -> int:
     rm, rf = grids.rm[offset:], grids.rf[offset:]
     print(f"\ncalibrating the market price of risk on {len(rm)} months")
     ybh, ybhx = load_bh(args.tag, built[0])
-    lam = solve_lambda(ybh[offset:], ybhx[offset:], rm, rf, MARKET, args.horizon)
+    lam = (lam_cap if args.weighting == "equal"
+           else solve_lambda(ybh[offset:], ybhx[offset:], rm, rf, MARKET, args.horizon))
     mtj, cohorts = discount_factor(rm, rf, lam, args.horizon)
     market = wedge(ybh[offset:], ybhx[offset:], MARKET, mtj, cohorts, args.horizon)
     print(f"  lambda = {lam:.12f}   market wedge = {market:.3e}   "

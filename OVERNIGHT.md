@@ -1026,3 +1026,28 @@ The paper's PC3 mapping is reproduced from `Allocation/chars.mat` and the
 bias-corrected wedges in `PWCAPMTable1_block180.mat`: adjusted R-squared 0.758
 against the paper's 0.76. `PriceWedges.mat` in the folder is identical to
 `PWshare.mat`.
+
+
+# Phase 7 — levels, and where the method mixes weightings (14 September 2026)
+
+Christian asked why our PC3 firm wedges sat 11 percentage points below the
+published ones and rejected correlation as the yardstick. The answer was not
+the bias correction (about 1 pp, applied once to the portfolio wedges) but our
+own profiles: capitalisation-weighted mean ranks where the paper uses
+equal-weighted ones. With equal-weighted profiles the published firm wedges
+reproduce to 1.2 pp in level.
+
+That opened the real question, which `realised_levels.py` answers: sort firms
+on a fitted wedge, hold the deciles fifteen years, compare realised with
+fitted. The equal-weighted universe realises -24.6 pp (the value-weighted one
+is zero by calibration). The published firm wedges average -6.9 pp: slope
+0.64, intercept -18 pp on equal-weighted deciles, because an equal-weighted
+profile centres the average firm on the value-weighted, big-firm wedge. Our
+cap-weighted mapping has the level right (intercept -3) and too much
+dispersion (slope 0.67); fitting on value- and equal-weighted decile
+portfolios together, each with matching profiles, gives slope 0.86-0.88 and
+intercept near zero, and out of sample the slopes survive while the level
+follows the market. The catalogue of where the paper weights by value and
+where by firm, the conceptual reading, and a list of recommendations for the
+method are in `doc/quality.pdf`.
+

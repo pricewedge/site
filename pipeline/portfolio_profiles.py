@@ -63,6 +63,9 @@ def main() -> int:
     p.add_argument("--start", type=int, default=196001)
     p.add_argument("--end", type=int, default=201712)
     p.add_argument("--first-formation", type=int, default=196407)
+    p.add_argument("--weighting", default="cap", choices=["cap", "equal"],
+                   help="mean rank within the portfolio weighted by market cap, or equal-weighted "
+                        "as the paper's chars.mat is; equal writes portfolio_profiles_<tag>_ew.csv")
     args = p.parse_args()
 
     grids = build_grids(args.panel, args.factors, args.start, args.end,
@@ -103,7 +106,7 @@ def main() -> int:
                 continue
             members = np.flatnonzero(present)
             deciles = assign_deciles(values[c][t - 1][members], nyse[t - 1][members])
-            w = w_row[members][:, None]
+            w = w_row[members][:, None] if args.weighting == "cap" else np.ones((len(members), 1))
             r = block[members]
             good = usable[members]
             for d in range(1, DECILES + 1):
@@ -125,10 +128,12 @@ def main() -> int:
              **{names[j]: profile[ci, d, j] for j in range(len(names))}}
             for ci in range(len(names)) for d in range(DECILES)]
     frame = pd.DataFrame(rows)
-    out = CACHE / f"portfolio_profiles_{args.tag}.csv"
+    out = CACHE / f"portfolio_profiles_{args.tag}{'_ew' if args.weighting == 'equal' else ''}.csv"
     frame.to_csv(out, index=False)
     print(f"\nwrote {out}  ({len(frame)} portfolios x {len(names)} characteristics)")
 
+    if args.weighting == "equal":
+        return 0            # the firm rank panel is the same either way; the cap run writes it
     # The firm-level rank panel the mapping is evaluated on.
     firm = pd.DataFrame({"permno": np.repeat(grids.permnos, len(grids.months)),
                          "month": np.tile(grids.months, len(grids.permnos))})

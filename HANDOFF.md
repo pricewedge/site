@@ -117,6 +117,31 @@ fifths of firms by more than 10 pp. Recommendation recorded there and in the
 chat of 13 September: headline on the full available sample, show the
 half-sample sensitivity, do not switch to a later window.
 
+## Levels and weighting (14 September 2026)
+
+Correlation is not the test for firm-level wedges; levels are. `realised_levels.py`
+sorts firms on a candidate firm wedge, holds the deciles fifteen years, and
+regresses the realised wedge on the fitted one. Findings, all in `doc/quality.pdf`:
+
+* Our portfolio profiles were capitalisation-weighted mean ranks; the paper's
+  `chars.mat` uses equal-weighted means (`nanmean`). That one choice moves every
+  firm-level wedge by 10-27 pp. With equal-weighted profiles our PC3 reproduces
+  `PWshare.mat` to 1.2 pp in level (slope 1.04); the ~1 pp residual is the
+  log-bias correction, which enters once, on the portfolio wedges.
+* The realised wedge of the equal-weighted universe is -24.6 pp (value-weighted
+  0 by calibration). The published firm wedges average -6.9 pp and fail the
+  level test (EW slope 0.64, intercept -18 pp): equal-weighted profiles hand
+  the average firm the big-firm wedge. Our cap-weighted mapping has the level
+  right and 30% too much dispersion. Fitting on value- and equal-weighted
+  deciles together, each with its own profiles, passes (slope 0.86-0.88,
+  intercept near zero equal-weighted).
+* `portfolio_wedges.py --weighting equal` and `portfolio_profiles.py --weighting
+  equal` build the equal-weighted objects (tag suffix `_ew`).
+
+The report's Recommendations section lists what to change in the method; the
+mapping default in the pipeline is still value-weighted wedges with
+value-weighted profiles until that discussion is settled.
+
 ## The firm-level mapping
 
 Settled: regress portfolio wedges on portfolio characteristic ranks, ridge
@@ -146,6 +171,7 @@ characteristics (0.63 with the penalty chosen inside each fold).
     build_panel.py        pull and build the 57-characteristic panel (to 2017);
                           --end 2025-12-31 --suffix _today builds the site's current panel
     stability.py          wedges on cohort subsamples: is the cross-section stable, which sample to use
+    realised_levels.py    the level test: do firms realise the wedge they are assigned
     compare_panels.py     diff every characteristic against the paper's own panels
     compare_allocation.py diff decile membership against the paper's own sorts
     pwsite/lastday.py     DTO and SUV from the daily file (last trading day)
