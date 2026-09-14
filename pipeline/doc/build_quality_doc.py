@@ -152,11 +152,11 @@ almost everything.
 The direct mapping refitted on each subsample's portfolio wedges, applied to
 the same firm-months, against the full-sample firm wedges (sd """ + f"{fw_sd:.0f}" + r"""~pp).
 
-\begin{longtable}{lrrrrrrr}\toprule
+{\small\begin{longtable}{lrrrrrrr}\toprule
 Fitted on & corr & rank & mean diff & sd diff & $|$diff$|>10$ & corr 2020--25 & sd diff 2020--25\\\midrule
 \endhead
 """ + t4 + r"""
-\bottomrule\end{longtable}
+\bottomrule\end{longtable}}
 
 The ranking of firms is robust to the sample: correlations 0.90 to 0.96 for
 every window except the 1980--1995 third and the post-2000 window. The
