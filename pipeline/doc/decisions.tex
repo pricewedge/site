@@ -7,7 +7,7 @@
 \setlength{\parskip}{4pt}
 \title{\sffamily Firm-level price wedges for pricewedge.com:\\design decisions and why they were made}
 \author{Christian Opp, with the replication pipeline}
-\date{15 September 2026 (decision A taken; B: sources reviewed, industry benchmark awaiting two originals; C open)}
+\date{15 September 2026 (decisions A and B taken; C open)}
 \begin{document}\maketitle
 
 \section*{Why this document exists}
@@ -224,7 +224,7 @@ Rankings are not. This is worth raising with the coauthors before the
 extension to more characteristics is built.
 
 \section{Decision B: which signal definitions the site's portfolios are
-built on (open; default: as described)}
+built on (taken: as the original papers define them)}
 
 \subsection*{Why it matters}
 
@@ -306,16 +306,22 @@ the condensed appendix.
 turnover (aBEME, aSIZE, aPM, aSAT).} FNW: the characteristic minus its
 average at the Fama-French 48 industry level, citing Asness, Porter and
 Stevens (2000) for book-to-market and size and Soliman (2008) for profit
-margin and asset turnover. The paper's data demeans within 27 industry
-groups of unknown origin, recovered from its panels, with the CRSP
-name-history SIC code. \textbf{Open: awaiting the original texts.} Both are
-behind access walls (SSRN and The Accounting Review). What to look for in
-them: the industry classification (SIC digits or Fama-French industries and
-how many), whether the benchmark is the industry mean or median, whether it
-is equal- or value-weighted, and any exclusions. Until then the default is
-FNW's rendering, the Fama-French 48 mean. Note that FNW's own ``ATO'' is
-Soliman's asset turnover (sales over lagged net operating assets) while
-``SAT'' is sales over total assets; the paper's aSAT adjusts the latter.
+margin and asset turnover. Asness, Porter and Stevens (2000, section~2)
+assign each stock every month to one of the 48 industries of Fama and French
+(1997) by its four-digit SIC code, define the within-industry measure as the
+firm's characteristic minus the \emph{equally weighted} average of the
+characteristic over the industry's constituents, and require at least three
+firm-years in an industry. Soliman (2008) defines profit margin as operating
+income over sales and asset turnover as sales over \emph{average} net
+operating assets, and does not industry-adjust either in the published paper
+(the adjustment belongs to his 2004 dissertation); the industry adjustment
+of PM and SAT is therefore FNW's construction, built the same way as Asness,
+Porter and Stevens's. The paper's data demeans within 27 industry groups of
+unknown origin, recovered from its panels. \textbf{Settled: the Fama-French
+48 industries by SIC range (Ken French's list), the equal-weighted industry
+mean, at least three firms, CRSP's name-history SIC code, for all four.}
+FNW's ``SAT'' is sales over total assets rather than Soliman's turnover over
+net operating assets; the paper's aSAT adjusts SAT and that is kept.
 
 \paragraph{aPM.} Same construction; in addition its cell means cannot be
 rebuilt (they were computed over a wider firm set than the panels hold) and
@@ -338,8 +344,8 @@ OA, AOA & Sloan (1996): minus depreciation & plus depreciation & Sloan, lagged a
 SUV & Garfinkel (2009): daily standardised residual, prior-window regression & last day of a within-month regression & daily residuals from month $t-1$'s fit, mean over month $t$\\
 DTO & Garfinkel (2009): daily market-adjusted turnover minus control-period mean; FNW: minus 180-day median, Nasdaq scaled & last day's raw turnover minus 180-day mean, no market adjustment & FNW's, mean over the month\\
 TNOVR & Datar et al.\ (1998): 3-month average volume over current shares; FNW: last month's & last month's volume over current shares & unchanged (= FNW)\\
-aBEME, aSIZE & Asness et al.\ (2000); FNW: FF48 mean & 27 recovered groups & FF48 mean pending the original\\
-aSAT & Soliman (2008); FNW: FF48 mean & 27 recovered groups & FF48 mean pending the original\\
+aBEME, aSIZE & Asness et al.\ (2000): FF48, equal-weighted mean, three firms & 27 recovered groups & FF48 equal-weighted mean\\
+aSAT & Soliman (2008) defines SAT's cousin ATO and does not adjust; FNW: FF48 mean & 27 recovered groups & FF48 equal-weighted mean\\
 aPM & Soliman (2008) & not reproducible; alpha zero & dropped\\
 \bottomrule
 \end{longtable}
@@ -372,9 +378,13 @@ window for the daily beta, zero-volume days excluded from the volume
 dispersion, $n-1$ in the idiosyncratic volatility, the day-level spread,
 dividends in dollars over market capitalisation.
 
-\subsection*{Default, pending the decision}
+\subsection*{The decision and its reasons}
 
-Option 2, with option 1 run alongside as the labelled reference. The reason
+Option 2, with option 1 run alongside as the labelled reference; the
+definitions are the ones the source review above settles, signal by signal.
+The principle behind it, in Christian's words, is that the point of the
+anomalies is to use the existing specifications, not new ones that arise
+from an implementation mistake. The reason
 is the same as in decision A: the site should be able to state what its
 inputs are in one sentence, and ``as defined in the paper's appendix'' is a
 sentence, while ``as in the paper's data, including a depreciation term with
