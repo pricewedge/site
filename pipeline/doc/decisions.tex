@@ -7,7 +7,7 @@
 \setlength{\parskip}{4pt}
 \title{\sffamily Firm-level price wedges for pricewedge.com:\\design decisions and why they were made}
 \author{Christian Opp, with the replication pipeline}
-\date{15 September 2026 (decisions A and B taken; C open)}
+\date{15 September 2026 (decisions A, B and C taken)}
 \begin{document}\maketitle
 
 \section*{Why this document exists}
@@ -392,8 +392,8 @@ the wrong sign and two signals sampled on one day'' is not one the site
 should have to make. The cost, six rows that differ from the published
 table, is disclosed rather than hidden.
 
-\section{Decision C: which cohorts the wedges are estimated on (open;
-default: the full available sample)}
+\section{Decision C: which cohorts the wedges are estimated on (taken:
+the full available sample, no sample options on the site)}
 
 \subsection*{The options}
 
@@ -418,29 +418,40 @@ swings from 5.6 to 2.5 to 2.8 across the thirds), and moves the typical
 firm's wedge by 10 to 20 points. The firm ranking is robust to the choice
 (correlations 0.9 and above); the level is not.
 
-\subsection*{Default, pending the decision}
+\subsection*{The decision and its reasons}
 
-The full available sample as the headline, with the two half-sample
-estimates shown as a range next to each firm's number. A later window is not
-a better estimate of the same quantity; it is a different regime, and the
-site should show that regime dependence rather than pick a side.
+The full available sample, and no alternative samples on the site. The half
+samples remain an internal acceptance test: every build reports the
+half-sample mappings and their firm-level difference from the headline, and
+a build whose half-sample difference moves materially from the previous one
+is examined before it is published. The reasons: the full sample carries the
+most independent information and is the only choice under which the
+calibration averages over more than one cycle; a later window is not a
+better estimate of the same quantity but an estimate of a different regime;
+and offering sample choices on the site would invite readers to pick the
+number they prefer while presenting regime dependence as if it were an
+alternative estimate. The regime dependence is stated once, on the method
+page, with a pointer to the stability analysis in \texttt{quality.pdf}.
 
-\section{What the site shows, given A and the defaults for B and C}
+\section{What the site shows, given A, B and C}
 
 \begin{itemize}[nosep]
-\item \textbf{Headline:} the candidate-3 firm wedge, full sample, documented
-signal definitions, with its half-sample range and an extrapolation flag for
-firms whose characteristics lie outside the profiles' support.
+\item \textbf{Headline:} the candidate-3 firm wedge, full sample, signal
+definitions as the original papers define them, with the firm's percentile
+among all firms that month and an extrapolation flag for firms whose
+characteristics lie outside the profiles' support. No alternative samples or
+specifications per firm.
 \item \textbf{Reference:} the published construction (candidate 1, paper's
 definitions, paper's window), labelled ``as published in the JFE''.
 \item \textbf{Method page:} the definition of the wedge, the calibration
 (value-weighted market wedge zero), the weighting choices and the sentence
 each number can claim, the acceptance tests and their latest values.
-\item \textbf{Uncertainty:} the common component of the standard error
-(about 30 points, the market's realised path, the same for every firm) shown
-once as the uncertainty of the whole level; the firm-specific part (about 3
-to 4 points relative, and the half-sample range of about $\pm12$) shown per
-firm.
+\item \textbf{Uncertainty:} stated once, on the method page: the common
+component of the standard error (about 30 points, the market's realised
+path, the same for every firm) as the uncertainty of the whole level; the
+firm-specific part (about 3 to 4 points) and the half-sample sensitivity
+(about $\pm12$ points at the firm level) as the precision of differences
+between firms. Not repeated per firm.
 \end{itemize}
 
 \section{Acceptance gates for every build}
@@ -457,6 +468,10 @@ the decile table reported.
 point or two of the market wedge.
 \item Out-of-sample fit: leave-one-family-out strict $R^2$ of the mapping
 reported and not below the previous build's by more than noise.
+\item Half-sample check (internal): the mappings fitted on the 1964--87 and
+1988--2011 cohorts and their firm-level difference from the headline
+reported; a material change from the previous build is examined before
+publication.
 \item Ex-post returns: the fitted-wedge deciles' subsequent returns monotone
 at five years.
 \end{enumerate}
