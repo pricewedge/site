@@ -1,597 +1,414 @@
 \documentclass[11pt]{article}
-\usepackage[margin=2.3cm]{geometry}
-\usepackage{booktabs,amsmath,microtype,longtable}
+\usepackage[margin=1in]{geometry}
+\usepackage{booktabs,amsmath,microtype,array,enumitem}
 \usepackage[colorlinks=true,linkcolor=black,urlcolor=blue]{hyperref}
 \usepackage{sectsty}\allsectionsfont{\sffamily}
 \setlength{\parindent}{0pt}\setlength{\parskip}{5pt}
-\title{\sffamily Firm-level price wedges:\\how good is the mapping, and can it be improved?}
+\title{\sffamily Firm-level price wedges:\\[3pt]\large how well does the mapping from portfolios to firms work?}
 \author{}\date{\today}
 \begin{document}\maketitle
 
-\section*{What is being measured}
+\subsection*{What this report checks}
 
-A firm's price wedge is not estimated directly. Wedges are estimated for decile
-portfolios, and a mapping carries those onto individual firms through their
-characteristics. The question is how much that mapping can be trusted, and
-whether it can be improved.
+The paper estimates price wedges for characteristic-sorted decile portfolios
+and carries them to individual firms through a mapping from portfolio-level
+characteristics to portfolio-level wedges. This report asks how much that
+mapping can be trusted and whether it can be improved. Throughout, ``pp''
+is percentage points of the price wedge, and a fitted or assigned wedge is
+what a mapping gives a portfolio or a firm from its characteristics.
 
-Four criteria, because they answer different questions.
-
-\textbf{Leaving one characteristic out.} Fit on the portfolios of all but one
-characteristic, predict that one's ten deciles, rotate. Can the mapping price an
+Six checks, each answering a different question:
+\begin{itemize}[nosep]
+\item Leave one characteristic out (Section~1): can the mapping price an
 anomaly it has not seen?
+\item Leave one family of characteristics out (Section~1): the same with a
+whole Freyberger--Neuhierl--Weber category held out, since value
+characteristics predict one another.
+\item Extreme deciles held out (Section~1): fit on deciles 2 to 9, predict 1
+and 10; the mapping extrapolates at the firm level, where 94\% of
+firm-months lie outside the range the portfolios span on at least one
+characteristic.
+\item Subsequent returns (Section~2): do firms called overpriced go on to
+underperform?
+\item Levels (Section~3): do firms realize the wedge they are assigned? This
+is the decisive test for a website that reports a number rather than a
+ranking.
+\item Stability across formation dates (Section~5): is the cross-section of
+wedges the same object in different parts of the sample?
+\end{itemize}
+Every check is scored on magnitudes as well as ordering: the realized wedge
+is regressed on the assigned one and the slope and intercept are reported.
+A perfect mapping has slope one and intercept zero. $R^2$ is computed out of
+sample as $1 - \mathrm{SSE}/\mathrm{SST}$ on the held-out portfolios, so a
+mapping that ranks well but mis-scales is penalized.
 
-\textbf{Leaving one family out.} The same, holding out a whole Freyberger--
-Neuhierl--Weber category. Harder and more honest: value characteristics predict
-each other, so holding out book-to-market while assets-to-market and
-earnings-to-price remain is not a real test.
+\textbf{Which portfolios enter.} Only characteristics whose construction is
+verified against the paper's own data, as regressors and as portfolios; a
+portfolio we cannot reproduce carries a wedge we cannot trust. With
+1 characteristic unverified (aPM), the rule costs
+nothing: the leave-one-family-out fit is 0.63 with every characteristic in
+and 0.62 without it.
 
-\textbf{Holding out the extreme deciles.} Fit on deciles two to nine, predict
-one and ten. This tests extrapolation, which is what the mapping must do at the
-firm level: 94\% of firm-months sit outside the range the portfolios span on at
-least one characteristic.
+\section{The mapping on portfolios}
 
-\textbf{Subsequent returns.} Do firms the mapping calls overpriced go on to
-underperform? This is the only criterion evaluated on firms rather than
-portfolios, so it is the only one that can penalise bad extrapolation.
+Candidates: the paper's three principal components of portfolio-level
+characteristics, ten principal components, and a penalized regression of
+the wedges on all 56 rank-normalized characteristics (penalty chosen out of
+sample, on the leave-one-family-out fit), with two variants of the latter,
+weighting portfolios by the precision of their wedge and adding squared
+ranks. The paper fits on the 114 extreme deciles; here all 560 deciles are
+used, which is what the firm level needs.
 
-Everything is scored on magnitudes, not only ordering: the realised wedge is
-regressed on the fitted one and the intercept and slope reported. A perfect
-mapping has intercept zero and slope one. A mapping that ranks firms correctly
-but compresses the spread shows a slope away from one, and would be no good for
-a website that reports a wedge rather than a score.
-
-\paragraph{Which portfolios count.} Only characteristics whose construction is
-verified against the replication package enter, as regressors \emph{and} as
-portfolios. A portfolio we cannot reproduce carries a wedge we cannot trust, so
-including it adds noise to the left-hand side as well as the right. With
-1 characteristic still unverified (aPM), the rule costs
-nothing: the leave-one-family-out fit of the direct mapping is 0.63 with every
-characteristic in and 0.62 without it. When six were unverified it
-raised that fit from 0.56 to 0.67.
-
-\section*{Results}
 \subsection*{Leave one characteristic out}
-\begin{tabular}{lrrrrr}\toprule
-Mapping & $R^2$ & Correlation & Intercept & Slope & RMSE (pp)\\\midrule
-3 PCs (paper) & 0.587 & 0.766 & -0.19 & 0.959 & 6.23\\
-10 PCs & 0.747 & 0.864 & -0.12 & 0.965 & 4.88\\
-\bfseries direct & 0.766 & 0.875 & -0.11 & 0.959 & 4.70\\
-direct, precision-wtd & 0.774 & 0.880 & -0.35 & 0.944 & 4.63\\
-direct + squares & 0.370 & 0.608 & -1.39 & 0.626 & 8.48\\
-squares, precision-wtd & 0.449 & 0.670 & -1.31 & 0.640 & 8.09\\
-\bottomrule\end{tabular}\\[8pt]
-\subsection*{Leave one family out}
-\begin{tabular}{lrrrrr}\toprule
-Mapping & $R^2$ & Correlation & Intercept & Slope & RMSE (pp)\\\midrule
-3 PCs (paper) & 0.389 & 0.624 & -1.68 & 0.665 & 8.15\\
-10 PCs & 0.467 & 0.683 & -1.70 & 0.673 & 7.76\\
-\bfseries direct & 0.619 & 0.787 & -1.01 & 0.843 & 6.14\\
-direct, precision-wtd & 0.609 & 0.781 & -1.30 & 0.805 & 6.33\\
-direct + squares & 0.038 & 0.195 & -4.89 & 0.047 & 39.54\\
-squares, precision-wtd & 0.049 & 0.222 & -4.88 & 0.056 & 37.44\\
-\bottomrule\end{tabular}\\[8pt]
-\subsection*{Extremes held out}
-\begin{tabular}{lrrrrr}\toprule
-Mapping & $R^2$ & Correlation & Intercept & Slope & RMSE (pp)\\\midrule
-3 PCs (paper) & 0.737 & 0.858 & +1.02 & 0.963 & 7.23\\
-10 PCs & 0.805 & 0.897 & +0.04 & 0.863 & 6.46\\
-\bfseries direct & 0.804 & 0.897 & -1.35 & 0.853 & 6.56\\
-direct, precision-wtd & 0.808 & 0.899 & -1.37 & 0.856 & 6.50\\
-direct + squares & 0.571 & 0.756 & +0.11 & 0.798 & 9.51\\
-squares, precision-wtd & 0.626 & 0.791 & -1.52 & 0.699 & 9.72\\
-\bottomrule\end{tabular}\\[8pt]
+\begin{center}\small\begin{tabular}{lrrrrr}\toprule
+Mapping & $R^2$ & corr. & intercept & slope & RMSE\\\midrule
+3 principal components (paper) & 0.587 & 0.766 & -0.19 & 0.959 & 6.23\\
+10 principal components & 0.747 & 0.864 & -0.12 & 0.965 & 4.88\\
+\bfseries penalized regression & 0.766 & 0.875 & -0.11 & 0.959 & 4.70\\
+penalized, precision-weighted & 0.774 & 0.880 & -0.35 & 0.944 & 4.63\\
+penalized, with squared ranks & 0.370 & 0.608 & -1.39 & 0.626 & 8.48\\
+squared ranks, precision-weighted & 0.449 & 0.670 & -1.31 & 0.640 & 8.09\\
+\bottomrule\end{tabular}\end{center}
+\subsection*{Leave one family of characteristics out}
+\begin{center}\small\begin{tabular}{lrrrrr}\toprule
+Mapping & $R^2$ & corr. & intercept & slope & RMSE\\\midrule
+3 principal components (paper) & 0.389 & 0.624 & -1.68 & 0.665 & 8.15\\
+10 principal components & 0.467 & 0.683 & -1.70 & 0.673 & 7.76\\
+\bfseries penalized regression & 0.619 & 0.787 & -1.01 & 0.843 & 6.14\\
+penalized, precision-weighted & 0.609 & 0.781 & -1.30 & 0.805 & 6.33\\
+penalized, with squared ranks & 0.038 & 0.195 & -4.89 & 0.047 & 39.54\\
+squared ranks, precision-weighted & 0.049 & 0.222 & -4.88 & 0.056 & 37.44\\
+\bottomrule\end{tabular}\end{center}
+\subsection*{Extreme deciles held out}
+\begin{center}\small\begin{tabular}{lrrrrr}\toprule
+Mapping & $R^2$ & corr. & intercept & slope & RMSE\\\midrule
+3 principal components (paper) & 0.737 & 0.858 & +1.02 & 0.963 & 7.23\\
+10 principal components & 0.805 & 0.897 & +0.04 & 0.863 & 6.46\\
+\bfseries penalized regression & 0.804 & 0.897 & -1.35 & 0.853 & 6.56\\
+penalized, precision-weighted & 0.808 & 0.899 & -1.37 & 0.856 & 6.50\\
+penalized, with squared ranks & 0.571 & 0.756 & +0.11 & 0.798 & 9.51\\
+squared ranks, precision-weighted & 0.626 & 0.791 & -1.52 & 0.699 & 9.72\\
+\bottomrule\end{tabular}\end{center}
 
-\section*{Do the wedges predict returns?}
+The penalized regression is best on every check, by 0.2 of $R^2$ on the
+family test, and its slope is closest to one. Ten principal components come
+close; three do not. Neither variant helps: precision weighting has nothing
+to exploit (the standard errors of the portfolio wedges are nearly uniform,
+a 1.2-fold spread between the 10th and 90th percentiles, all near
+29~pp because 463 formation dates that overlap in 179 of their
+180 months are worth two or three independent observations), and squared
+ranks halve the out-of-sample fit. The penalty is the substance: without it
+the fitted wedges of an unfamiliar family are more than twice too dispersed
+(the realized wedge moves 0.42 per point of fitted wedge, against 0.89 with
+the penalty).
 
-Firms are sorted into deciles on their fitted wedge each month and tracked
-forward. Decile 1 is the most negative wedge (most underpriced), decile 10 the
-most positive, so if wedges are mispricing that resolves, decile 1 should
-outperform and the spread should be positive.
+\section{Subsequent returns}
 
-\begin{longtable}{llrrrr}\toprule
-Mapping & Horizon & Weighting & Decile 1 & Decile 10 & Spread (pp)\\\midrule
-\endhead
-3 PCs (paper) & 12m & cap & 18.4 & 10.7 & 7.7\\
-3 PCs (paper) & 36m & cap & 60.3 & 34.8 & 25.5\\
-3 PCs (paper) & 60m & cap & 118.3 & 69.4 & 48.9\\
-3 PCs (paper) & 12m & equal & 26.3 & 11.5 & 14.8\\
-3 PCs (paper) & 36m & equal & 80.4 & 35.1 & 45.3\\
-3 PCs (paper) & 60m & equal & 143.2 & 67.0 & 76.2\\
-10 PCs & 12m & cap & 21.3 & 10.5 & 10.7\\
-10 PCs & 36m & cap & 71.1 & 33.4 & 37.7\\
-10 PCs & 60m & cap & 134.3 & 65.6 & 68.8\\
-10 PCs & 12m & equal & 27.2 & 10.5 & 16.7\\
-10 PCs & 36m & equal & 84.1 & 31.6 & 52.6\\
-10 PCs & 60m & equal & 150.0 & 62.3 & 87.7\\
-direct & 12m & cap & 18.9 & 10.1 & 8.8\\
-direct & 36m & cap & 64.6 & 31.9 & 32.7\\
-direct & 60m & cap & 125.1 & 62.4 & 62.8\\
-direct & 12m & equal & 25.5 & 10.0 & 15.5\\
-direct & 36m & equal & 80.4 & 30.2 & 50.2\\
-direct & 60m & equal & 145.9 & 58.9 & 87.0\\
-\bottomrule\end{longtable}
+Firms are sorted into deciles on their assigned wedge each month and
+tracked forward; decile 1 is the most negative (most underpriced). If the
+wedge is mispricing that resolves, decile 1 should outperform.
 
-The wedges predict returns strongly and with the right sign. Over five years the
-direct mapping separates the extreme deciles by 63 percentage points
-capitalisation-weighted and 87 equal-weighted, and its deciles are monotone except capitalisation-weighted at 36 months. Three principal components produce a
-smaller spread (49 and 76 points) and are not monotone capitalisation-weighted at 12, 36 and 60 months.
+\begin{center}\small
+\begin{tabular}{llrrrr}\toprule
+Mapping & months & weighting & decile 1 & decile 10 & spread\\\midrule
+3 principal components & 12 & value & 18.4 & 10.7 & 7.7\\
+3 principal components & 12 & equal & 26.3 & 11.5 & 14.8\\
+3 principal components & 36 & value & 60.3 & 34.8 & 25.5\\
+3 principal components & 36 & equal & 80.4 & 35.1 & 45.3\\
+3 principal components & 60 & value & 118.3 & 69.4 & 48.9\\
+3 principal components & 60 & equal & 143.2 & 67.0 & 76.2\\
+10 principal components & 12 & value & 21.3 & 10.5 & 10.7\\
+10 principal components & 12 & equal & 27.2 & 10.5 & 16.7\\
+10 principal components & 36 & value & 71.1 & 33.4 & 37.7\\
+10 principal components & 36 & equal & 84.1 & 31.6 & 52.6\\
+10 principal components & 60 & value & 134.3 & 65.6 & 68.8\\
+10 principal components & 60 & equal & 150.0 & 62.3 & 87.7\\
+penalized regression & 12 & value & 18.9 & 10.1 & 8.8\\
+penalized regression & 12 & equal & 25.5 & 10.0 & 15.5\\
+penalized regression & 36 & value & 64.6 & 31.9 & 32.7\\
+penalized regression & 36 & equal & 80.4 & 30.2 & 50.2\\
+penalized regression & 60 & value & 125.1 & 62.4 & 62.8\\
+penalized regression & 60 & equal & 145.9 & 58.9 & 87.0\\
+\bottomrule
+\end{tabular}
+\end{center}
 
-\section*{Can the mapping be improved?}
+Over five years the penalized regression separates the extreme deciles by
+63~pp value-weighted and 87~pp equal-weighted, with deciles monotone except value-weighted at 36 months;
+three principal components give 49 and 76~pp and are not monotone value-weighted at 12, 36 and 60 months.
 
-\subsection*{Precision weighting: no, and the reason is informative}
+\section{Levels: do firms realize the wedge they are assigned?}
 
-If some portfolio wedges were estimated far more precisely than others, the
-regression should weight them accordingly. They are not. Reproducing the
-package's own standard error --- a Newey--West variance on the cohort-level
-ratios carried through the logarithm by the delta method --- and separately a
-moving-block bootstrap with the package's 180-month blocks:
+The portfolio-level tests cannot say whether the number the website prints
+for a firm is the right \emph{level}, and two firm-level series can
+correlate at 0.95 while differing by 20~pp. This section tests levels
+directly (\texttt{realised\_levels.py}). A candidate firm-level wedge is
+treated like a characteristic: firms are sorted into deciles on it every
+month at NYSE breakpoints, decile 1 holding the firms called most
+overpriced; each decile is held for fifteen years, equal-weighted and
+value-weighted; its realized price wedge is computed with the paper's SDF
+and price of risk; and the realized wedge is regressed on the average wedge
+the candidate had assigned to the decile's members. A candidate whose levels
+can be trusted gives a slope of one and an intercept of zero. The
+equal-weighted deciles ask whether firms realize what they are told, which is
+the website's question; the value-weighted deciles ask whether the candidate
+respects the calibration. The calibration adds one more check: the
+value-weighted average of a candidate's firm-level wedges must equal the
+market's wedge, zero.
 
-\begin{tabular}{lrrrr}\toprule
- & Median & 10th pct & 90th pct & Max\\\midrule
-Standard error (pp) & 29.0 & 27.1 & 32.2 & 40.6\\
-\bottomrule\end{tabular}\\[6pt]
+\textbf{A reference point.} The realized wedge of the equal-weighted market
+(one dollar in every firm) is -22.5~pp; that of the value-weighted market is
+2.3~pp (zero by calibration, up to the sample filter). The average firm is a
+small firm and is far more underpriced than the average dollar. A firm-level
+wedge has to reproduce that gap.
 
-The ratio of the 90th to the 10th percentile is 1.2. Precision is
-close to uniform across the 560 portfolios, so weighting by it has almost
-nothing to exploit --- and in the event it is very slightly worse on all three
-criteria, presumably because the weights add estimation noise of their own.
+\subsection*{In sample}
 
-What the exercise does reveal is the \emph{level}: a standard error around
-29 percentage points on wedges whose cross-sectional standard deviation is
-about 10. Individual portfolio wedges are imprecise, because 463 formation
-cohorts that overlap in 179 of their 180 months are worth only two or three
-independent observations. That is a caveat on the whole exercise rather than on
-any mapping.
+\begin{center}\small
+\begin{tabular}{lrrrrrrr}\toprule
+ & \multicolumn{3}{c}{equal-weighted deciles} & \multicolumn{2}{c}{value-weighted} & \multicolumn{2}{c}{mean assigned}\\
+Candidate & slope & icept & gap & slope & icept & EW & VW\\\midrule
+Published firm-level wedges (paper) & 0.64 & -18 & 16.2 & 0.95 & -8 & -7 & +9\\
+Paper's construction, rebuilt & 0.67 & -20 & 18.0 & 1.02 & -10 & -6 & +9\\
+Value-weighted portfolios only (penalty 100) & 0.67 & -3 & 6.9 & 0.79 & -3 & -33 & +1\\
+Equal-weighted portfolios only (penalty 100) & 1.05 & +6 & 5.4 & 0.86 & +5 & -27 & -8\\
+Both portfolio sets (penalty 100) & 0.86 & -1 & 3.5 & 0.76 & -4 & -27 & +1\\
+Value-weighted portfolios only (penalty 300) & 0.71 & -3 & 5.9 & 0.85 & -2 & -31 & +1\\
+Equal-weighted portfolios only (penalty 300) & 1.20 & +9 & 6.8 & 1.09 & +10 & -27 & -12\\
+Both portfolio sets (penalty 300) & 0.88 & -1 & 4.5 & 0.84 & -3 & -27 & +0\\
+\bottomrule
+\end{tabular}
+\end{center}
+\emph{icept: intercept, pp. gap: mean absolute difference between assigned and
+realized across the ten deciles, pp. mean assigned: the average of the
+candidate's firm-level wedges, equal-weighted over firm-months (compare with
+-23) and value-weighted (compare with zero).}
 
-\subsection*{Non-linear terms: no}
+The paper's published firm-level wedges (three principal components of the
+114 extreme deciles, each portfolio described by the equal-weighted average
+of its members' characteristics) have a slope of 0.64 and an intercept of
+-18~pp on equal-weighted deciles: the firms they call fairly priced
+realize about $-25$~pp, and only the most underpriced decile realizes what it
+is assigned. Their value-weighted average is +9~pp where the
+calibration requires zero. The reason is in Section~4.
 
-Adding squared ranks roughly halves out-of-sample fit and pushes the slope to
-0.6 or below. The design already carries the non-linearity that matters: using
-all ten deciles rather than the extremes lets the wedge be non-linear in each
-sorting characteristic, and squaring 56 standardised ranks mostly adds
-collinear regressors for 560 observations to overfit.
+The pipeline's mapping on value-weighted portfolios alone has the level
+right (intercepts -3 and -3~pp) and too much dispersion (slopes
+0.67 and 0.79): it assigns the most underpriced decile about $-70$~pp
+where $-42$ is realized, because the typical firm sits far from the
+value-weighted portfolios' characteristics and the regression extrapolates.
+Fitting on both portfolio sets, each with the matching average of
+characteristics, does best: Both portfolio sets (penalty 100) gives a slope of 0.86 and an
+intercept of -1~pp equal-weighted, a mean absolute gap of 3.5~pp
+across deciles, 0.76 and -4~pp value-weighted, and a value-weighted
+average of +1~pp.
 
-\subsection*{Shrinkage: yes, and it is the substance}
+\subsection*{Decile detail}
 
-Unpenalised, the direct regression fits best in sample and generalises worst.
-Penalised at the level chosen inside each fold, it is the best mapping on every
-criterion at once and is close to unbiased in magnitude. The penalty is not a
-technicality: without it the fitted wedges of unfamiliar portfolios are more
-than twice too dispersed. On the leave-one-family-out test the realised wedge
-moves 0.42 for each point of fitted wedge with no penalty, against 0.89 with
-the penalty of 100 (run of 12 September 2026, \texttt{group\_cv.held\_out} on the
-verified portfolios).
+Assigned and realized wedge by decile of the assigned wedge, pp, for the
+published series and for both portfolio sets (penalty 100).
 
-\subsection*{Number of components}
-
-Ten principal components come close to the direct regression and beat three
-decisively on every criterion. If a dimension-reduced mapping is wanted for
-interpretability, ten is the defensible choice; three is not.
-
-
-\section*{Is the cross-section of wedges stable over time, and which sample should the site use?}
-
-Every portfolio wedge is $-\log$ of the mean, over formation cohorts, of the
-discounted fifteen-year cash flow per dollar of price. The full available
-sample has 559 cohorts, formed 196407 to 201101,
-with cash flows to 202512. Cohorts overlap in 179 of their 180 months, so the
-sample holds about three independent fifteen-year windows, and any subsample
-of it one or two. The question is whether the cross-section of wedges is the
-same object in different parts of the sample, and if not, which part the site
-should rest on.
-
-\texttt{stability.py} re-estimates all 570 decile wedges on subsets of the
-cohorts: the paper's own window, halves, thirds, and every window that starts
-in a later year. On each subset the market price of risk is re-solved so that
-the market wedge is zero there, as it is on the full sample; without that, a
-subsample's wedges shift as a block with the market's realised return. All
-comparisons below use the 560 portfolios of the verified characteristics.
-
-\subsection*{Each subsample against the full sample}
-
-{\small\begin{longtable}{lrrrrrrrrrr}\toprule
-Cohorts formed & N & $\lambda$ & sd & noise & corr & rank & slope & RMSE & LS corr & flips\\\midrule
-\endhead
-full 1964-2011 & 559 & 3.53 & 9.3 & 3.4 & 1.00 & 1.00 & 1.00 & 0.0 & 1.00 & 0\\
-paper 1964-2002 & 462 & 3.97 & 10.0 & 3.4 & 0.99 & 0.99 & 1.06 & 1.4 & 0.99 & 1\\
-first half 1964-1987 & 282 & 4.52 & 10.7 & 3.5 & 0.91 & 0.90 & 1.04 & 4.6 & 0.94 & 5\\
-second half 1988-2011 & 277 & 2.86 & 10.3 & 3.4 & 0.76 & 0.76 & 0.83 & 6.9 & 0.78 & 8\\
-third 1964-1979 & 186 & 5.58 & 12.1 & 3.0 & 0.83 & 0.81 & 1.08 & 7.3 & 0.85 & 8\\
-third 1980-1995 & 192 & 2.49 & 5.6 & 3.2 & 0.17 & 0.18 & 0.10 & 10.9 & -0.02 & 29\\
-third 1996-2011 & 181 & 2.85 & 15.0 & 4.1 & 0.76 & 0.78 & 1.23 & 10.2 & 0.80 & 5\\
-from 1975 & 433 & 2.62 & 8.2 & 3.4 & 0.81 & 0.79 & 0.71 & 5.5 & 0.87 & 4\\
-from 1980 & 373 & 2.64 & 8.6 & 3.1 & 0.76 & 0.75 & 0.70 & 6.3 & 0.80 & 7\\
-from 1985 & 313 & 2.78 & 9.3 & 3.4 & 0.75 & 0.74 & 0.74 & 6.7 & 0.78 & 9\\
-from 1990 & 253 & 2.90 & 11.3 & 3.2 & 0.77 & 0.77 & 0.93 & 7.4 & 0.79 & 5\\
-from 1995 & 193 & 2.92 & 14.3 & 3.8 & 0.76 & 0.78 & 1.17 & 9.6 & 0.79 & 6\\
-from 2000 & 133 & 2.16 & 13.9 & 4.4 & 0.52 & 0.53 & 0.77 & 12.2 & 0.49 & 11\\
-\bottomrule\end{longtable}}
-
-\noindent\emph{sd}: cross-sectional standard deviation of the subsample's wedges, pp.
-\emph{noise}: median idiosyncratic standard error of a wedge in that subsample, pp,
-from a moving-block bootstrap over its cohorts with each draw demeaned across
-portfolios so the component common to all portfolios drops out (block length
-120 cohorts, or a third of the subsample when shorter; 300 draws). \emph{corr},
-\emph{rank}, \emph{slope}, \emph{RMSE}: the subsample's wedges against the full
-sample's, slope of subsample on full. \emph{LS corr} and \emph{flips}: the
-correlation of the 56 long-short spreads with the full sample's, and how many
-change sign.
-
-Two things stand out. Adding the 2003--2011 cohorts to the paper's window
-changes almost nothing: correlation 0.99, one sign flip, RMSE 1.4~pp. Dropping
-the early cohorts is a different matter. Every window that starts in 1980 or
-later correlates 0.5 to 0.8 with the full cross-section, and the 1980--1995
-third is nearly flat (sd 5.6~pp against 9.3) and unrelated to the rest.
-
-\subsection*{The two halves against each other}
-
-The halves are independent cohorts, so this is the cleanest test. Their
-wedges correlate 0.45 (rank 0.46), with a slope of second on first of
-0.43. Given each half's idiosyncratic noise, two halves of a \emph{constant}
-cross-section would correlate about 0.68. The change across
-portfolios has a standard deviation of 11.0~pp, of which noise accounts for
-5.3~pp and about 8.6~pp is left, on a cross-sectional spread of
-9.3~pp. 27\% of portfolios move by more than two idiosyncratic
-standard errors. So the cross-section moves between halves by roughly its own
-size. That is the honest reading, with one caveat in the other direction: a
-block bootstrap with blocks shorter than the 180-month overlap understates
-sampling noise, so some of the 8.6~pp may still be sampling variation. The
-gap between 0.45 and 0.68 is too large for all of it to be.
-Judged against the \emph{total} Newey--West standard errors, which include the
-component common to all portfolios, no portfolio's change is significant
-(median total noise 51~pp); that statistic answers a different question,
-whether a single wedge is known, and the answer to that was already no.
-
-\subsection*{Where the change sits}
-
-Long-short spread of each characteristic (long leg less short leg, pp) by
-subsample, ordered by how much it moves between the halves.
-77\% of characteristics keep the sign of their spread across halves; the
-spreads correlate 0.54 across halves.
-
-\begin{longtable}{lrrrrrrr}\toprule
- & full & paper & 1964--87 & 1988--2011 & 1964--79 & 1980--95 & 1996--2011\\\midrule
-\endhead
-D2P & -16 & -23 & -39 & 40 & -43 & -4 & 61\\
-A2ME & -20 & -27 & -42 & 22 & -47 & -12 & 40\\
-E2P & -26 & -30 & -51 & 12 & -59 & -14 & 18\\
-ROC & -43 & -49 & -61 & -14 & -65 & 2 & -27\\
-C2D & 10 & 13 & 19 & -15 & 18 & 7 & -25\\
-SAT & -20 & -15 & -3 & -34 & 11 & 0 & -61\\
-ROE & 26 & 29 & 38 & 7 & 37 & -15 & 23\\
-CAT & -14 & -8 & 3 & -28 & 17 & 0 & -53\\
-RNA & 14 & 16 & 27 & -4 & 28 & 4 & -3\\
-ATO & 4 & 0 & -13 & 17 & -26 & 4 & 22\\
-S2P & -42 & -46 & -49 & -20 & -47 & 3 & -43\\
-PROF & 13 & 17 & 27 & 1 & 36 & -23 & 12\\
-OL & -21 & -16 & -6 & -32 & 8 & 2 & -61\\
-AOA & -22 & -24 & -31 & -7 & -33 & -5 & -14\\
-sdDVOL & -27 & -26 & -15 & -38 & -7 & -13 & -49\\
-C2A & 26 & 30 & 32 & 10 & 34 & -13 & 26\\
-NOA & -2 & 0 & 5 & -17 & 9 & -27 & -9\\
-ROIC & 27 & 29 & 35 & 13 & 34 & -7 & 25\\
-R\_12\_2 & 23 & 24 & 13 & 33 & 15 & 9 & 48\\
-ROA & 23 & 27 & 32 & 12 & 33 & -10 & 25\\
-sdTURN & 5 & 1 & -2 & 16 & -14 & 6 & 17\\
-EPS & 7 & 4 & -4 & 13 & -17 & -14 & 23\\
-R\_12\_7 & 23 & 24 & 14 & 31 & 16 & 10 & 44\\
-TAN & 17 & 17 & 16 & -0 & 12 & -6 & 9\\
-R\_6\_2 & 14 & 15 & 7 & 22 & 8 & 3 & 33\\
-TNOVR & -7 & -11 & -13 & 2 & -27 & 5 & -5\\
-DTO & -6 & -8 & -12 & 1 & -18 & 4 & -5\\
-AT & 22 & 20 & 22 & 9 & 9 & -6 & 13\\
-aBEME & -52 & -55 & -57 & -44 & -63 & 7 & -68\\
-MAXRET & -3 & -6 & -1 & -12 & -12 & -6 & -21\\
-PCM & 26 & 27 & 28 & 17 & 23 & -15 & 34\\
-dSOUT & -38 & -39 & -34 & -44 & -36 & -30 & -54\\
-IVC & -11 & -13 & -16 & -7 & -22 & 1 & -8\\
-PM & 29 & 26 & 21 & 30 & 9 & -12 & 56\\
-aSAT & -12 & -12 & -9 & -18 & -4 & -7 & -20\\
-RETVOL & -8 & -12 & -7 & -15 & -20 & -6 & -27\\
-I2A & -18 & -19 & -15 & -23 & -22 & 6 & -38\\
-BETA\_d & -32 & -37 & -35 & -41 & -53 & -8 & -67\\
-OA & -28 & -27 & -30 & -24 & -32 & -21 & -28\\
-dCEQ & -22 & -25 & -26 & -20 & -34 & 7 & -39\\
-SIZE & -44 & -44 & -41 & -35 & -30 & 11 & -51\\
-SG & -17 & -19 & -14 & -19 & -20 & 10 & -39\\
-R\_2\_1 & 6 & 6 & 3 & 8 & 4 & 1 & 12\\
-dSO & -34 & -34 & -31 & -36 & -31 & -25 & -41\\
-S2C & -22 & -21 & -17 & -21 & -16 & 16 & -47\\
-SPREAD & -14 & -18 & -14 & -18 & -28 & 3 & -35\\
-dGS & 10 & 11 & 7 & 11 & 8 & 6 & 14\\
-DP & -25 & -33 & -29 & -25 & -51 & 11 & -52\\
-SUV & -6 & -6 & -6 & -3 & -5 & 1 & -6\\
-IPM & 29 & 28 & 25 & 22 & 13 & 1 & 34\\
-dPIA & -22 & -24 & -23 & -21 & -27 & -5 & -29\\
-IDIOV & 7 & 4 & 5 & 3 & -7 & -7 & 2\\
-BEME & -48 & -52 & -48 & -47 & -54 & -6 & -70\\
-R\_36\_13 & -44 & -46 & -43 & -42 & -46 & -20 & -56\\
-aSIZE & -22 & -22 & -19 & -20 & -13 & 6 & -28\\
-Q & -45 & -49 & -44 & -44 & -52 & -2 & -66\\
-\bottomrule\end{longtable}
-
-The value ratios reverse between halves, the profitability spreads shrink,
-and momentum grows; book-to-market, Q, size, long-term reversal and the
-investment-type sorts are the stable core. The 1980--1995 column is flat for
-almost everything.
-
-\subsection*{What it does to the firm-level wedges}
-
-The direct mapping refitted on each subsample's portfolio wedges, applied to
-the same firm-months, against the full-sample firm wedges (sd 28~pp).
-
-{\small\begin{longtable}{lrrrrrrr}\toprule
-Fitted on & corr & rank & mean diff & sd diff & $|$diff$|>10$ & corr 2020--25 & sd diff 2020--25\\\midrule
-\endhead
-full 1964-2011 & 1.00 & 1.00 & +0.0 & 0.0 & 0\% & 1.00 & 0.0\\
-paper 1964-2002 & 1.00 & 1.00 & +0.5 & 2.4 & 0\% & 1.00 & 2.0\\
-first half 1964-1987 & 0.96 & 0.96 & +4.8 & 7.5 & 27\% & 0.96 & 7.0\\
-second half 1988-2011 & 0.92 & 0.91 & +1.3 & 11.9 & 40\% & 0.91 & 10.9\\
-third 1964-1979 & 0.91 & 0.90 & +12.1 & 12.1 & 63\% & 0.90 & 11.0\\
-third 1980-1995 & 0.44 & 0.42 & +30.9 & 25.2 & 85\% & 0.28 & 24.1\\
-third 1996-2011 & 0.90 & 0.89 & -9.9 & 20.5 & 67\% & 0.90 & 19.3\\
-from 1975 & 0.95 & 0.94 & +5.1 & 9.2 & 35\% & 0.94 & 8.6\\
-from 1980 & 0.91 & 0.90 & +8.1 & 11.9 & 50\% & 0.89 & 11.0\\
-from 1985 & 0.91 & 0.91 & +4.6 & 11.5 & 42\% & 0.91 & 10.6\\
-from 1990 & 0.92 & 0.91 & -0.9 & 12.9 & 43\% & 0.91 & 11.9\\
-from 1995 & 0.90 & 0.90 & -7.4 & 18.8 & 63\% & 0.90 & 17.6\\
-from 2000 & 0.75 & 0.74 & +1.7 & 21.2 & 63\% & 0.75 & 18.6\\
-\bottomrule\end{longtable}}
-
-The ranking of firms is robust to the sample: correlations 0.90 to 0.96 for
-every window except the 1980--1995 third and the post-2000 window. The
-magnitudes are not: refitting on the second half moves two fifths of firms by
-more than 10~pp, a later window more. The halves against each other at the
-firm level correlate 0.79 with a standard deviation of the difference of
-18~pp.
-
-\subsection*{Which sample}
-
-The full available sample is the headline choice. It is the only one with
-about three independent fifteen-year windows; every later window rests on one
-or two cycles, which is why the price of risk swings from 5.6 to 2.5 to 2.8
-across the thirds, and the windows ending after 2008 carry a different scale
-(slopes 1.2 to 1.35 on the extremes). Extending the paper's window to 2011
-cohorts and 2025 cash flows is safe. Switching to a later window is not a
-better estimate of the same quantity: it changes the answer in the direction
-of the post-1990 weakness of the value ratios and the 2000 and 2008 episodes,
-which is regime. What the drift does argue for is showing it: the full-sample
-firm wedge with the two half-sample estimates as a range, or ``since 1988'' as
-a labelled alternative specification, with the statement that rankings agree
-at 0.9 and magnitudes differ by about $\pm$12~pp.
-
-\section*{Levels: do firms realise the wedge they are assigned?}
-
-The criteria above compare mappings on portfolios. None of them can say
-whether the number the site would print for a firm is the right \emph{level},
-and correlation-based comparisons hide level errors entirely. This section
-tests levels directly. Each candidate firm wedge is treated as a
-characteristic: firms are sorted into deciles on it every month at NYSE
-breakpoints, decile 1 holding the firms called most overpriced, and each
-decile is held for fifteen years as an equal-weighted and as a
-value-weighted portfolio. The realised wedge of that portfolio, $-\log$ of
-the mean discounted cash flow per dollar over the formation cohorts with the
-same SDF and the same $\lambda$ as Table~1, is then regressed on the mean
-wedge the mapping assigned to the decile's members. A mapping whose levels
-can be trusted shows a slope of one and an intercept of zero. The
-equal-weighted version is the one that matters for a website that reports
-one firm at a time; the value-weighted version says whether the mapping
-respects the calibration that sets the value-weighted market wedge to zero.
-\texttt{realised\_levels.py} computes everything below.
-
-A reference point first. The realised wedge of the equal-weighted universe,
-one dollar in every firm, is -22.5~pp, against 2.3~pp for the
-value-weighted universe (zero by calibration up to the admissibility filter).
-The average firm is a small firm and is far more underpriced, under this SDF,
-than the average dollar. Any firm-level wedge has to reproduce that gap.
-
-\subsection*{In sample: fitted and realised on all cohorts}
-
-{\footnotesize\begin{longtable}{lrrrrrrrr}\toprule
- & \multicolumn{3}{c}{equal-weighted deciles} & \multicolumn{3}{c}{value-weighted deciles} & \multicolumn{2}{c}{mean fitted wedge}\\
-Firm wedge & slope & icept & MAD & slope & icept & MAD & EW & VW\\\midrule
-\endhead
-published PWshare (PC3, EW profiles) & 0.64 & -18.1 & 16.2 & 0.95 & -8.5 & 8.2 & -7.5 & 9.0\\
-PC3, 114 extremes, EW profiles (rebuilt) & 0.67 & -19.7 & 18.0 & 1.02 & -9.8 & 9.9 & -6.3 & 9.1\\
-direct ridge 100: VW wedges, VW profiles & 0.67 & -2.9 & 6.9 & 0.79 & -2.8 & 5.6 & -33.3 & 1.4\\
-direct ridge 100: EW wedges, EW profiles & 1.05 & +5.5 & 5.4 & 0.86 & +4.5 & 8.0 & -27.2 & -8.0\\
-direct ridge 100: VW and EW stacked & 0.86 & -0.5 & 3.5 & 0.76 & -3.8 & 6.8 & -27.1 & 0.8\\
-direct ridge 300: VW wedges, VW profiles & 0.71 & -3.4 & 5.9 & 0.85 & -2.3 & 5.1 & -31.1 & 0.8\\
-direct ridge 300: EW wedges, EW profiles & 1.20 & +9.1 & 6.8 & 1.09 & +10.4 & 8.1 & -27.1 & -11.8\\
-direct ridge 300: VW and EW stacked & 0.88 & -0.7 & 4.5 & 0.84 & -3.1 & 5.8 & -26.9 & -0.0\\
-\bottomrule\end{longtable}}
-
-\noindent\emph{slope}, \emph{icept}: realised decile wedge regressed on the
-decile's mean fitted wedge. \emph{MAD}: mean absolute gap between fitted and
-realised across the ten deciles, pp. \emph{mean fitted}: the mapping's own
-firm-level average, equal-weighted over firm-months and capitalisation-weighted;
-the latter should sit near the value-weighted universe wedge. ``VW wedges,
-VW profiles'' is the mapping used everywhere else in this report; ``EW
-wedges, EW profiles'' fits the same regression on equal-weighted decile
-portfolios described by equal-weighted mean ranks; ``stacked'' fits on both
-sets at once, each with its own profiles.
-
-The published firm wedges are the paper's PC3 mapping with equal-weighted
-profiles, and our rebuild of that construction reproduces them (level within
-1~pp). On equal-weighted deciles they have a slope of 0.64 and an intercept of
--18.1~pp: the firms the paper calls fairly priced realise wedges near
-$-25$~pp, and only the most underpriced decile realises what it is assigned.
-Value-weighted the slope is 0.95 and the intercept -8.5~pp. The reason
-is mechanical and is set out below: an equal-weighted profile places the
-average firm at the centre of a regression whose left-hand side is the
-value-weighted, big-firm wedge.
-
-The mapping used elsewhere in this report has the level right (intercepts
--2.9 and -2.8~pp) but too much dispersion (slopes 0.67 and
-0.79): it assigns the bottom decile about $-70$~pp where $-42$ is
-realised. Its centre is coherent because value-weighted wedges are paired
-with value-weighted profiles, but the typical firm sits far from that centre
-and the regression extrapolates. Heavier shrinkage repairs the
-value-weighted slope and not the equal-weighted one. Fitting on both
-portfolio sets with matching profiles does best: direct ridge 100: VW and EW stacked reaches a slope of
-0.86 and an intercept of -0.5~pp equal-weighted, with a mean absolute
-gap of 3.5~pp across deciles, and 0.76 and -3.8~pp value-weighted.
-
-The last two columns are the aggregate check. Because the market wedge is
-zero by calibration, the capitalisation-weighted mean of any firm-level wedge
-should sit near the value-weighted universe's realised wedge
-(2.3~pp here, the admissibility filter aside). The published series gives
-+9.0~pp, the value-weighted mapping +1.4~pp, and direct ridge 100: VW and EW stacked
-+0.8~pp; a mapping fitted on equal-weighted portfolios alone
-overshoots the other way. Equal-weighted, the same column should sit near the
-equal-weighted universe (-22.5~pp): -7.5 for the published
-series against -27.1 for the stacked mapping.
-
-\subsection*{Decile detail, in sample}
-
-Mean fitted and realised wedge by decile of the fitted wedge (pp), for the
-published series and for direct ridge 100: VW and EW stacked.
-
-{\small\begin{tabular}{lrrrrrrrrrr}\toprule
-published & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10\\\midrule
-EW fitted & 30 & 17 & 9 & 2 & -4 & -10 & -15 & -22 & -29 & -42\\
-EW realised & 6 & -2 & -11 & -28 & -25 & -29 & -30 & -30 & -33 & -40\\
-VW fitted & 31 & 17 & 9 & 2 & -4 & -10 & -15 & -21 & -29 & -39\\
-VW realised & 24 & 5 & 6 & -7 & -16 & -26 & -25 & -25 & -29 & -47\\
+\begin{center}\small
+\begin{tabular}{lrrrrrrrrrr}\toprule
+Published & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10\\\midrule
+equal-weighted, assigned & 30 & 17 & 9 & 2 & -4 & -10 & -15 & -22 & -29 & -42\\
+equal-weighted, realized & 6 & -2 & -11 & -28 & -25 & -29 & -30 & -30 & -33 & -40\\
+value-weighted, assigned & 31 & 17 & 9 & 2 & -4 & -10 & -15 & -21 & -29 & -39\\
+value-weighted, realized & 24 & 5 & 6 & -7 & -16 & -26 & -25 & -25 & -29 & -47\\
 \midrule
-direct ridge 100: VW and EW stacked & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10\\\midrule
-EW fitted & 23 & 6 & -3 & -11 & -18 & -25 & -31 & -39 & -48 & -67\\
-EW realised & 24 & 8 & -3 & -11 & -16 & -28 & -33 & -38 & -43 & -47\\
-VW fitted & 27 & 7 & -3 & -11 & -18 & -24 & -31 & -39 & -48 & -63\\
-VW realised & 27 & 3 & -10 & -19 & -25 & -28 & -29 & -31 & -37 & -45\\
-\bottomrule\end{tabular}}
+Both portfolio sets (penalty 100) & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10\\\midrule
+equal-weighted, assigned & 23 & 6 & -3 & -11 & -18 & -25 & -31 & -39 & -48 & -67\\
+equal-weighted, realized & 24 & 8 & -3 & -11 & -16 & -28 & -33 & -38 & -43 & -47\\
+value-weighted, assigned & 27 & 7 & -3 & -11 & -18 & -24 & -31 & -39 & -48 & -63\\
+value-weighted, realized & 27 & 3 & -10 & -19 & -25 & -28 & -29 & -31 & -37 & -45\\
+\bottomrule
+\end{tabular}
+\end{center}
 
 \subsection*{Out of sample}
 
-Mappings fitted on the cohorts formed before 1988 and evaluated on the
-cohorts formed from 1988 on (the published series, fitted on all cohorts, is
-evaluated on the same late cohorts). Two versions: with $\lambda$ held at the
-full-sample value, where the late cohorts' own market wedge is
-+14~pp value-weighted so every intercept carries that shift; and with
-$\lambda$ re-solved on each half, so the market wedge is zero in the fitting
-and in the evaluation period alike.
+Mappings fitted on formation dates before 1988 and evaluated on the dates
+from 1988 on, with the price of risk re-solved on each half so the market's
+wedge is zero in both (the published series, fitted on all dates, is
+evaluated on the same late dates).
 
-{\footnotesize\begin{longtable}{llrrrr}\toprule
-Firm wedge & $\lambda$ & EW slope & EW icept & VW slope & VW icept\\\midrule
-\endhead
-published PWshare (PC3, EW profiles) & full & 0.91 & -7.8 & 1.19 & -2.0\\
-PC3, 114 extremes, EW profiles (rebuilt) & full & 0.88 & -1.9 & 1.25 & +6.8\\
-direct ridge 100: VW wedges, VW profiles & full & 0.70 & +15.3 & 0.85 & +13.1\\
-direct ridge 100: EW wedges, EW profiles & full & 1.01 & +22.1 & 0.80 & +19.3\\
-direct ridge 100: VW and EW stacked & full & 0.87 & +17.0 & 0.88 & +15.0\\
-direct ridge 300: VW wedges, VW profiles & full & 0.76 & +15.4 & 0.91 & +12.9\\
-direct ridge 300: EW wedges, EW profiles & full & 1.27 & +32.0 & 1.18 & +28.3\\
-direct ridge 300: VW and EW stacked & full & 0.91 & +18.2 & 0.99 & +15.1\\
-published PWshare (PC3, EW profiles) & per half & 0.88 & -27.3 & 1.16 & -19.1\\
-direct ridge 100: VW wedges, VW profiles & per half & 0.72 & -11.9 & 0.84 & -13.0\\
-direct ridge 100: EW wedges, EW profiles & per half & 1.03 & -8.5 & 0.82 & -6.8\\
-direct ridge 100: VW and EW stacked & per half & 0.87 & -12.7 & 0.86 & -11.9\\
-direct ridge 300: VW wedges, VW profiles & per half & 0.77 & -12.6 & 0.90 & -13.7\\
-direct ridge 300: EW wedges, EW profiles & per half & 1.35 & -0.8 & 1.20 & -1.8\\
-direct ridge 300: VW and EW stacked & per half & 0.94 & -11.3 & 0.97 & -12.7\\
-\bottomrule\end{longtable}}
+\begin{center}\small
+\begin{tabular}{lrrrr}\toprule
+Candidate & EW slope & EW icept & VW slope & VW icept\\\midrule
+Published firm-level wedges (paper) & 0.88 & -27 & 1.16 & -19\\
+Value-weighted portfolios only (penalty 100) & 0.72 & -12 & 0.84 & -13\\
+Equal-weighted portfolios only (penalty 100) & 1.03 & -9 & 0.82 & -7\\
+Both portfolio sets (penalty 100) & 0.87 & -13 & 0.86 & -12\\
+Value-weighted portfolios only (penalty 300) & 0.77 & -13 & 0.90 & -14\\
+Equal-weighted portfolios only (penalty 300) & 1.35 & -1 & 1.20 & -2\\
+Both portfolio sets (penalty 300) & 0.94 & -11 & 0.97 & -13\\
+\bottomrule
+\end{tabular}
+\end{center}
 
-Out of sample the slopes survive for the stacked mapping (0.87 equal-weighted,
-0.86 value-weighted with $\lambda$ per half) and the level does not: with
-$\lambda$ held fixed the intercepts are about $+15$~pp, the late market's own
-wedge; with $\lambda$ re-solved per half they are about $-12$~pp, because the
-late cohorts' average firm realised -32~pp against a late market of zero,
-below what the early cohorts taught the mapping. This is the same message as
-the time-split test earlier: the ranking of firms carries forward, the level of
-the cross-section moves with the sample, and no mapping fitted on one period
-can know the next period's level.
+The slopes survive. The intercepts are about $-12$~pp for every candidate
+fitted on the early dates, because the late dates' average firm realized
+-32~pp against a late market of zero, below what the early dates taught the
+mapping. With the price of risk held at its full-sample value the intercepts
+are about $+15$~pp instead, the late market's own wedge. The ranking of firms
+carries forward; the level of the whole cross-section moves with the sample
+(Section~5).
 
-\section*{Equal and value weighting in the method}
+\section{Where the method weights by value and where by firm}
 
-The method is value-weighted where it defines the object and equal-weighted
-where it carries it to firms, and the two do not meet. Where each is used:
-
-\begin{tabular}{p{4.6cm}p{4.2cm}p{4.2cm}}\toprule
-Step & Paper & This pipeline\\\midrule
-Price of risk $\lambda$ & value-weighted market wedge set to zero & same\\
+\begin{center}\small
+\begin{tabular}{p{4.6cm}p{4.4cm}p{4.4cm}}\toprule
+Step & Paper & Pipeline\\\midrule
+Market price of risk & value-weighted market wedge set to zero & same\\
 Decile portfolios & value-weighted, NYSE breakpoints & same\\
-Portfolio wedges & $-\log$ of the mean over cohorts, each cohort equal & same\\
-Portfolio profiles (regressors) & equal-weighted mean of members' ranks (\texttt{nanmean}; the code asks itself ``should this be value weighted?'') & capitalisation-weighted mean rank; both available since 14 September\\
-Regression across portfolios & each portfolio one observation, 114 extremes & same, 570 deciles\\
-Firm ranks & rank within the sortable universe & rank within firms with the characteristic\\
-Firm-level averages, Q and investment regressions & each firm-month one observation & not run here\\
-\bottomrule\end{tabular}\\[6pt]
+Portfolio-level characteristics & equal-weighted average of the members' rank-normalized characteristics & capitalization-weighted average; both available\\
+Regression across portfolios & each portfolio one observation, 114 extreme deciles & same, all 570 deciles\\
+Firm-level regressions (investment, $q$) & each firm-month one observation & not run here\\
+\bottomrule
+\end{tabular}
+\end{center}
 
-The calibration is the identifying normalisation of the SDF and must stay:
-a wedge is a statement relative to the average dollar in the market. The
-value-weighted decile is the standard object and its wedge is a
-dollar-weighted quantity. The problem is the profile. A portfolio's
-equal-weighted mean rank describes its average member, which for any decile
-is a small firm; its wedge describes its dollars, which belong to its large
-members. Regressing the second on the first and then evaluating at a firm's
-own rank hands every firm the big-firm level, which is what the
-$-18$~pp intercept above measures. Pairing value-weighted wedges with
-value-weighted profiles is coherent but centres the mapping where almost no
-firm is, and pairing equal-weighted wedges with equal-weighted profiles is
-coherent and centred on the firms but throws away the dollar-weighted
-information the calibration is built on. Using both, each with its own
-profile, is the construction that passes the level test, and the
-capitalisation-weighted mean of its firm wedges is the check that it still
-respects the calibration.
+The calibration and the value-weighted decile define the object and stay.
+The problem is the average that describes a portfolio. A portfolio's
+equal-weighted average characteristics describe its typical member, a small
+firm; its wedge belongs to its dollars, which sit in its large members.
+Regressing the second on the first and evaluating at a firm's own
+characteristics hands every firm the big-firm level, which is the
+$-18$~pp intercept above. Pairing value-weighted wedges with
+capitalization-weighted averages is coherent but centres the mapping where
+almost no firm is; using both portfolio sets, each with its own average, is
+the construction that passes the level test and keeps the value-weighted
+average of firm-level wedges at zero. Rankings barely move under any of
+these; levels move by 10 to 20~pp for the typical firm. This is the evidence
+behind decision~1 in \texttt{decisions.pdf}.
 
-None of this changes rankings much: every candidate above ranks firms
-similarly (correlations 0.9 and above). It changes the number a firm is
-given, by 10 to 20~pp for the typical firm, and it changes what an average
-of firm-level wedges means in any firm-level regression.
+\section{Stability across formation dates}
 
-\section*{Recommendations}
+The price wedge of a portfolio is an average over formation dates, and so is
+the market price of risk. This section asks whether the cross-section of
+wedges is the same object in different parts of the sample. All 570 decile
+wedges are re-estimated on subsets of the formation dates, the market price
+of risk re-solved on each subset so that the market's wedge is zero there
+(\texttt{stability.py}); the 560 portfolios of the verified characteristics are
+compared.
 
-For discussion; each item names what the evidence in this report supports.
+\begin{center}\small
+\begin{tabular}{lrrrrrr}\toprule
+Formation dates & months & price of risk & corr.\ with all dates & slope & RMSE & sign changes\\\midrule
+All dates, 1964--2011 & 559 & 3.53 & 1.00 & 1.00 & 0.0 & 0\\
+Paper's window, 1964--2002 & 462 & 3.97 & 0.99 & 1.06 & 1.4 & 1\\
+First half, 1964--87 & 282 & 4.52 & 0.91 & 1.04 & 4.6 & 5\\
+Second half, 1988--2011 & 277 & 2.86 & 0.76 & 0.83 & 6.9 & 8\\
+1964--79 & 186 & 5.58 & 0.83 & 1.08 & 7.3 & 8\\
+1980--95 & 192 & 2.49 & 0.17 & 0.10 & 10.9 & 29\\
+1996--2011 & 181 & 2.85 & 0.76 & 1.23 & 10.2 & 5\\
+From 1975 & 433 & 2.62 & 0.81 & 0.71 & 5.5 & 4\\
+From 1980 & 373 & 2.64 & 0.76 & 0.70 & 6.3 & 7\\
+From 1985 & 313 & 2.78 & 0.75 & 0.74 & 6.7 & 9\\
+From 1990 & 253 & 2.90 & 0.77 & 0.93 & 7.4 & 5\\
+From 1995 & 193 & 2.92 & 0.76 & 1.17 & 9.6 & 6\\
+From 2000 & 133 & 2.16 & 0.52 & 0.77 & 12.2 & 11\\
+\bottomrule
+\end{tabular}
+\end{center}
+\emph{corr., slope, RMSE: the subsample's 560 wedges against those on all
+dates; sign changes: how many of the 56 long-short spreads change sign.}
 
-\begin{enumerate}
-\item \textbf{Signal construction.} Adopt the documented definitions where the
-data departs from them and the departure changes what is measured: operating
-accruals net of depreciation (OA, AOA); SUV and DTO as the monthly measures
-Table~A.1 describes rather than the last trading day's value; TNOVR with
-contemporaneous volume; an industry classification that is stated. Keep, and
-document, the conventions the panels revealed that are innocuous (BETA\_d
-over 249 trading days, sdDVOL without zero-volume days, IDIOV with $n-1$,
-the day-level spread). Treat a zero-sales ratio as missing. Drop or flag aPM:
-its industry means are dominated by firms with near-zero sales and its
-long-short alpha is indistinguishable from zero, so neither its sort nor its
-sign is identified.
-\item \textbf{Wedge estimation.} Keep the calibration that sets the
-value-weighted market wedge to zero. Use the full available sample as the
-headline (formations to 2011, cash flows to 2025) and report the half-sample
-range, since the cross-section moves by roughly its own size between halves;
-do not move to a later window. Apply the log-bias correction to the
-left-hand side of the mapping or not at all; it is about 1~pp.
-\item \textbf{Mapping.} Replace three principal components on the 114
-extremes with a penalised direct regression on all deciles; it is better on
-every portfolio criterion and is the only form whose penalty can be chosen
-out of sample. Fit it on value-weighted and equal-weighted decile portfolios
-together, each with profiles of its own weighting, and choose the penalty on
-the leave-one-family-out fit subject to the realised-level test (slope near
-one, intercept near zero, equal- and value-weighted).
-\item \textbf{Weighting.} Make the choice explicit at each step and never
-pair a wedge with a profile of a different weighting. For a site that reports
-one firm at a time the target is the equal-weighted realised wedge of firms
-with those characteristics; the capitalisation-weighted mean of the firm
-wedges must still equal the market wedge, and that check belongs in the
-pipeline.
-\item \textbf{Levels, not correlations.} Evaluate every firm-level series on
-realised wedges of fitted deciles, and report the slope, the intercept and
-the decile table alongside any correlation. The published firm wedges pass
-the correlation test and fail the level test by 18~pp.
-\item \textbf{Uncertainty and range.} A portfolio wedge carries a standard
-error near 30~pp and the half-sample estimates differ by about 12~pp at the
-firm level; present firm wedges with that range, and flag firms whose
-characteristics lie outside the profiles' support, where the mapping
-extrapolates.
-\item \textbf{Downstream uses.} Firm-level regressions that use the wedge as
-a regressor in levels (the investment-$q$ analysis) inherit the level error
-of the firm wedges and should be re-run with a level-calibrated series.
-\item \textbf{Open items.} The horizon (fifteen years) and the SDF are taken
-as given here; sensitivity to both is untested. The move to a public
-characteristic library (JKP) for the extension is the right way to make the
-signal side reproducible.
-\end{enumerate}
+Two things stand out. Extending the paper's window to all available dates
+changes almost nothing. Dropping the early dates does: every window starting
+in 1980 or later correlates at 0.5 to 0.8 with the full cross-section, and
+the 1980--95 third is nearly flat and unrelated to the rest.
 
+\textbf{The two halves.} The halves use disjoint formation dates, so this is
+the cleanest comparison. Their wedges correlate at 0.45. Two halves of a
+constant cross-section would correlate at about 0.68, given the
+portfolio-specific estimation noise of each half (from a block bootstrap
+with the component common to all portfolios removed). The change across
+portfolios has a standard deviation of 11.0~pp, of which about
+8.6~pp is beyond noise, on a cross-sectional spread of 9.3~pp.
+The cross-section moves between halves by roughly its own size. One caveat
+in the other direction: a block bootstrap with blocks shorter than the
+fifteen-year overlap understates noise, so part of the change may still be
+sampling; the gap between 0.45 and 0.68 is too large for all of it.
+
+\textbf{Where the change is.} Long-short spreads (long side minus short
+side, pp) on all dates and in each half, for the characteristics that move
+most and least; 77\% keep the sign of their spread across halves.
+
+\begin{center}\small
+\begin{tabular}{lrrr}\toprule
+ & all dates & 1964--87 & 1988--2011\\\midrule
+D2P & -16 & -39 & 40\\
+A2ME & -20 & -42 & 22\\
+E2P & -26 & -51 & 12\\
+ROC & -43 & -61 & -14\\
+C2D & 10 & 19 & -15\\
+SAT & -20 & -3 & -34\\
+ROE & 26 & 38 & 7\\
+CAT & -14 & 3 & -28\\
+\midrule
+dPIA & -22 & -23 & -21\\
+IDIOV & 7 & 5 & 3\\
+BEME & -48 & -48 & -47\\
+R\_36\_13 & -44 & -43 & -42\\
+aSIZE & -22 & -19 & -20\\
+Q & -45 & -44 & -44\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The value ratios reverse between halves, profitability spreads shrink,
+momentum grows; book-to-market, $q$, size, long-term reversal and the
+investment sorts are the stable core.
+
+\textbf{At the firm level.} The mapping refitted on each subsample and
+applied to the same firm-months, against the firm-level wedges from all
+dates (whose standard deviation across firms is 28~pp):
+
+\begin{center}\small
+\begin{tabular}{lrrrr}\toprule
+Fitted on & corr. & mean difference & s.d.\ of difference & firms moved $>10$~pp\\\midrule
+All dates, 1964--2011 & 1.00 & +0.0 & 0.0 & 0\%\\
+Paper's window, 1964--2002 & 1.00 & +0.5 & 2.4 & 0\%\\
+First half, 1964--87 & 0.96 & +4.8 & 7.5 & 27\%\\
+Second half, 1988--2011 & 0.92 & +1.3 & 11.9 & 40\%\\
+1964--79 & 0.91 & +12.1 & 12.1 & 63\%\\
+1980--95 & 0.44 & +30.9 & 25.2 & 85\%\\
+1996--2011 & 0.90 & -9.9 & 20.5 & 67\%\\
+From 1975 & 0.95 & +5.1 & 9.2 & 35\%\\
+From 1980 & 0.91 & +8.1 & 11.9 & 50\%\\
+From 1985 & 0.91 & +4.6 & 11.5 & 42\%\\
+From 1990 & 0.92 & -0.9 & 12.9 & 43\%\\
+From 1995 & 0.90 & -7.4 & 18.8 & 63\%\\
+From 2000 & 0.75 & +1.7 & 21.2 & 63\%\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Firm rankings are robust to the sample (correlations 0.90 to 0.96, the
+1980--95 third and the post-2000 window aside); levels are not. The halves
+against each other at the firm level correlate at 0.79 with a
+standard deviation of the difference of 18~pp. This is the evidence
+behind decision~3 in \texttt{decisions.pdf}: all available formation dates,
+the half-sample estimates as an internal check, no sample choices on the
+website.
+
+
+\section{Decisions taken, and what remains open}
+
+Three decisions follow from this report and are recorded, with their
+reasons, in \texttt{decisions.pdf}: the firm-level wedge is the equal-weighted
+realized wedge of firms with the firm's characteristics with the
+value-weighted average pinned at zero (Section~3); the characteristics are
+defined as their source papers define them (\texttt{signals.pdf}); the
+wedges use all available formation dates, with no sample choices on the
+website (Section~5). Every build reports the level test, the aggregate
+check, the family-out fit, the subsequent-return spreads and the
+half-sample comparison before a series is published.
+
+Open: sensitivity to the fifteen-year horizon and to the SDF is untested; the
+firm-level regressions in the paper that use the wedge as a regressor in
+levels inherit the intercept documented in Section~3 and would change with a
+level-calibrated series.
 
 \end{document}

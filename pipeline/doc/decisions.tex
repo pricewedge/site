@@ -1,499 +1,271 @@
 \documentclass[11pt]{article}
 \usepackage[margin=1in]{geometry}
-\usepackage{booktabs,longtable,array,amsmath,amssymb}
+\usepackage{booktabs,array,amsmath,amssymb,enumitem,xcolor}
 \usepackage[T1]{fontenc}
 \usepackage{sectsty}\allsectionsfont{\sffamily}
-\usepackage{enumitem}
-\setlength{\parskip}{4pt}
-\title{\sffamily Firm-level price wedges for pricewedge.com:\\design decisions and why they were made}
-\author{Christian Opp, with the replication pipeline}
-\date{15 September 2026 (decisions A, B and C taken)}
+\usepackage{microtype}
+\setlength{\parskip}{5pt}\setlength{\parindent}{0pt}
+\newcommand{\pp}{\,pp}
+\title{\sffamily Firm-level price wedges for pricewedge.com\\[4pt]\large Three design decisions and the evidence behind them}
+\author{Christian Opp}
+\date{15 September 2026}
 \begin{document}\maketitle
 
-\section*{Why this document exists}
+\subsection*{Summary}
 
-The website reports a price wedge for an individual firm. The paper the site
-is built on (Binsbergen, Boons, Opp and Tamoni, \emph{Dynamic Asset
-(Mis)Pricing: Build-up versus Resolution Anomalies}) estimates price wedges
-for decile portfolios and carries them to firms by a regression on
-characteristics. Rebuilding that construction from raw CRSP and Compustat
-data exposed choices inside it that the paper does not discuss and that move
-the number a firm is given by ten to twenty percentage points. Some of those
-choices were made one way in the paper and would be made another way if the
-objective is the best possible firm-level estimate rather than a replication.
+The website reports a price wedge for an individual firm. Rebuilding the
+paper's construction from raw CRSP and Compustat data exposed three choices
+that the paper does not discuss and that move a firm's number by ten to twenty
+percentage points (pp). This note records what was chosen and why.
 
-This document records each such choice: what the options are, what evidence
-separates them, which was chosen for the site and why, and what would change
-the decision. It is meant to be read on its own; the supporting numbers are
-in \texttt{quality.pdf} (the mapping and level tests), \texttt{signals.pdf}
-(every signal's construction) and the scripts named in the appendix. Every
-number quoted here comes from a script that can be re-run.
+\begin{enumerate}[nosep,leftmargin=*]
+\item \textbf{What the firm-level number means.} It is the price wedge that
+firms with the firm's characteristics realized, each firm counting once,
+with the value-weighted average of all firm-level wedges held at the
+market's wedge of zero. The paper's published firm-level wedges do not have
+this property: they run about 18\pp{} too high for the typical firm, because
+the mapping describes each portfolio by its average \emph{member} while its
+wedge belongs to its \emph{dollars}. Section~2.
+\item \textbf{How the characteristics are defined.} As the paper the anomaly
+comes from defines them. Six of the 57 characteristics in the paper's data
+depart from their sources; five are corrected and one is dropped.
+Section~3.
+\item \textbf{Which sample.} All available formation dates (July 1964 to
+January 2011, cash flows to December 2025), and no alternative samples on
+the website. Section~4.
+\end{enumerate}
 
-The order follows the logic of the construction: what a wedge is, what a
-firm's wedge should mean, which signals define the portfolios, and which
-sample the wedges are estimated on.
+The evidence is in two companion documents: \texttt{quality.pdf} (the mapping
+and the level tests) and \texttt{signals.pdf} (every characteristic's
+construction and its check against the paper's own data). Every number here
+is produced by a script in the pipeline and can be regenerated.
 
-\section{The object: what a price wedge is, and the one calibration that
-defines it}
+\section{The price wedge, and the one calibration that defines it}
 
-A price wedge is minus the log of the expected discounted cash flow, over the
-fifteen years after formation, per dollar of price at formation:
+The price wedge is the log deviation of a stock's market price from its
+fundamental value, the present value of its future dividends under a
+benchmark stochastic discount factor (SDF). For a portfolio formed at date
+$t$ it is estimated as
 \[
-\mathrm{PW} \;=\; -\log \, \mathbb{E}\!\left[\frac{\sum_{s=1}^{180} m_{t,t+s}\, D_{t+s} + m_{t,t+180}\, P_{t+180}}{P_t}\right],
+\mathrm{PW}_t \;=\; -\log\, \mathbb{E}\!\left[\,\frac{\sum_{s=1}^{180} m_{t,t+s} D_{t+s} + m_{t,t+180} P_{t+180}}{P_t}\,\right],
 \]
-where $m$ is a stochastic discount factor of the CAPM form and the
-expectation is the mean over formation cohorts (one cohort per month, July
-1964 onward). A negative wedge means the price is below the discounted cash
-flows that followed: underpricing. The discount factor has one free
-parameter, the price of market risk $\lambda$, and the paper fixes it by one
-condition: \textbf{the wedge of the value-weighted market portfolio is
-zero}. Everything else is measured relative to that. A wedge is therefore a
-statement about a group of dollars relative to the average dollar in the
-market. This calibration is the identifying normalisation of the whole
-method and is kept unchanged in every decision below.
+the expectation being the average over formation dates, one per month. A
+negative wedge means the price is below fundamental value. The SDF is the
+CAPM-based one of the paper, with one free parameter, the market price of
+risk, chosen so that \textbf{the price wedge of the value-weighted market
+portfolio is zero}. Every wedge is therefore relative to the average dollar
+in the market. This calibration is kept unchanged throughout.
 
-Two properties of the object matter for what follows. First, a portfolio's
-wedge is a dollar-weighted quantity: it is the wedge of one dollar spread
-across the portfolio's members in proportion to their capitalisation, so it
-is set by the large members. Second, a wedge is imprecise: the 463
-formation cohorts of the paper's window overlap in 179 of their 180 months
-and are worth two or three independent observations, so a single portfolio
-wedge carries a standard error near 30 percentage points, almost all of it
-common to every portfolio (the market's realised path), with about 3 to 4
-points that is specific to the portfolio.
+Two facts about the object matter below.
 
-One realised number frames the rest of the document. With the paper's
-$\lambda$, the value-weighted universe has a wedge of zero by construction.
-The \emph{equal-weighted} universe, one dollar in every firm, has a realised
-wedge of $-24.6$ percentage points. The average firm is a small firm, and
-under this discount factor small firms are heavily underpriced. So ``the
-average dollar'' and ``the average firm'' are 25 points apart, and any
-firm-level number has to say which of the two it is about.
+\emph{A portfolio's wedge is a dollar-weighted quantity.} It is the wedge of
+one dollar spread across the portfolio's members in proportion to their
+market capitalization, so a few large members set it.
 
-\section{Decision A: what the firm-level number means (taken: candidate 3)}
+\emph{The average firm is far from the average dollar.} With the paper's
+price of risk, the value-weighted market has a wedge of zero by
+construction; the equal-weighted market, one dollar in every firm, has a
+realized wedge of $-24.6$\pp. The average firm is a small firm, and under
+this SDF small firms are strongly underpriced. Any firm-level number has to
+say which of the two averages it refers to.
 
-\subsection*{How a portfolio wedge is carried to a firm}
+\section{Decision 1: what the firm-level price wedge means}
 
-The 57 characteristics give 570 decile portfolios with wedges. Each
-portfolio is described by a \emph{profile}: its members' percentile ranks on
-all 57 characteristics, averaged over the members and over time. A
-regression of the 570 wedges on the 570 profiles gives a rule from
-characteristics to wedge, and evaluating that rule at a firm's own ranks
-gives the firm's wedge. The paper does this with three principal components
-of the profiles of the 114 extreme deciles; the pipeline does it with a
-penalised regression on all 570, which is better on every portfolio-level
-criterion (\texttt{quality.pdf}, first section). That choice is not the
-decision here. The decision is what ``profile'' means, and it was hidden.
+\subsection*{How the paper carries portfolio wedges to firms}
 
-A profile can describe a portfolio's typical \emph{member}: the
-equal-weighted mean of the members' ranks. Or it can describe its typical
-\emph{dollar}: the capitalisation-weighted mean. For the value-weighted
-book-to-market decile 10, the typical member has a size rank near 0.4 and
-the typical dollar a size rank near 0.98, because a few large firms hold
-most of the decile's capitalisation. The paper's code uses the equal-weighted
-mean (with the comment ``SHOULD THIS BE VALUE WEIGHTED AVERAGE?????'' beside
-it); the pipeline had used the capitalisation-weighted mean. This one choice
-moves every firm-level wedge by ten to twenty-seven points, and it is the
-whole reason the pipeline's firm wedges sat eleven points below the
-published ones. With equal-weighted profiles the pipeline reproduces the
-published firm wedges to 1.2 points in level (slope 1.04, correlation
-0.99); the residual is the paper's log-bias correction on the portfolio
-wedges, which is about one point and enters once, on the left-hand side.
+Each of the 570 characteristic-sorted decile portfolios has a price wedge.
+Each also has a set of \emph{portfolio-level characteristics}: the
+rank-normalized characteristics of its members, averaged over the members
+and over time. A regression of the wedges on the portfolio-level
+characteristics gives a rule from characteristics to wedge, and evaluating
+that rule at an individual firm's own characteristics gives the firm-level
+price wedge. The paper uses three principal components of the
+characteristics of the 114 extreme deciles; the pipeline uses a penalized
+regression on all 570, which fits better on every portfolio-level test
+(\texttt{quality.pdf}). That difference is not the decision here.
 
-\subsection*{The test that decides between candidates}
+The decision is hidden in the word \emph{average}. A portfolio's average
+characteristics can be taken over its members with equal weights, which
+describes its typical member, or with market-capitalization weights, which
+describes its typical dollar. For the value-weighted book-to-market decile
+10, the typical member has a size rank near 0.4 and the typical dollar a
+size rank near 0.98. The paper's code uses equal weights (with the comment
+``SHOULD THIS BE VALUE WEIGHTED AVERAGE?????'' beside it); the pipeline had
+used capitalization weights. The choice moves every firm-level wedge by ten
+to twenty-seven points, and it is the whole reason the pipeline's firm-level
+wedges first sat eleven points below the published ones: with equal weights
+the published firm-level wedges are reproduced to 1.2\pp{} (slope 1.04,
+correlation 0.99).
 
-Correlation between two firm-level series says nothing about levels, and
-levels are what the site prints. The test used throughout is the
-\emph{realised-wedge test}: treat a candidate firm wedge as a
-characteristic, sort firms into deciles on it every month at NYSE
-breakpoints, hold each decile fifteen years as an equal-weighted and as a
-value-weighted portfolio, compute the decile's realised wedge with the same
-discount factor, and regress it on the mean wedge the candidate assigned to
-the decile's members. A candidate whose levels can be trusted shows a slope
-of one and an intercept of zero. Equal-weighted deciles answer ``do firms
-realise what they were told'', which is the website's question;
-value-weighted deciles answer ``does the candidate respect the calibration''.
-A second check follows directly from the calibration: the
-capitalisation-weighted mean of all firm wedges must equal the market wedge,
-zero.
+\subsection*{The test}
 
-\subsection*{The three candidates}
+Two firm-level series can correlate at 0.95 and differ by 20\pp{} in level,
+and the level is what the website prints. The test used here therefore
+compares assigned wedges with realized ones. Take a candidate firm-level
+wedge; sort firms into deciles on it every month, as one would on a
+characteristic; hold each decile for fifteen years, equal-weighted and
+value-weighted; compute the decile's realized price wedge with the same SDF;
+and regress the realized wedge on the average wedge the candidate had
+assigned to the decile's members. A candidate whose levels can be trusted
+gives a slope of one and an intercept of zero. The equal-weighted deciles
+answer the website's question, whether firms realize what they are told; the
+value-weighted deciles check that the candidate respects the calibration.
+The calibration gives one more check: the value-weighted average of all
+firm-level wedges must equal the market's wedge, zero.
 
-\paragraph{Candidate 1: the published construction.} Value-weighted portfolio
-wedges regressed on equal-weighted profiles. The regression learns ``a
-portfolio whose typical member is a small value firm has wedge $W$'', but
-$W$ was earned by the portfolio's large members. Evaluated at a small firm's
-own ranks, the small firm receives the large firm's wedge. The test shows it:
-on equal-weighted deciles the published series has slope 0.64 and intercept
-$-18$ points; the firms it calls fairly priced (decile 5, assigned $-4$)
-realise $-25$; only the most underpriced decile realises what it is assigned.
-Its firm-level average is $-7$ against a realised $-22$ for the same firms,
-and its capitalisation-weighted mean is $+9$ where the calibration requires
-zero. The sentence the site could claim under this candidate is ``this is
-the number the JFE method assigns'', which is true and is not what firms
-like this one realised.
+\subsection*{Three candidates}
 
-\paragraph{Candidate 2: per dollar.} Value-weighted wedges regressed on
-value-weighted profiles. Now the regression is internally consistent: ``a
-dollar in firms with size rank 0.98 and book-to-market rank 0.95 earned
-wedge $W$'', and $W$ belongs to those dollars. The difficulty is where the
-rule is evaluated. Nearly every portfolio's dollar-profile has a size rank
-above 0.85 and the site asks about firms with size rank 0.4, so the fitted
-line is extended far outside the points it was fitted on. The average is
-right (capitalisation-weighted mean $+1$, intercepts $-3$) and the extremes
-are exaggerated: the most underpriced decile is assigned about $-70$ and
-realises $-42$; the slopes are 0.67 equal-weighted and 0.79
-value-weighted. Heavier shrinkage repairs the value-weighted slope (1.02 at
-a penalty of 1000) and not the equal-weighted one (0.79). The sentence: ``a
-dollar invested in firms like this one was mispriced by $X$''. Right for
-the market as a whole, exaggerated for small firms.
-
-\paragraph{Candidate 3: per firm, with the aggregate pinned.} Add to the
-regression the same 570 deciles held with \emph{equal} weights, whose wedge
-is the wedge of the average member, each described by the equal-weighted
-profile of its members, alongside the value-weighted deciles with their
-value-weighted profiles. Both kinds of evidence are then in the fit: ``the
-average small value firm realised $-42$'' from the equal-weighted decile,
-next to ``the average value dollar realised $-32$'' from the value-weighted
-one. A small firm's number is interpolated from portfolios whose members
-resemble it, and the value-weighted portfolios keep the dollar-weighted total
-anchored. On the test: slope 0.86 to 0.88 and intercept within one point on
-equal-weighted deciles, mean absolute gap of 3.5 to 4.5 points across the
-ten deciles, capitalisation-weighted mean of all firm wedges 0.0 points. Out
-of sample (fitted on cohorts formed before 1988, evaluated on the later
-cohorts) the slopes hold at 0.87 to 0.99 and the level moves with the
-market, as every candidate's does. The sentence: ``firms with this profile
-were mispriced by $X$ on average, each firm counting once; dollar-weighted
-across all firms, mispricing is zero, as the calibration requires.''
-
-\subsection*{The decision and its reasons}
-
-Candidate 3 is adopted for the site's headline series. The reasons, in
-order of weight:
-\begin{enumerate}[nosep]
-\item It is the only candidate whose number was checked against realised
-outcomes at the level of the firm and found right, equal-weighted and
-value-weighted at once.
-\item Its sentence is the one a user looking up a single company expects the
-number to mean.
-\item It keeps the paper's calibration intact rather than working around it:
-the value-weighted portfolios remain in the fit and the aggregate check
-holds at 0.0.
-\item It does not sacrifice ranking: all three candidates rank firms
-similarly (correlations 0.9 and above); the candidates differ in levels, and
-levels are the objective.
-\end{enumerate}
-The published construction (candidate 1) is kept as a labelled reference
-series, because it is what the paper reports and readers will want to see
-the relation. Candidate 2 is not shown.
-
-\subsection*{What this changes in the construction}
-
-\begin{itemize}[nosep]
-\item Equal-weighted decile portfolios are formed for every sort
-(\texttt{portfolio\_wedges.py -{}-weighting equal}) and priced at the
-$\lambda$ of the value-weighted calibration; the calibration itself is not
-touched.
-\item Profiles are computed with the weighting of the portfolio they
-describe (\texttt{portfolio\_profiles.py -{}-weighting equal} for the
-equal-weighted set).
-\item The mapping is a penalised direct regression on the 1,140 portfolios
-with their matching profiles. The penalty is chosen by the
-leave-one-family-out fit and accepted only if the realised-level test passes
-(slope of at least 0.85 and intercept within about 3 points equal-weighted;
-capitalisation-weighted mean within a point or two of the market wedge).
-\item The realised-level test and the aggregate check become acceptance
-gates in the pipeline (\texttt{realised\_levels.py}); no series goes to the
-site without them.
-\end{itemize}
-
-\subsection*{What would change the decision}
-
-Evidence that the equal-weighted portfolios' wedges are too noisy to help
-(they are not: their idiosyncratic standard errors are of the same size as
-the value-weighted ones), or a decision that the site's number should be a
-per-dollar statement. Neither is expected.
-
-\subsection*{A consequence for the paper}
-
-The published firm-level wedges are candidate 1. Any use of them in levels
-inherits the $-18$-point intercept: the average firm's mispricing is
-understated by about that amount, and firm-level regressions that use the
-wedge as a regressor in levels (the investment-$q$ analysis) are affected.
-Rankings are not. This is worth raising with the coauthors before the
-extension to more characteristics is built.
-
-\section{Decision B: which signal definitions the site's portfolios are
-built on (taken: as the original papers define them)}
-
-\subsection*{Why it matters}
-
-The mapping learns from the wedges of the 570 (now 1,140) portfolios, and a
-portfolio is defined by how its sorting characteristic was built. The
-rebuild verified 56 of the 57 characteristics against the paper's own panels,
-and in doing so found six places where what the paper did is not what the
-paper describes. For the site the question is not which is right in the
-replication sense (both are known now) but which the site should claim as
-the definition of its inputs.
-
-\subsection*{The sources, signal by signal}
-
-The rule adopted for this decision is that each signal is defined by the
-paper the anomaly comes from, read through Freyberger, Neuhierl and Weber
-(2020), whose appendix is the list the paper takes its characteristics from
-and the source of Table~A.1's wording. What was checked, from the original
-texts where they could be obtained (15 September 2026):
-
-\paragraph{Operating accruals (OA) and their absolute value (AOA).}
-Sloan (1996) defines accruals as the change in non-cash current assets minus
-the change in current liabilities other than debt in current liabilities and
-taxes payable, \emph{minus} depreciation, scaled by average total assets (the
-Chen--Zimmermann rendering of Sloan's equation). FNW state the same
-components, scaled by lagged total assets. The paper's data adds depreciation
-instead of subtracting it; the sort it produces agrees with the documented
-one at only 0.29. AOA is the absolute value of OA (Bandyopadhyay, Huang and
-Wirjanto 2010). \textbf{Settled: subtract depreciation, scale by lagged total
-assets as FNW do.} The scaling difference between Sloan and FNW is immaterial
-for a rank.
-
-\paragraph{Standardised unexplained volume (SUV).} Garfinkel (2009,
-equations 4--6) defines a \emph{daily} measure: $\mathrm{SUV}_{i,t} =
-\mathrm{UV}_{i,t}/S_{i}$, where $\mathrm{UV}_{i,t}$ is the day's volume
-minus $\hat\alpha_i + \hat\beta_1 |R_{i,t}|^{+} + \hat\beta_2 |R_{i,t}|^{-}$,
-the regression estimated over a control window that precedes the measurement
-day, and $S_i$ the standard deviation of that regression's residuals over the
-estimation window. In his event setting the measure is averaged over the
-event days. FNW turn it into a monthly characteristic with the regression
-estimated on the previous month and the unexplained volume taken in the
-current month, which is what Table~A.1 says. Neither source singles out one
-day. The paper's data is the last trading day's residual from a regression
-run within the same month. \textbf{Settled: for every trading day of month
-$t$, the standardised residual from the regression estimated on the days of
-month $t-1$; the characteristic is the mean over the days of month $t$.} The
-aggregation by the mean is the one choice not dictated by the sources; it is
-Garfinkel's own aggregation over his event window.
-
-\paragraph{Detrended turnover (DTO).} Garfinkel (2009, equation 3) defines
-daily market-adjusted turnover as the firm's volume over its shares minus
-the same ratio for all NYSE and AMEX stocks, and ``change in turnover'' as
-that quantity minus its \emph{mean} over a control period (twenty trading
-days). FNW's characteristic subtracts the daily market turnover and detrends
-by the firm's own 180-trading-day median, scaling Nasdaq volume down by 38\%
-after 1997 and by 50\% before, following Anderson and Dyl (2005), who
-document that dealer participation roughly doubles reported Nasdaq volume
-(a 38\% reduction in their 1997--2002 sample; practitioners use about 50\%
-before). The paper's data takes the last day's raw turnover minus its own
-180-day mean, with no market adjustment and no scaling. \textbf{Settled:
-FNW's definition, averaged over the days of the month: daily
-market-adjusted turnover minus its trailing 180-trading-day median, Nasdaq
-volume scaled as in Anderson and Dyl.} Garfinkel's own detrending window is
-an event-study control period and has no monthly analogue; FNW's 180-day
-median is the anomaly-literature version and the one the paper cites.
-
-\paragraph{Turnover (TNOVR).} Datar, Naik and Radcliffe (1998) measure
-turnover as the average number of shares traded over the preceding three
-months divided by shares outstanding as of the period, excluding stocks
-whose share count changed in those months. FNW's characteristic is
-``last month's volume over shares outstanding'': the one-month version,
-with the volume lagged relative to the share count exactly as in Datar, Naik
-and Radcliffe. The paper's data is last month's volume over this month's
-shares, which \emph{is} FNW's definition; Table~A.1 dropped the words ``last
-month's''. \textbf{Settled: no change.} The earlier classification of this
-signal as a documentation discrepancy is withdrawn; it was a misreading of
-the condensed appendix.
-
-\paragraph{Industry-adjusted book-to-market, size, profit margin and asset
-turnover (aBEME, aSIZE, aPM, aSAT).} FNW: the characteristic minus its
-average at the Fama-French 48 industry level, citing Asness, Porter and
-Stevens (2000) for book-to-market and size and Soliman (2008) for profit
-margin and asset turnover. Asness, Porter and Stevens (2000, section~2)
-assign each stock every month to one of the 48 industries of Fama and French
-(1997) by its four-digit SIC code, define the within-industry measure as the
-firm's characteristic minus the \emph{equally weighted} average of the
-characteristic over the industry's constituents, and require at least three
-firm-years in an industry. Soliman (2008) defines profit margin as operating
-income over sales and asset turnover as sales over \emph{average} net
-operating assets, and does not industry-adjust either in the published paper
-(the adjustment belongs to his 2004 dissertation); the industry adjustment
-of PM and SAT is therefore FNW's construction, built the same way as Asness,
-Porter and Stevens's. The paper's data demeans within 27 industry groups of
-unknown origin, recovered from its panels. \textbf{Settled: the Fama-French
-48 industries by SIC range (Ken French's list), the equal-weighted industry
-mean, at least three firms, CRSP's name-history SIC code, for all four.}
-FNW's ``SAT'' is sales over total assets rather than Soliman's turnover over
-net operating assets; the paper's aSAT adjusts SAT and that is kept.
-
-\paragraph{aPM.} Same construction; in addition its cell means cannot be
-rebuilt (they were computed over a wider firm set than the panels hold) and
-its long-short alpha is 0.00012 a month, so the long leg is not identified.
-\textbf{Settled: dropped from the site's portfolios; the aPM sort is not a
-signal in any meaningful sense.}
-
-\paragraph{Conventions kept.} The panels revealed several implementation
-choices that the sources leave open and that do not change what a signal
-measures: the beta window (the firm's last 249 trading days), zero-volume
-days excluded from the volume dispersion, $n-1$ in the residual standard
-deviation, the day-level range-or-quote spread, dividends in dollars over
-market capitalisation. These are documented in \texttt{signals.pdf} and kept.
-
-\subsection*{Summary table}
-
-\begin{longtable}{>{\raggedright\arraybackslash}p{1.8cm}>{\raggedright\arraybackslash}p{4.3cm}>{\raggedright\arraybackslash}p{4.3cm}>{\raggedright\arraybackslash}p{3.2cm}}\toprule
-Signal & Original source & Paper's data & Site\\\midrule
-OA, AOA & Sloan (1996): minus depreciation & plus depreciation & Sloan, lagged assets\\
-SUV & Garfinkel (2009): daily standardised residual, prior-window regression & last day of a within-month regression & daily residuals from month $t-1$'s fit, mean over month $t$\\
-DTO & Garfinkel (2009): daily market-adjusted turnover minus control-period mean; FNW: minus 180-day median, Nasdaq scaled & last day's raw turnover minus 180-day mean, no market adjustment & FNW's, mean over the month\\
-TNOVR & Datar et al.\ (1998): 3-month average volume over current shares; FNW: last month's & last month's volume over current shares & unchanged (= FNW)\\
-aBEME, aSIZE & Asness et al.\ (2000): FF48, equal-weighted mean, three firms & 27 recovered groups & FF48 equal-weighted mean\\
-aSAT & Soliman (2008) defines SAT's cousin ATO and does not adjust; FNW: FF48 mean & 27 recovered groups & FF48 equal-weighted mean\\
-aPM & Soliman (2008) & not reproducible; alpha zero & dropped\\
+\begin{center}\small
+\begin{tabular}{p{3.6cm}p{5.2cm}rrrr}\toprule
+ & & \multicolumn{2}{c}{equal-weighted deciles} & \multicolumn{2}{c}{value-weighted}\\
+Candidate & What the number claims & slope & intercept & slope & VW mean\\\midrule
+1. Published construction (value-weighted wedges, equal-weighted characteristics) & ``the number the paper's method assigns'' & 0.64 & $-18$ & 0.95 & $+9$\\[3pt]
+2. Per dollar (value-weighted wedges and characteristics) & ``a dollar in firms like this one is mispriced by $X$'' & 0.67 & $-3$ & 0.79 & $+1$\\[3pt]
+3. Per firm, aggregate pinned (both portfolio sets, each with matching characteristics) & ``firms like this one are mispriced by $X$ on average; dollar-weighted, mispricing is zero'' & 0.86 & $-1$ & 0.76 & $0$\\
 \bottomrule
-\end{longtable}
+\end{tabular}
+\end{center}
 
-\subsection*{The options}
+\emph{Intercepts in pp; ``VW mean'' is the value-weighted average of the
+candidate's firm-level wedges, which should be near zero.}
 
-\begin{enumerate}[nosep]
-\item \textbf{As the paper did it.} The site's portfolios are the paper's.
-Table~1 reproduces row by row and the reference series and the headline
-series share one set of portfolios. Six portfolios do not mean what their
-names say: the accruals sort is partly a depreciation sort; the SUV and DTO
-sorts are one-day signals sampled on the last trading day.
-\item \textbf{As the paper describes it.} The six are rebuilt from the
-documented definitions and aPM is dropped. Portfolios mean what they say
-and the site can cite the definitions. Six rows of the portfolio table
-differ from the JFE numbers and this has to be stated; the mapping loses one
-regressor.
-\item \textbf{Signal by signal.} For instance the accruals and industry fixes
-with SUV and DTO kept as published, on the argument that those two carry
-small wedges either way ($-5$ and $-6$ points on the long leg).
-\end{enumerate}
+\textbf{Candidate 1} learns ``a portfolio whose typical member is a small
+value firm has wedge $W$'' when $W$ was earned by the portfolio's large
+members, and then hands the small firm the large firm's wedge. Firms it
+calls fairly priced realize about $-25$\pp; only the most underpriced decile
+realizes what it is assigned.
 
-\subsection*{What the evidence says about the size of the choice}
+\textbf{Candidate 2} is internally consistent but is evaluated far outside
+the points it was fitted on: almost every portfolio's dollar-average size
+rank is above 0.85, and the website asks about firms at 0.4. The level is
+right on average and the extremes are exaggerated (the most underpriced
+decile is assigned $-70$\pp{} and realizes $-42$).
 
-The firm-level series is affected modestly: six of 57 regressors and six of
-570 portfolios per weighting. The portfolio-level table is affected exactly
-in those six rows. The conventions the panels revealed that do \emph{not}
-change what a signal measures are kept under every option: the 249-trading-day
-window for the daily beta, zero-volume days excluded from the volume
-dispersion, $n-1$ in the idiosyncratic volatility, the day-level spread,
-dividends in dollars over market capitalisation.
+\textbf{Candidate 3} adds the same 570 deciles held with equal weights, whose
+wedge is the wedge of the average member, each described by the
+equal-weighted average of its members' characteristics. A small firm's
+number is then interpolated from portfolios whose members resemble it, and
+the value-weighted portfolios keep the dollar-weighted total anchored. Out
+of sample (mapping fitted on formation dates before 1988, evaluated after)
+the slopes hold at 0.87 to 0.99.
 
-\subsection*{The decision and its reasons}
+\subsection*{Decision}
 
-Option 2, with option 1 run alongside as the labelled reference; the
-definitions are the ones the source review above settles, signal by signal.
-The principle behind it, in Christian's words, is that the point of the
-anomalies is to use the existing specifications, not new ones that arise
-from an implementation mistake. The reason
-is the same as in decision A: the site should be able to state what its
-inputs are in one sentence, and ``as defined in the paper's appendix'' is a
-sentence, while ``as in the paper's data, including a depreciation term with
-the wrong sign and two signals sampled on one day'' is not one the site
-should have to make. The cost, six rows that differ from the published
-table, is disclosed rather than hidden.
+Candidate 3 is adopted. It is the only candidate whose levels were checked
+against realized outcomes at the firm level and found right, equal- and
+value-weighted at once; its claim is the one a reader looking up a single
+company expects; it keeps the paper's calibration intact; and it changes
+rankings very little (all candidates rank firms alike, correlations 0.9 and
+above). The published construction is kept as a labelled reference series.
 
-\section{Decision C: which cohorts the wedges are estimated on (taken:
-the full available sample, no sample options on the site)}
+\emph{A consequence for the paper.} The published firm-level wedges are
+candidate~1, so any use of them in levels inherits the $-18$\pp{} intercept;
+the investment-$q$ regressions use them as a regressor in levels. Rankings
+are unaffected.
 
-\subsection*{The options}
+\section{Decision 2: how the characteristics are defined}
 
-The paper's window (formations July 1964 to December 2002, cash flows to
-2017; 463 cohorts), the full available sample (formations to January 2011,
-cash flows to December 2025; 559 cohorts), or a later window.
+The mapping learns from the wedges of the 570 portfolios, and a portfolio is
+defined by how its sorting characteristic was built. Rebuilding the 57
+characteristics and checking them against the paper's own firm-month panels
+verified 56 of them and found six places where what the paper's data does
+differs from the source the paper cites. The rule adopted: \textbf{each
+characteristic is defined as the paper the anomaly comes from defines it},
+read through Freyberger, Neuhierl and Weber (2020), whose list the paper
+takes its characteristics from. The point of the anomalies is to use the
+existing specifications, not new ones that arose from an implementation
+slip.
 
-\subsection*{What the evidence says}
+\begin{center}\small
+\begin{tabular}{>{\raggedright\arraybackslash}p{1.7cm}>{\raggedright\arraybackslash}p{4.4cm}>{\raggedright\arraybackslash}p{4.2cm}>{\raggedright\arraybackslash}p{3.9cm}}\toprule
+ & Source & Paper's data & Website\\\midrule
+OA, AOA & Sloan (1996): accruals \emph{net of} depreciation & depreciation added & Sloan's sign, lagged assets as in FNW\\[2pt]
+SUV & Garfinkel (2009): a daily quantity, the day's volume minus a regression fit from a prior window, over the fit's residual s.d.; FNW: fit on the previous month & the last trading day of a regression run within the same month & daily values from the previous month's fit, averaged over the month\\[2pt]
+DTO & Garfinkel (2009): daily turnover minus market turnover, minus a control-period mean; FNW: minus the firm's 180-day median, Nasdaq volume scaled (Anderson and Dyl 2005) & last day's raw turnover minus its 180-day mean; no market adjustment, no scaling & FNW's definition, averaged over the month\\[2pt]
+TNOVR & Datar, Naik, Radcliffe (1998); FNW: last month's volume over shares & last month's volume over shares & unchanged (the data follows its source)\\[2pt]
+aBEME, aSIZE, aSAT & Asness, Porter, Stevens (2000): 48 Fama-French industries by SIC, equal-weighted industry mean, three firms or more; FNW apply the same to PM and SAT & 27 industry groups of unknown origin & Fama-French 48, equal-weighted mean\\[2pt]
+aPM & Soliman (2008) defines PM; the adjustment is FNW's & industry means not reconstructible; long-short alpha zero & dropped\\
+\bottomrule
+\end{tabular}
+\end{center}
 
-\texttt{stability.py} re-estimates all 570 wedges on subsamples of the
-cohorts, re-solving $\lambda$ on each so the market wedge is zero there.
-Extending the paper's window to the full sample changes almost nothing:
-correlation 0.99 between the two cross-sections, one long-short sign change,
-$\lambda$ from 3.97 to 3.53 on the same data. Dropping the early cohorts is
-different. The two halves (1964--87 and 1988--2011) correlate 0.45 where two
-halves of a constant cross-section would correlate about 0.68 given their
-noise; the value ratios reverse sign between halves, profitability spreads
-shrink, momentum grows; the 1980--95 third is nearly flat and unrelated to
-the rest. Any window starting in 1980 or later correlates 0.5 to 0.8 with
-the full cross-section, rests on one or two fifteen-year cycles ($\lambda$
-swings from 5.6 to 2.5 to 2.8 across the thirds), and moves the typical
-firm's wedge by 10 to 20 points. The firm ranking is robust to the choice
-(correlations 0.9 and above); the level is not.
+Two remarks. For SUV and DTO neither source singles out one trading day, so
+the paper's last-day values are a construction artifact (the signature of a
+daily series collapsed to monthly by keeping the last observation); the
+monthly average is Garfinkel's own aggregation over his event window.
+Soliman's published paper does not industry-adjust; the adjustment of PM and
+SAT is FNW's, built like Asness, Porter and Stevens's, and that is what is
+used. Implementation conventions that the sources leave open and that do
+not change what a characteristic measures (the 249-day window of the daily
+beta, zero-volume days excluded from the volume dispersion, the day-level
+bid-ask spread, dividends in dollars over market capitalization) are kept
+and documented in \texttt{signals.pdf}.
 
-\subsection*{The decision and its reasons}
+\section{Decision 3: which formation dates}
 
-The full available sample, and no alternative samples on the site. The half
-samples remain an internal acceptance test: every build reports the
-half-sample mappings and their firm-level difference from the headline, and
-a build whose half-sample difference moves materially from the previous one
-is examined before it is published. The reasons: the full sample carries the
-most independent information and is the only choice under which the
-calibration averages over more than one cycle; a later window is not a
-better estimate of the same quantity but an estimate of a different regime;
-and offering sample choices on the site would invite readers to pick the
-number they prefer while presenting regime dependence as if it were an
-alternative estimate. The regime dependence is stated once, on the method
-page, with a pointer to the stability analysis in \texttt{quality.pdf}.
+The wedges, and the price of risk with them, are averages over formation
+dates. Three candidates: the paper's window (July 1964 to December 2002,
+cash flows to 2017), all available dates (to January 2011, cash flows to
+2025), or a later window.
 
-\section{What the site shows, given A, B and C}
+Extending the paper's window to all available dates changes almost nothing:
+the two cross-sections of 560 portfolio wedges correlate at 0.99, one
+long-short spread changes sign, firm-level wedges move by 2\pp. Dropping the
+early dates is different. The first and second halves of the sample
+(1964--87 and 1988--2011) correlate at 0.45, where two halves of a constant
+cross-section would correlate at about 0.68 given their estimation noise;
+the value ratios reverse sign between halves, profitability spreads shrink,
+momentum grows. Any window starting in 1980 or later rests on one or two
+fifteen-year cycles (the price of risk swings from 5.6 to 2.5 to 2.8 across
+thirds of the sample) and moves the typical firm's wedge by 10 to 20\pp.
+Firm rankings are robust to the choice; levels are not.
 
-\begin{itemize}[nosep]
-\item \textbf{Headline:} the candidate-3 firm wedge, full sample, signal
-definitions as the original papers define them, with the firm's percentile
-among all firms that month and an extrapolation flag for firms whose
-characteristics lie outside the profiles' support. No alternative samples or
-specifications per firm.
-\item \textbf{Reference:} the published construction (candidate 1, paper's
-definitions, paper's window), labelled ``as published in the JFE''.
-\item \textbf{Method page:} the definition of the wedge, the calibration
-(value-weighted market wedge zero), the weighting choices and the sentence
-each number can claim, the acceptance tests and their latest values.
-\item \textbf{Uncertainty:} stated once, on the method page: the common
-component of the standard error (about 30 points, the market's realised
-path, the same for every firm) as the uncertainty of the whole level; the
-firm-specific part (about 3 to 4 points) and the half-sample sensitivity
-(about $\pm12$ points at the firm level) as the precision of differences
-between firms. Not repeated per firm.
-\end{itemize}
+\textbf{Decision.} All available formation dates. A later window is not a
+better estimate of the same quantity but an estimate of a different regime.
+The half-sample estimates stay as an internal check on every build; the
+website offers no sample choices, because that would present regime
+dependence as if it were an alternative estimate.
 
-\section{Acceptance gates for every build}
+\section{What the website reports, and what every build must pass}
 
-A series is published only if all of these hold on the latest run:
-\begin{enumerate}[nosep]
-\item Replication: the ``as published'' spec verifies at least 56 of 57
-characteristics against the paper's panels and Table~1 within a point on
+\textbf{Reported per firm:} the candidate-3 price wedge on all available
+dates with the characteristics of Section~3, the firm's percentile among all
+firms that month, and a flag when the firm's characteristics lie outside the
+range spanned by the portfolios (where the mapping extrapolates). The
+published construction is available as a labelled reference. Uncertainty is
+stated once, on the method page: about 30\pp{} common to all firms (the
+market's realized path), about 3 to 4\pp{} specific to a firm, and about
+$\pm12$\pp{} of sensitivity to the half of the sample used.
+
+\textbf{Acceptance tests, all on the latest build:}
+\begin{enumerate}[nosep,leftmargin=*]
+\item Replication: with the paper's own definitions, at least 56 of 57
+characteristics agree with the paper's panels and Table~1 within a point on
 both legs.
-\item Level test: slope of at least 0.85 and intercept within 3 points on
-equal-weighted deciles; slope of at least 0.75 on value-weighted deciles;
-the decile table reported.
-\item Aggregate check: capitalisation-weighted mean of firm wedges within a
-point or two of the market wedge.
-\item Out-of-sample fit: leave-one-family-out strict $R^2$ of the mapping
-reported and not below the previous build's by more than noise.
-\item Half-sample check (internal): the mappings fitted on the 1964--87 and
-1988--2011 cohorts and their firm-level difference from the headline
-reported; a material change from the previous build is examined before
-publication.
-\item Ex-post returns: the fitted-wedge deciles' subsequent returns monotone
-at five years.
+\item Levels: on equal-weighted deciles of the assigned wedge, slope at
+least 0.85 and intercept within 3\pp; on value-weighted deciles, slope at
+least 0.75; the decile table reported.
+\item Aggregate: the value-weighted average of firm-level wedges within a
+point or two of zero.
+\item Out-of-sample fit of the mapping (leave one family of characteristics
+out) reported and not lower than the previous build's by more than noise.
+\item Subsequent returns of the assigned-wedge deciles monotone at five
+years.
+\item Half-sample check: the mappings fitted on 1964--87 and on 1988--2011
+and their firm-level difference from the headline reported.
 \end{enumerate}
 
-\section*{Appendix: scripts and files}
+\section*{Appendix: scripts and sources}
 
-\begin{tabular}{p{4.6cm}p{9.5cm}}\toprule
-\texttt{build\_panel.py} & the 57 characteristics from CRSP and Compustat
-(\texttt{-{}-end 2025-12-31 -{}-suffix \_today} for the current panel)\\
-\texttt{validate.py}, \texttt{compare\_panels.py} & replication against
-Table~1 and against the paper's own firm-month panels\\
-\texttt{portfolio\_wedges.py} & sorts, calibration, wedges;
-\texttt{-{}-weighting equal} for the equal-weighted deciles\\
-\texttt{portfolio\_profiles.py} & profiles; \texttt{-{}-weighting equal}
-for equal-weighted means\\
-\texttt{firm\_wedges.py}, \texttt{mapping\_quality.py} & the mapping and the
-portfolio-level criteria\\
-\texttt{realised\_levels.py} & the realised-wedge level test and the
-aggregate check\\
-\texttt{stability.py} & wedges on cohort subsamples\\
-\texttt{doc/quality.pdf}, \texttt{doc/signals.pdf} & the evidence behind
-every number here\\
+\begin{tabular}{p{5.6cm}p{8.6cm}}\toprule
+\texttt{build\_panel.py -{}-spec site} & the characteristics as their sources define them, to 2025\\
+\texttt{portfolio\_wedges.py}, \texttt{portfolio\_profiles.py} & sorts, calibration, wedges and portfolio-level characteristics, value- and equal-weighted (\texttt{-{}-weighting equal})\\
+\texttt{firm\_wedges.py -{}-mapping stacked} & the candidate-3 mapping\\
+\texttt{realised\_levels.py} & the level test and the aggregate check\\
+\texttt{stability.py} & wedges on subsets of formation dates\\
+\texttt{validate.py}, \texttt{compare\_panels.py} & replication against Table~1 and the paper's panels\\
+\texttt{doc/quality.pdf}, \texttt{doc/signals.pdf} & the evidence\\
+\texttt{Website/Literature/} & the source papers, indexed in \texttt{\_index.md}\\
 \bottomrule
 \end{tabular}
 

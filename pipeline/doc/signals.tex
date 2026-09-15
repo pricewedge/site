@@ -12,16 +12,27 @@
 
 \section*{How to read this}
 
-One entry per characteristic. \emph{Agreement} is the mean correlation, across
-the ten deciles and 462 formation months, between our decile capitalisation
-weights and the replication package's own (\texttt{datas\_all\_charP}). It tests
-the characteristic and the sort alone, independently of the 241-month tracking
-and the discount factor. Above 0.85 the construction is
-treated as verified. \emph{Error} is our price wedge less the paper's Table 1
-value, in percentage points.
+One entry per characteristic: the exact formula and data used, how well the
+result agrees with the paper's own data, and every alternative that was
+tried and rejected, so that no ground is covered twice. Three sources of
+truth are referred to throughout. The \emph{decile weights} are the
+replication package's record of each decile's share of market
+capitalization, month by month; \emph{agreement} is the average correlation,
+across the ten deciles and the 462 formation months, between our shares and
+the package's. It tests the characteristic and the sort alone, and above
+0.85 a construction is treated as verified. The \emph{paper's panels} are
+the firm-month values of every characteristic that the paper's sorts were
+run from, shared by Andrea Tamoni in September 2026; a Spearman correlation
+or an exact-match rate quoted against them compares our firm-month values
+with the paper's directly. \emph{Chen and Zimmermann} and \emph{JKP} are the
+two public libraries of anomaly signals (Chen and Zimmermann 2022; Jensen,
+Kelly and Pedersen 2023) used as cross-checks. \emph{Error} is our price
+wedge less the paper's Table~1 value, in percentage points, on the long and
+the short side.
 
-\emph{Rejected alternatives} records what was tried and did not work, so the
-same ground is not covered twice.
+The last section lists the places where the paper's documentation and its
+data disagree, graded by whether the difference changes what a signal
+measures.
 
 \section*{Summary}
 \begin{longtable}{llrrrl}
@@ -332,7 +343,7 @@ DP[t] = sum of those dollars over months t-11..t, divided by cap[t],\\
 requiring at least six of the twelve months.\\
 
 \end{quote}
-\textbf{Notes.} Dividends in dollars over market capitalisation, not dividends per share over price. Per share the share count drifts through the year and agreement falls to 0.841. JKP's div12m\_me, which is this same quantity, scores 0.928 against the package, and building it natively gives 0.924. Against the paper's own panel (t\_by\_n/DP.mat) the two agree exactly where both are zero (53\% of firm-months) but differ by more than 1\% for three quarters of the non-zero ones, with the ratio spread from 0.87 to 1.10 rather than at any fixed factor, and the paper carries a value for 26\% fewer firm-months than we do. No formula variant tried (below) narrows that, so the difference is in the dividend series itself, most plausibly dividends taken from CRSP's distribution events rather than from ret - retx. Verified at the sort level; the short leg is the widest gap among verified characteristics (4 points).
+\textbf{Notes.} Dividends in dollars over market capitalisation, not dividends per share over price. Per share the share count drifts through the year and agreement falls to 0.841. JKP's div12m\_me, which is this same quantity, scores 0.928 against the package, and building it natively gives 0.924. Against the paper's own panel (the paper's panel of DP values) the two agree exactly where both are zero (53\% of firm-months) but differ by more than 1\% for three quarters of the non-zero ones, with the ratio spread from 0.87 to 1.10 rather than at any fixed factor, and the paper carries a value for 26\% fewer firm-months than we do. No formula variant tried (below) narrows that, so the difference is in the dividend series itself, most plausibly dividends taken from CRSP's distribution events rather than from ret - retx. Verified at the sort level; the short leg is the widest gap among verified characteristics (4 points).
 
 \textbf{Rejected alternatives.}
 \begin{longtable}{p{10.5cm}rp{3.2cm}}
@@ -444,7 +455,7 @@ the previous month's share volume over this month's shares outstanding, both fro
 the CRSP monthly file.\\
 
 \end{quote}
-\textbf{Notes.} RESOLVED against the paper's panel: Spearman 1.0000; agreement with the published decile weights 0.978 (a three-month average gave 0.79). The one-month lag of volume against the share count is what the data does; Table A.1 ("volume over shares outstanding") does not mention it and no reason for it suggests itself. Recorded under discrepancies, category B. SOURCE CHECK (15 September 2026): Datar, Naik and Radcliffe (1998) measure turnover as the average shares traded over the preceding three months over shares outstanding as of the period; Freyberger, Neuhierl and Weber define LTurnover as last month's volume over shares outstanding, which is exactly what the paper's panel holds. Table A.1 dropped 'last month's'. Not a deviation from the paper's own source; the earlier category-B entry is withdrawn.
+\textbf{Notes.} Settled against the paper's panel: Spearman 1.0000; agreement with the published decile weights 0.978 (a three-month average gave 0.79). The one-month lag of volume against the share count is what the data does; Table A.1 ("volume over shares outstanding") does not mention it and no reason for it suggests itself. Recorded under discrepancies, category B. Source check (15 September 2026): Datar, Naik and Radcliffe (1998) measure turnover as the average shares traded over the preceding three months over shares outstanding as of the period; Freyberger, Neuhierl and Weber define LTurnover as last month's volume over shares outstanding, which is exactly what the paper's panel holds. Table A.1 dropped 'last month's'. Not a deviation from the paper's own source; the earlier category-B entry is withdrawn.
 
 \textbf{Rejected alternatives.}
 \begin{longtable}{p{10.5cm}rp{3.2cm}}
@@ -470,7 +481,7 @@ with v\_d the day's share volume and r\_d its return. Then\\
 n the number of trading days in the month, at least 5.\\
 
 \end{quote}
-\textbf{Notes.} RESOLVED against the paper's own panel (t\_by\_n/SUV.mat): Spearman 0.9999, Pearson 0.9998, and the ratio of the panel's values to ours is 1.0000 at every quantile (n - 3 in the denominator gives 1.054, n gives 0.976; what remains is float32 rounding in our daily file). Agreement with the published decile weights 0.982; decile one 8.94\% against a published 8.94\%. This is not Garfinkel's measure and not what Table A.1 describes: there the regression is estimated on the previous month and the surprise is the current month's volume; in the data the regression is estimated on the current month and the surprise is the last trading day's. Recorded under discrepancies, category A. SOURCE CHECK (15 September 2026): Garfinkel (2009, eqs 4-6) defines a daily measure, the day's volume minus the fitted value from a regression of volume on |R|+ and |R|- estimated over a prior control window, divided by that regression's residual standard deviation; in his event study it is averaged over the event days. FNW make it monthly with the regression on the previous month. Neither singles out the last day. The site's version: daily residuals from month t-1's fit, averaged over month t.
+\textbf{Notes.} Settled against the paper's own panel of SUV values: Spearman 0.9999, Pearson 0.9998, and the ratio of the panel's values to ours is 1.0000 at every quantile (n - 3 in the denominator gives 1.054, n gives 0.976; what remains is float32 rounding in our daily file). Agreement with the published decile weights 0.982; decile one 8.94\% against a published 8.94\%. This is not Garfinkel's measure and not what Table A.1 describes: there the regression is estimated on the previous month and the surprise is the current month's volume; in the data the regression is estimated on the current month and the surprise is the last trading day's. Recorded under discrepancies, category A. Source check (15 September 2026): Garfinkel (2009, eqs 4-6) defines a daily measure, the day's volume minus the fitted value from a regression of volume on |R|+ and |R|- estimated over a prior control window, divided by that regression's residual standard deviation; in his event study it is averaged over the event days. FNW make it monthly with the regression on the previous month. Neither singles out the last day. The site's version: daily residuals from month t-1's fit, averaged over month t.
 
 \textbf{Rejected alternatives.}
 \begin{longtable}{p{10.5cm}rp{3.2cm}}
@@ -499,7 +510,7 @@ No market turnover is subtracted, no Nasdaq volume scaling, no median, and no\\
 averaging over the month: the value on one day is the month's signal.\\
 
 \end{quote}
-\textbf{Notes.} RESOLVED against the paper's own panel (t\_by\_n/DTO.mat, shared by Andrea Tamoni in September 2026): Spearman 0.998, Pearson 0.997 (the panel's values are ours times 500, a units convention that leaves every rank unchanged); agreement with the published decile weights 0.985, decile one 6.42\% of market capitalisation against a published 6.50\%. This is not what Table A.1 describes -- "daily volume to shares outstanding minus the daily market turnover and detrended by the 180 trading day median", with Nasdaq volume scaled down -- and each documented element lowers the agreement (below). Recorded under discrepancies, category A. SOURCE CHECK (15 September 2026): Garfinkel (2009, eq 3) defines daily market-adjusted turnover (firm turnover minus NYSE/AMEX turnover) minus its mean over a control period; FNW detrend by the firm's own 180-trading-day median and scale Nasdaq volume by 38\% after 1997 and 50\% before (Anderson and Dyl 2005). The site's version: FNW's daily series averaged over the month.
+\textbf{Notes.} Settled against the paper's own panel of DTO values: Spearman 0.998, Pearson 0.997 (the panel's values are ours times 500, a units convention that leaves every rank unchanged); agreement with the published decile weights 0.985, decile one 6.42\% of market capitalisation against a published 6.50\%. This is not what Table A.1 describes -- "daily volume to shares outstanding minus the daily market turnover and detrended by the 180 trading day median", with Nasdaq volume scaled down -- and each documented element lowers the agreement (below). Recorded under discrepancies, category A. Source check (15 September 2026): Garfinkel (2009, eq 3) defines daily market-adjusted turnover (firm turnover minus NYSE/AMEX turnover) minus its mean over a control period; FNW detrend by the firm's own 180-trading-day median and scale Nasdaq volume by 38\% after 1997 and 50\% before (Anderson and Dyl 2005). The site's version: FNW's daily series averaged over the month.
 
 \textbf{Rejected alternatives.}
 \begin{longtable}{p{10.5cm}rp{3.2cm}}
@@ -526,7 +537,7 @@ grouping SIC codes by that constant, month after month, gives 27 groups and no\\
 code-month pair that sits in two of them.\\
 
 \end{quote}
-\textbf{Notes.} RESOLVED at 0.917 against the published decile weights once the industry scheme was recovered from the paper's panels (Fama-French 48 with the same inputs: see below). Table A.1 says the industries are Fama-French 48; the data's cells are 27 groups that align with FF48 only in part -- one group holds 410 SIC codes spanning food, agriculture, textiles, clothing and construction, another 281 codes across building materials, machinery, steel, paper and household goods. The SIC source matters as well: the name-history code reproduces the panel's own siccd for 99.5\% of firm-months. Recorded under discrepancies, category B.
+\textbf{Notes.} Settled at 0.917 against the published decile weights once the industry scheme was recovered from the paper's panels (Fama-French 48 with the same inputs: see below). Table A.1 says the industries are Fama-French 48; the data's cells are 27 groups that align with FF48 only in part -- one group holds 410 SIC codes spanning food, agriculture, textiles, clothing and construction, another 281 codes across building materials, machinery, steel, paper and household goods. The SIC source matters as well: the name-history code reproduces the panel's own siccd for 99.5\% of firm-months. Recorded under discrepancies, category B.
 
 \textbf{Rejected alternatives.}
 \begin{longtable}{p{10.5cm}rp{3.2cm}}
@@ -567,7 +578,7 @@ grouping SIC codes by that constant, month after month, gives 27 groups and no\\
 code-month pair that sits in two of them.\\
 
 \end{quote}
-\textbf{Notes.} RESOLVED at 0.906 against the published decile weights once the industry scheme was recovered from the paper's panels (Fama-French 48 with the same inputs: see below). Table A.1 says the industries are Fama-French 48; the data's cells are 27 groups that align with FF48 only in part -- one group holds 410 SIC codes spanning food, agriculture, textiles, clothing and construction, another 281 codes across building materials, machinery, steel, paper and household goods. The SIC source matters as well: the name-history code reproduces the panel's own siccd for 99.5\% of firm-months. Recorded under discrepancies, category B.
+\textbf{Notes.} Settled at 0.906 against the published decile weights once the industry scheme was recovered from the paper's panels (Fama-French 48 with the same inputs: see below). Table A.1 says the industries are Fama-French 48; the data's cells are 27 groups that align with FF48 only in part -- one group holds 410 SIC codes spanning food, agriculture, textiles, clothing and construction, another 281 codes across building materials, machinery, steel, paper and household goods. The SIC source matters as well: the name-history code reproduces the panel's own siccd for 99.5\% of firm-months. Recorded under discrepancies, category B.
 
 \textbf{Rejected alternatives.}
 \begin{longtable}{p{10.5cm}rp{3.2cm}}
@@ -593,7 +604,7 @@ grouping SIC codes by that constant, month after month, gives 27 groups and no\\
 code-month pair that sits in two of them.\\
 
 \end{quote}
-\textbf{Notes.} RESOLVED at 0.992 against the published decile weights once the industry scheme was recovered from the paper's panels (Fama-French 48 with the same inputs: see below). Table A.1 says the industries are Fama-French 48; the data's cells are 27 groups that align with FF48 only in part -- one group holds 410 SIC codes spanning food, agriculture, textiles, clothing and construction, another 281 codes across building materials, machinery, steel, paper and household goods. The SIC source matters as well: the name-history code reproduces the panel's own siccd for 99.5\% of firm-months. Recorded under discrepancies, category B.
+\textbf{Notes.} Settled at 0.992 against the published decile weights once the industry scheme was recovered from the paper's panels (Fama-French 48 with the same inputs: see below). Table A.1 says the industries are Fama-French 48; the data's cells are 27 groups that align with FF48 only in part -- one group holds 410 SIC codes spanning food, agriculture, textiles, clothing and construction, another 281 codes across building materials, machinery, steel, paper and household goods. The SIC source matters as well: the name-history code reproduces the panel's own siccd for 99.5\% of firm-months. Recorded under discrepancies, category B.
 
 \textbf{Rejected alternatives.}
 \begin{longtable}{p{10.5cm}rp{3.2cm}}
@@ -844,7 +855,7 @@ At least 10 of the firm's days in the window; a firm with a shorter history uses
 what it has.\\
 
 \end{quote}
-\textbf{Notes.} RESOLVED against the paper's own panel (t\_by\_n/BETA\_d.mat): 84\% of firm-months within 1\%, rank correlation 0.9996, median ratio 1.0000. The window is 249 of the firm's own trading rows, which is what a 250-day window gives once the lag consumes its first day; 248 or 250 rows halve the agreement (0.49 and 0.47), calendar twelve months gives 0.24, and a window counted on the market's calendar rather than the firm's rows 0.76. The firm-months outside 1\% have betas below 0.2 in absolute value, where a relative criterion is harsh, and thin out from 45\% in the first year of the daily sample to 5-18\% after; the ranking is exact. Table A.1 states no window at all. Over the full panel: within 1\% for 89.7\% of firm-months, rank correlation 0.9994, median ratio 1.0002.
+\textbf{Notes.} Settled against the paper's own panel of BETA\_d values: 84\% of firm-months within 1\%, rank correlation 0.9996, median ratio 1.0000. The window is 249 of the firm's own trading rows, which is what a 250-day window gives once the lag consumes its first day; 248 or 250 rows halve the agreement (0.49 and 0.47), calendar twelve months gives 0.24, and a window counted on the market's calendar rather than the firm's rows 0.76. The firm-months outside 1\% have betas below 0.2 in absolute value, where a relative criterion is harsh, and thin out from 45\% in the first year of the daily sample to 5-18\% after; the ranking is exact. Table A.1 states no window at all. Over the full panel: within 1\% for 89.7\% of firm-months, rank correlation 0.9994, median ratio 1.0002.
 
 \textbf{Rejected alternatives.}
 \begin{longtable}{p{10.5cm}rp{3.2cm}}
@@ -1092,7 +1103,7 @@ Mean over the month's trading days of a daily spread, where each day contributes
 and days with neither are left out. No minimum number of days.\\
 
 \end{quote}
-\textbf{Notes.} RESOLVED against the paper's own panel (t\_by\_n/SPREAD.mat): built day by day this way, every firm-month in 1975, 1985, 1995 and 2005 agrees with the panel within 1\%, and no firm-month the panel has is missing. FNW cite Chung and Zhang (2014), whose estimator is the quoted spread; CRSP carries quotes for 9\% of daily rows in the 1960s and 53\% in the 1980s, so the quoted spread alone scores 0.02 against the published decile weights, and the range alone 0.94 but with all of 1970s Nasdaq missing. The month-level fallback that preceded this (range when fifteen days have it, else quotes) reached 0.973 on the published weights but agreed with the panel for only 69-88\% of firm-months. Over the full 1960-2017 panel the rebuilt series matches the paper's exactly for 99.4\% of firm-months and within 1\% for 100\%.
+\textbf{Notes.} Settled against the paper's own panel of SPREAD values: built day by day this way, every firm-month in 1975, 1985, 1995 and 2005 agrees with the panel within 1\%, and no firm-month the panel has is missing. FNW cite Chung and Zhang (2014), whose estimator is the quoted spread; CRSP carries quotes for 9\% of daily rows in the 1960s and 53\% in the 1980s, so the quoted spread alone scores 0.02 against the published decile weights, and the range alone 0.94 but with all of 1970s Nasdaq missing. The month-level fallback that preceded this (range when fifteen days have it, else quotes) reached 0.973 on the published weights but agreed with the panel for only 69-88\% of firm-months. Over the full 1960-2017 panel the rebuilt series matches the paper's exactly for 99.4\% of firm-months and within 1\% for 100\%.
 
 \textbf{Rejected alternatives.}
 \begin{longtable}{p{10.5cm}rp{3.2cm}}
@@ -1130,7 +1141,7 @@ days with zero volume left out; at least 15 trading days in the month and at lea
 2 with volume.\\
 
 \end{quote}
-\textbf{Notes.} In LOGS. In levels the dispersion measures scale rather than variability: 0.06 against 0.87. Against the paper's own panel (t\_by\_n/sdDVOL.mat) the earlier ln(1 + dollar volume) over all days matched for the 73\% of firm-months without a zero-volume day and disagreed by a factor of 1.6 to 5 for every firm-month with one: a zero-volume day enters as ln(1) = 0 and dominates the month's dispersion. Leaving those days out, in ln(x) rather than ln(1 + x), is what the panel does. Over the full panel: exact for 90.9\% of firm-months, within 1\% for 100\%, rank correlation 1.0000.
+\textbf{Notes.} In LOGS. In levels the dispersion measures scale rather than variability: 0.06 against 0.87. Against the paper's own panel (the paper's panel of sdDVOL values) the earlier ln(1 + dollar volume) over all days matched for the 73\% of firm-months without a zero-volume day and disagreed by a factor of 1.6 to 5 for every firm-month with one: a zero-volume day enters as ln(1) = 0 and dominates the month's dispersion. Leaving those days out, in ln(x) rather than ln(1 + x), is what the panel does. Over the full panel: exact for 90.9\% of firm-months, within 1\% for 100\%, rank correlation 1.0000.
 
 \textbf{Rejected alternatives.}
 \begin{longtable}{p{10.5cm}rp{3.2cm}}
@@ -1183,7 +1194,7 @@ grouping SIC codes by that constant, month after month, gives 27 groups and no\\
 code-month pair that sits in two of them.\\
 
 \end{quote}
-\textbf{Notes.} RESOLVED against the published decile weights once the industry scheme was recovered from the paper's panels (Fama-French 48 with the same inputs: see below). Table A.1 says the industries are Fama-French 48; the data's cells are 27 groups that align with FF48 only in part -- one group holds 410 SIC codes spanning food, agriculture, textiles, clothing and construction, another 281 codes across building materials, machinery, steel, paper and household goods. The SIC source matters as well: the name-history code reproduces the panel's own siccd for 99.5\% of firm-months. Its parent PM is missing, not infinite, when sales are zero; an infinity inside an industry mean wiped out every firm in that industry-month, which is what had kept aPM at 0.37 after the scheme was recovered. Recorded under discrepancies, category B.
+\textbf{Notes.} Settled against the published decile weights once the industry scheme was recovered from the paper's panels (Fama-French 48 with the same inputs: see below). Table A.1 says the industries are Fama-French 48; the data's cells are 27 groups that align with FF48 only in part -- one group holds 410 SIC codes spanning food, agriculture, textiles, clothing and construction, another 281 codes across building materials, machinery, steel, paper and household goods. The SIC source matters as well: the name-history code reproduces the panel's own siccd for 99.5\% of firm-months. Its parent PM is missing, not infinite, when sales are zero; an infinity inside an industry mean wiped out every firm in that industry-month, which is what had kept aPM at 0.37 after the scheme was recovered. Recorded under discrepancies, category B.
 
 \textbf{Rejected alternatives.}
 \begin{longtable}{p{10.5cm}rp{3.2cm}}

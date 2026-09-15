@@ -115,16 +115,27 @@ def render(signals: list[dict], numbers: dict) -> str:
 
 \section*{How to read this}
 
-One entry per characteristic. \emph{Agreement} is the mean correlation, across
-the ten deciles and 462 formation months, between our decile capitalisation
-weights and the replication package's own (\texttt{datas\_all\_charP}). It tests
-the characteristic and the sort alone, independently of the 241-month tracking
-and the discount factor. Above """ + f"{THRESHOLD}" + r""" the construction is
-treated as verified. \emph{Error} is our price wedge less the paper's Table 1
-value, in percentage points.
+One entry per characteristic: the exact formula and data used, how well the
+result agrees with the paper's own data, and every alternative that was
+tried and rejected, so that no ground is covered twice. Three sources of
+truth are referred to throughout. The \emph{decile weights} are the
+replication package's record of each decile's share of market
+capitalization, month by month; \emph{agreement} is the average correlation,
+across the ten deciles and the 462 formation months, between our shares and
+the package's. It tests the characteristic and the sort alone, and above
+""" + f"{THRESHOLD}" + r""" a construction is treated as verified. The \emph{paper's panels} are
+the firm-month values of every characteristic that the paper's sorts were
+run from, shared by Andrea Tamoni in September 2026; a Spearman correlation
+or an exact-match rate quoted against them compares our firm-month values
+with the paper's directly. \emph{Chen and Zimmermann} and \emph{JKP} are the
+two public libraries of anomaly signals (Chen and Zimmermann 2022; Jensen,
+Kelly and Pedersen 2023) used as cross-checks. \emph{Error} is our price
+wedge less the paper's Table~1 value, in percentage points, on the long and
+the short side.
 
-\emph{Rejected alternatives} records what was tried and did not work, so the
-same ground is not covered twice.
+The last section lists the places where the paper's documentation and its
+data disagree, graded by whether the difference changes what a signal
+measures.
 
 \section*{Summary}
 \begin{longtable}{llrrrl}
