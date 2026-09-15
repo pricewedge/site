@@ -1,0 +1,30 @@
+% Shared layout for the price-wedge documents (decisions, quality, signals).
+% One typeface family (Palatino via newpx), uniform headings, numbered table
+% captions, generous spacing, black links.
+\ProvidesPackage{pwdoc}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{newpxtext,newpxmath}
+\usepackage{microtype}
+\usepackage{booktabs,array,longtable,amsmath,amssymb,enumitem,caption,titlesec,xcolor}
+\usepackage[hidelinks]{hyperref}
+\setlength{\parindent}{0pt}\setlength{\parskip}{6pt plus 1pt}
+\setlength{\emergencystretch}{2em}
+\titleformat{\section}{\Large\bfseries}{\thesection.}{0.6em}{}
+\titleformat{\subsection}{\large\bfseries}{\thesubsection}{0.6em}{}
+\titleformat{\subsubsection}{\normalsize\bfseries}{}{0em}{}
+\titlespacing*{\section}{0pt}{20pt plus 4pt}{8pt}
+\titlespacing*{\subsection}{0pt}{14pt plus 3pt}{4pt}
+\titlespacing*{\subsubsection}{0pt}{10pt}{2pt}
+\captionsetup{font=small,labelfont=bf,labelsep=period,skip=5pt,justification=raggedright,singlelinecheck=false}
+\setlist{nosep,leftmargin=1.4em,itemsep=2pt}
+\renewcommand{\arraystretch}{1.15}
+\newcommand{\pp}{\,pp}
+% A table block: caption above, small type, centred.
+\newenvironment{tbl}[1]{\par\vspace{8pt}\noindent\begin{minipage}{\linewidth}\small\captionof{table}{#1}\centering}{\end{minipage}\par\vspace{8pt}}
+\newcommand{\tablenote}[1]{\par\vspace{4pt}\begin{minipage}{\linewidth}\footnotesize\raggedright #1\end{minipage}\par}
+% Title block
+\makeatletter
+\renewcommand{\maketitle}{\begin{flushleft}{\LARGE\bfseries\@title\par}\vspace{6pt}{\large\@author\par}\vspace{2pt}{\@date\par}\end{flushleft}\vspace{10pt}\hrule\vspace{14pt}}
+\makeatother

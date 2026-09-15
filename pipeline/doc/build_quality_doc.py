@@ -71,18 +71,18 @@ the market price of risk. This section asks whether the cross-section of
 wedges is the same object in different parts of the sample. All 570 decile
 wedges are re-estimated on subsets of the formation dates, the market price
 of risk re-solved on each subset so that the market's wedge is zero there
-(\texttt{stability.py}); the """ + f"{h['n_verified']}" + r""" portfolios of the verified characteristics are
+; the """ + f"{h['n_verified']}" + r""" portfolios of the verified characteristics are
 compared.
 
-\begin{center}\small
+\begin{tbl}{Portfolio wedges estimated on subsets of the formation dates, against those on all dates.}
 \begin{tabular}{lrrrrrr}\toprule
 Formation dates & months & price of risk & corr.\ with all dates & slope & RMSE & sign changes\\\midrule
 """ + t1 + r"""
 \bottomrule
 \end{tabular}
-\end{center}
-\emph{corr., slope, RMSE: the subsample's 560 wedges against those on all
+\tablenote{corr., slope, RMSE: the subsample's 560 wedges against those on all
 dates; sign changes: how many of the 56 long-short spreads change sign.}
+\end{tbl}
 
 Two things stand out. Extending the paper's window to all available dates
 changes almost nothing. Dropping the early dates does: every window starting
@@ -105,7 +105,7 @@ sampling; the gap between """ + f"{h['corr']:.2f}" + r""" and """ + f"{h['expect
 side, pp) on all dates and in each half, for the characteristics that move
 most and least; """ + f"{100*same:.0f}" + r"""\% keep the sign of their spread across halves.
 
-\begin{center}\small
+\begin{tbl}{Long-short spreads, pp, for the characteristics that move most (top) and least (bottom) between halves.}
 \begin{tabular}{lrrr}\toprule
  & all dates & 1964--87 & 1988--2011\\\midrule
 """ + rows(top) + r"""
@@ -113,7 +113,7 @@ most and least; """ + f"{100*same:.0f}" + r"""\% keep the sign of their spread a
 """ + rows(bottom) + r"""
 \bottomrule
 \end{tabular}
-\end{center}
+\end{tbl}
 
 The value ratios reverse between halves, profitability spreads shrink,
 momentum grows; book-to-market, $q$, size, long-term reversal and the
@@ -123,19 +123,19 @@ investment sorts are the stable core.
 applied to the same firm-months, against the firm-level wedges from all
 dates (whose standard deviation across firms is """ + f"{float(F.loc['full 1964-2011', 'wedge_sd']):.0f}" + r"""~pp):
 
-\begin{center}\small
+\begin{tbl}{Firm-level wedges from the mapping refitted on each subset, against those from all dates.}
 \begin{tabular}{lrrrr}\toprule
 Fitted on & corr. & mean difference & s.d.\ of difference & firms moved $>10$~pp\\\midrule
 """ + t4 + r"""
 \bottomrule
 \end{tabular}
-\end{center}
+\end{tbl}
 
 Firm rankings are robust to the sample (correlations 0.90 to 0.96, the
 1980--95 third and the post-2000 window aside); levels are not. The halves
 against each other at the firm level correlate at """ + f"{h['firm_halves_corr']:.2f}" + r""" with a
 standard deviation of the difference of """ + f"{h['firm_halves_sd_diff']:.0f}" + r"""~pp. This is the evidence
-behind decision~3 in \texttt{decisions.pdf}: all available formation dates,
+behind decision~3 in the decisions note: all available formation dates,
 the half-sample estimates as an internal check, no sample choices on the
 website.
 """
@@ -186,7 +186,7 @@ def _levels_section() -> str:
 The portfolio-level tests cannot say whether the number the website prints
 for a firm is the right \emph{level}, and two firm-level series can
 correlate at 0.95 while differing by 20~pp. This section tests levels
-directly (\texttt{realised\_levels.py}). A candidate firm-level wedge is
+directly. A candidate firm-level wedge is
 treated like a characteristic: firms are sorted into deciles on it every
 month at NYSE breakpoints, decile 1 holding the firms called most
 overpriced; each decile is held for fifteen years, equal-weighted and
@@ -208,18 +208,19 @@ wedge has to reproduce that gap.
 
 \subsection*{In sample}
 
-\begin{center}\small
+\begin{tbl}{The level test in sample: realized decile wedges regressed on assigned ones.}
 \begin{tabular}{lrrrrrrr}\toprule
  & \multicolumn{3}{c}{equal-weighted deciles} & \multicolumn{2}{c}{value-weighted} & \multicolumn{2}{c}{mean assigned}\\
+\cmidrule(lr){2-4}\cmidrule(lr){5-6}\cmidrule(lr){7-8}
 Candidate & slope & icept & gap & slope & icept & EW & VW\\\midrule
 """ + block("in-sample") + r"""
 \bottomrule
 \end{tabular}
-\end{center}
-\emph{icept: intercept, pp. gap: mean absolute difference between assigned and
+\tablenote{icept: intercept, pp. gap: mean absolute difference between assigned and
 realized across the ten deciles, pp. mean assigned: the average of the
 candidate's firm-level wedges, equal-weighted over firm-months (compare with
 """ + f"{univ_ew:.0f}" + r""") and value-weighted (compare with zero).}
+\end{tbl}
 
 The paper's published firm-level wedges (three principal components of the
 114 extreme deciles, each portfolio described by the equal-weighted average
@@ -245,7 +246,7 @@ average of """ + f"{stacked.fitted_mean_vw:+.0f}" + r"""~pp.
 Assigned and realized wedge by decile of the assigned wedge, pp, for the
 published series and for """ + nm(best).lower() + r""".
 
-\begin{center}\small
+\begin{tbl}{Assigned and realized wedge by decile of the assigned wedge, pp.}
 \begin{tabular}{lrrrrrrrrrr}\toprule
 Published & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10\\\midrule
 """ + dec_rows("published PWshare (PC3, EW profiles)", "in-sample") + r"""
@@ -254,7 +255,7 @@ Published & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10\\\midrule
 """ + dec_rows(best, "in-sample") + r"""
 \bottomrule
 \end{tabular}
-\end{center}
+\end{tbl}
 
 \subsection*{Out of sample}
 
@@ -263,13 +264,13 @@ from 1988 on, with the price of risk re-solved on each half so the market's
 wedge is zero in both (the published series, fitted on all dates, is
 evaluated on the same late dates).
 
-\begin{center}\small
+\begin{tbl}{The level test out of sample: fitted before 1988, realized from 1988 on, price of risk re-solved on each half.}
 \begin{tabular}{lrrrr}\toprule
 Candidate & EW slope & EW icept & VW slope & VW icept\\\midrule
 """ + oos_rows + r"""
 \bottomrule
 \end{tabular}
-\end{center}
+\end{tbl}
 
 The slopes survive. The intercepts are about $-12$~pp for every candidate
 fitted on the early dates, because the late dates' average firm realized
@@ -281,8 +282,8 @@ carries forward; the level of the whole cross-section moves with the sample
 
 \section{Where the method weights by value and where by firm}
 
-\begin{center}\small
-\begin{tabular}{p{4.6cm}p{4.4cm}p{4.4cm}}\toprule
+\begin{tbl}{Where the method weights by value and where by firm.}
+\begin{tabular}{>{\raggedright\arraybackslash}p{4.6cm}>{\raggedright\arraybackslash}p{4.4cm}>{\raggedright\arraybackslash}p{4.4cm}}\toprule
 Step & Paper & Pipeline\\\midrule
 Market price of risk & value-weighted market wedge set to zero & same\\
 Decile portfolios & value-weighted, NYSE breakpoints & same\\
@@ -291,7 +292,7 @@ Regression across portfolios & each portfolio one observation, 114 extreme decil
 Firm-level regressions (investment, $q$) & each firm-month one observation & not run here\\
 \bottomrule
 \end{tabular}
-\end{center}
+\end{tbl}
 
 The calibration and the value-weighted decile define the object and stay.
 The problem is the average that describes a portfolio. A portfolio's
@@ -305,7 +306,7 @@ almost no firm is; using both portfolio sets, each with its own average, is
 the construction that passes the level test and keeps the value-weighted
 average of firm-level wedges at zero. Rankings barely move under any of
 these; levels move by 10 to 20~pp for the typical firm. This is the evidence
-behind decision~1 in \texttt{decisions.pdf}.
+behind decision~1 in the decisions note.
 """
 
 
@@ -343,14 +344,14 @@ def main() -> int:
     body = []
     for t, title in tests.items():
         sub = q[q.test == t]
-        body.append(r"\subsection*{" + title + "}")
-        body.append(r"\begin{center}\small\begin{tabular}{lrrrrr}\toprule")
+        body.append(r"\begin{tbl}{" + title + r": each mapping's fit on the held-out portfolios.}")
+        body.append(r"\begin{tabular}{lrrrrr}\toprule")
         body.append(r"Mapping & $R^2$ & corr. & intercept & slope & RMSE\\\midrule")
         for _, r in sub.iterrows():
             bold = r["mapping"] == "direct, unweighted"
             name = (r"\bfseries " if bold else "") + r["m"]
             body.append(f"{name} & {r.r2:.3f} & {r['corr']:.3f} & {r.intercept:+.2f} & {r.slope:.3f} & {r.rmse:.2f}\\\\")
-        body.append(r"\bottomrule\end{tabular}\end{center}")
+        body.append(r"\bottomrule\end{tabular}\end{tbl}")
     ex = []
     for _, r in e.iterrows():
         m = {"pc3": "3 principal components", "pc10": "10 principal components", "direct": "penalized regression"}.get(r["mapping"], r["mapping"])
@@ -358,13 +359,9 @@ def main() -> int:
     se = p["se_nw"].dropna(); n_dates = int(p["n_cohorts"].max())
 
     doc = r"""\documentclass[11pt]{article}
-\usepackage[margin=1in]{geometry}
-\usepackage{booktabs,amsmath,microtype,array,enumitem}
-\usepackage[colorlinks=true,linkcolor=black,urlcolor=blue]{hyperref}
-\usepackage{sectsty}\allsectionsfont{\sffamily}
-\setlength{\parindent}{0pt}\setlength{\parskip}{5pt}
-\title{\sffamily Firm-level price wedges:\\[3pt]\large how well does the mapping from portfolios to firms work?}
-\author{}\date{\today}
+\usepackage{pwdoc}
+\title{Firm-level price wedges\\[2pt]\large How well does the mapping from portfolios to firms work?}
+\author{Quality report for the pricewedge.com pipeline}\date{\today}
 \begin{document}\maketitle
 
 \subsection*{What this report checks}
@@ -438,13 +435,13 @@ Firms are sorted into deciles on their assigned wedge each month and
 tracked forward; decile 1 is the most negative (most underpriced). If the
 wedge is mispricing that resolves, decile 1 should outperform.
 
-\begin{center}\small
+\begin{tbl}{Subsequent cumulative returns, in percent, of the extreme deciles of the assigned wedge.}
 \begin{tabular}{llrrrr}\toprule
 Mapping & months & weighting & decile 1 & decile 10 & spread\\\midrule
 """ + "\n".join(ex) + r"""
 \bottomrule
 \end{tabular}
-\end{center}
+\end{tbl}
 
 Over five years the penalized regression separates the extreme deciles by
 """ + f"{sp60_cap:.0f}" + r"""~pp value-weighted and """ + f"{sp60_eq:.0f}" + r"""~pp equal-weighted, with deciles """ + mono_direct + r""";
@@ -454,10 +451,10 @@ three principal components give """ + f"{sp60_cap_pc3:.0f}" + r""" and """ + f"{
 \section{Decisions taken, and what remains open}
 
 Three decisions follow from this report and are recorded, with their
-reasons, in \texttt{decisions.pdf}: the firm-level wedge is the equal-weighted
+reasons, in the decisions note: the firm-level wedge is the equal-weighted
 realized wedge of firms with the firm's characteristics with the
 value-weighted average pinned at zero (Section~3); the characteristics are
-defined as their source papers define them (\texttt{signals.pdf}); the
+defined as their source papers define them (the signal log); the
 wedges use all available formation dates, with no sample choices on the
 website (Section~5). Every build reports the level test, the aggregate
 check, the family-out fit, the subsequent-return spreads and the

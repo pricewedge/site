@@ -1,17 +1,11 @@
 \documentclass[11pt]{article}
-\usepackage[margin=1in]{geometry}
-\usepackage{booktabs,array,amsmath,amssymb,enumitem,xcolor}
-\usepackage[T1]{fontenc}
-\usepackage{sectsty}\allsectionsfont{\sffamily}
-\usepackage{microtype}
-\setlength{\parskip}{5pt}\setlength{\parindent}{0pt}
-\newcommand{\pp}{\,pp}
-\title{\sffamily Firm-level price wedges for pricewedge.com\\[4pt]\large Three design decisions and the evidence behind them}
+\usepackage{pwdoc}
+\title{Firm-level price wedges for pricewedge.com\\[2pt]\large Three design decisions and the evidence behind them}
 \author{Christian Opp}
 \date{15 September 2026}
 \begin{document}\maketitle
 
-\subsection*{Summary}
+\section*{Summary}
 
 The website reports a price wedge for an individual firm. Rebuilding the
 paper's construction from raw CRSP and Compustat data exposed three choices
@@ -35,8 +29,8 @@ January 2011, cash flows to December 2025), and no alternative samples on
 the website. Section~4.
 \end{enumerate}
 
-The evidence is in two companion documents: \texttt{quality.pdf} (the mapping
-and the level tests) and \texttt{signals.pdf} (every characteristic's
+The evidence is in two companion documents: the quality report (the mapping
+and the level tests) and the signal log (every characteristic's
 construction and its check against the paper's own data). Every number here
 is produced by a script in the pipeline and can be regenerated.
 
@@ -82,7 +76,7 @@ that rule at an individual firm's own characteristics gives the firm-level
 price wedge. The paper uses three principal components of the
 characteristics of the 114 extreme deciles; the pipeline uses a penalized
 regression on all 570, which fits better on every portfolio-level test
-(\texttt{quality.pdf}). That difference is not the decision here.
+(quality report, Section~1). That difference is not the decision here.
 
 The decision is hidden in the word \emph{average}. A portfolio's average
 characteristics can be taken over its members with equal weights, which
@@ -115,19 +109,18 @@ firm-level wedges must equal the market's wedge, zero.
 
 \subsection*{Three candidates}
 
-\begin{center}\small
-\begin{tabular}{p{3.6cm}p{5.2cm}rrrr}\toprule
+\begin{tbl}{Three candidates for the firm-level price wedge, and what the level test says about each.}
+\begin{tabular}{>{\raggedright\arraybackslash}p{3.1cm}>{\raggedright\arraybackslash}p{5.6cm}rrrr}\toprule
  & & \multicolumn{2}{c}{equal-weighted deciles} & \multicolumn{2}{c}{value-weighted}\\
+\cmidrule(lr){3-4}\cmidrule(lr){5-6}
 Candidate & What the number claims & slope & intercept & slope & VW mean\\\midrule
-1. Published construction (value-weighted wedges, equal-weighted characteristics) & ``the number the paper's method assigns'' & 0.64 & $-18$ & 0.95 & $+9$\\[3pt]
-2. Per dollar (value-weighted wedges and characteristics) & ``a dollar in firms like this one is mispriced by $X$'' & 0.67 & $-3$ & 0.79 & $+1$\\[3pt]
-3. Per firm, aggregate pinned (both portfolio sets, each with matching characteristics) & ``firms like this one are mispriced by $X$ on average; dollar-weighted, mispricing is zero'' & 0.86 & $-1$ & 0.76 & $0$\\
+1. Published construction & ``the number the paper's method assigns'' & 0.64 & $-18$ & 0.95 & $+9$\\[2pt]
+2. Per dollar & ``a dollar in firms like this one is mispriced by $X$'' & 0.67 & $-3$ & 0.79 & $+1$\\[2pt]
+3. Per firm, aggregate pinned & ``firms like this one are mispriced by $X$ on average; dollar-weighted, mispricing is zero'' & 0.86 & $-1$ & 0.76 & $0$\\
 \bottomrule
 \end{tabular}
-\end{center}
-
-\emph{Intercepts in pp; ``VW mean'' is the value-weighted average of the
-candidate's firm-level wedges, which should be near zero.}
+\tablenote{Candidate 1: value-weighted portfolio wedges regressed on equal-weighted portfolio characteristics. Candidate 2: value-weighted wedges and characteristics. Candidate 3: value- and equal-weighted portfolio sets together, each with characteristics of its own weighting. Intercepts in pp. ``VW mean'' is the value-weighted average of the candidate's firm-level wedges, which should be near zero.}
+\end{tbl}
 
 \textbf{Candidate 1} learns ``a portfolio whose typical member is a small
 value firm has wedge $W$'' when $W$ was earned by the portfolio's large
@@ -176,7 +169,7 @@ takes its characteristics from. The point of the anomalies is to use the
 existing specifications, not new ones that arose from an implementation
 slip.
 
-\begin{center}\small
+\begin{tbl}{The six characteristics whose construction in the paper's data departs from its source.}
 \begin{tabular}{>{\raggedright\arraybackslash}p{1.7cm}>{\raggedright\arraybackslash}p{4.4cm}>{\raggedright\arraybackslash}p{4.2cm}>{\raggedright\arraybackslash}p{3.9cm}}\toprule
  & Source & Paper's data & Website\\\midrule
 OA, AOA & Sloan (1996): accruals \emph{net of} depreciation & depreciation added & Sloan's sign, lagged assets as in FNW\\[2pt]
@@ -187,7 +180,7 @@ aBEME, aSIZE, aSAT & Asness, Porter, Stevens (2000): 48 Fama-French industries b
 aPM & Soliman (2008) defines PM; the adjustment is FNW's & industry means not reconstructible; long-short alpha zero & dropped\\
 \bottomrule
 \end{tabular}
-\end{center}
+\end{tbl}
 
 Two remarks. For SUV and DTO neither source singles out one trading day, so
 the paper's last-day values are a construction artifact (the signature of a
@@ -257,6 +250,7 @@ and their firm-level difference from the headline reported.
 
 \section*{Appendix: scripts and sources}
 
+\begin{tbl}{Where each piece lives.}
 \begin{tabular}{p{5.6cm}p{8.6cm}}\toprule
 \texttt{build\_panel.py -{}-spec site} & the characteristics as their sources define them, to 2025\\
 \texttt{portfolio\_wedges.py}, \texttt{portfolio\_profiles.py} & sorts, calibration, wedges and portfolio-level characteristics, value- and equal-weighted (\texttt{-{}-weighting equal})\\
@@ -264,9 +258,10 @@ and their firm-level difference from the headline reported.
 \texttt{realised\_levels.py} & the level test and the aggregate check\\
 \texttt{stability.py} & wedges on subsets of formation dates\\
 \texttt{validate.py}, \texttt{compare\_panels.py} & replication against Table~1 and the paper's panels\\
-\texttt{doc/quality.pdf}, \texttt{doc/signals.pdf} & the evidence\\
-\texttt{Website/Literature/} & the source papers, indexed in \texttt{\_index.md}\\
+quality report, signal log & the evidence (\texttt{doc/quality.pdf}, \texttt{doc/signals.pdf})\\
+Literature folder & the source papers (\texttt{Website/Literature/}, indexed in \texttt{\_index.md})\\
 \bottomrule
 \end{tabular}
+\end{tbl}
 
 \end{document}

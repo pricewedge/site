@@ -38,9 +38,9 @@ signals:
   formula: |
     OA = ( d act - d che - ( d lct - d dlc - d txp - dp ) ) / at[t-1]
     where d txp treats a missing value as zero.
-    Note the placement of dp: it sits INSIDE the bracket, so expanding gives
+    Note the placement of dp: it sits inside the bracket, so expanding gives
     OA = d act - d che - d lct + d dlc + d txp + dp, i.e. depreciation is
-    ADDED to accruals.
+    added to accruals.
   notes: >
     This is not Sloan (1996) and not what Table A.1's own wording says
     ("changes in non-cash working capital minus depreciation"). It is
@@ -48,8 +48,7 @@ signals:
     out gives agreement 0.286, adding it gives 0.963, and decile one's share of
     market capitalisation comes out at 5.29% against a published 5.30%. Chen
     and Zimmermann's PctAcc.do carries the identical bracket placement while
-    their Accruals.do does not, which suggests a shared transcription. WORTH
-    RAISING WITH THE COAUTHORS: as published, OA and AOA are not accruals net
+    their Accruals.do does not, which suggests a shared transcription. Worth raising with the coauthors: as published, OA and AOA are not accruals net
     of depreciation, so capital-intensive firms sort toward the high-accrual
     leg because of their depreciation rather than away from it.
   tried:
@@ -143,7 +142,7 @@ signals:
   formula: |
     operating assets      = at - che - ivao        (che, ivao missing -> 0)
     operating liabilities = at - dlc - dltt - mib - pstk - ceq
-                            (dlc, dltt, mib, pstk missing -> 0; ceq REQUIRED)
+                            (dlc, dltt, mib, pstk missing -> 0; ceq required)
     net operating assets  = operating assets - operating liabilities
     ATO = sale / NOA[t-1]
   notes: >
@@ -610,7 +609,7 @@ signals:
 
     Book equity = seq, else ceq+pstk, else at-lt; plus txditc; minus the first
 
-    available of pstkrv, pstkl, pstk. Market equity is CRSP mthcap for the CURRENT
+    available of pstkrv, pstkl, pstk. Market equity is CRSP mthcap for the current
 
     month, in millions.
 
@@ -1055,7 +1054,7 @@ signals:
   formula: 'Compound return over months t-11..t-1, stored on row t.
 
     '
-  notes: 'Stored ONE MONTH EARLIER than the name suggests. The sort''s own one-month lag
+  notes: 'Stored one month earlier than the name suggests. The sort''s own one-month lag
 
     then produces the stated twelve-to-two window. Storing the literal window drops
 
@@ -1099,7 +1098,7 @@ signals:
   source: jegadeesh1990
   frequency: monthly
   inputs: []
-  formula: 'The CURRENT month''s return, stored on row t.
+  formula: 'The current month''s return, stored on row t.
 
     '
   notes: 'The one-month shift matters most here: with a single month there is no overlap
@@ -1248,7 +1247,7 @@ signals:
         ln( dollar volume_d ),   dollar volume = CRSP dlyprcvol,
     days with zero volume left out; at least 15 trading days in the month and at least
     2 with volume.
-  notes: 'In LOGS. In levels the dispersion measures scale rather than variability: 0.06 against
+  notes: 'In logs. In levels the dispersion measures scale rather than variability: 0.06 against
     0.87. Against the paper''s own panel (the paper''s panel of sdDVOL values) the earlier ln(1
     + dollar volume) over all days matched for the 73% of firm-months without a zero-volume day
     and disagreed by a factor of 1.6 to 5 for every firm-month with one: a zero-volume day enters
@@ -1281,7 +1280,7 @@ signals:
   - invt
   - ppent
   - rect
-  formula: '(0.715*rect + 0.547*invt + 0.535*ppent + che) / at, every component REQUIRED.
+  formula: '(0.715*rect + 0.547*invt + 0.535*ppent + che) / at, every component required.
 
     '
   notes: 'Zero-filling a missing component reads as ''this firm holds no tangible

@@ -1,7 +1,7 @@
 # Places where the paper's documentation and the paper's data disagree, or
 # where the data looks wrong on its own terms.
 #
-# Graded deliberately. Only category A is a claim that something is *wrong*;
+# Graded deliberately. Only category A is a claim that something is wrong;
 # B and C are documentation that cannot be built from; D concerns the reported
 # results rather than the signals; E exists to record things that look like
 # discrepancies and are not, so nobody re-opens them.
@@ -50,10 +50,10 @@ categories:
       regression."
     implemented: >
       The regression is estimated on the current month's trading days, and the
-      signal is the last trading day's standardised residual from it -- one
+      signal is the last trading day's standardised residual from it: one
       day's volume surprise, not the month's.
     evidence: >
-      Against the paper's own firm-month panel (t_by_n/SUV.mat, shared by
+      Against the paper's own firm-month panel of SUV values (shared by
       Andrea Tamoni in September 2026) the last day's within-month residual
       matches at Spearman 0.9999 with a ratio of 1.0000; agreement with the
       published decile weights 0.982. The documented reading, and every
@@ -105,14 +105,14 @@ categories:
       firm-month in 1975, 1985, 1995 and 2005 agrees with the paper's panel
       within 1% and none the panel has is missing.
     consequence: >
-      Not a defect in the data -- CRSP carries quotes for 9% of daily rows in
+      Not a defect in the data: CRSP carries quotes for 9% of daily rows in
       the 1960s and 53% in the 1980s, so a quoted spread cannot be computed
-      over this sample at all -- but the citation points at an estimator the
+      over this sample at all. But the citation points at an estimator the
       sample cannot support, and the substitution is unstated.
   - signal: sdDVOL
     documented: '"Standard deviation of residuals from a regression of daily volume (vol) on a constant", i.e. the dispersion of daily share volume in levels.'
     implemented: >
-      The standard deviation of the log of daily *dollar* volume over the days
+      The standard deviation of the log of daily dollar volume over the days
       that have volume; zero-volume days are left out.
     evidence: >
       share volume in levels 0.06, log share volume 0.63, log dollar volume
@@ -136,8 +136,8 @@ categories:
     implemented: Cash is subtracted from invested capital, not added.
     evidence: "as worded 0.64, as implemented 0.93"
     consequence: >
-      Here the wording is wrong and the implementation is right -- invested
-      capital is capital tied up in the business, net of cash -- so this is a
+      Here the wording is wrong and the implementation is right, since invested
+      capital is capital tied up in the business, net of cash. This is a
       typo in the appendix rather than a problem with the data.
   - signal: BETA_d
     documented: '"The sum of the regression coefficients of daily excess returns on market excess returns and the lag of market excess returns." No estimation window is given.'
@@ -152,11 +152,11 @@ categories:
     consequence: >
       The window is the difference between a usable signal and noise, and it is
       not stated. Separately, FNW's own entry under this name describes the
-      Frazzini-Pedersen beta -- a correlation times a volatility ratio -- which
+      Frazzini-Pedersen beta (a correlation times a volatility ratio), which
       is a different estimator from the Dimson sum A.1 describes.
   - signal: DP
     documented: '"Sum of monthly dividend over the last 12 months to last month''s price (prc)."'
-    implemented: Dividends in dollars over the *current* month's market capitalisation.
+    implemented: Dividends in dollars over the current month's market capitalisation.
     evidence: "per share over price 0.84, dollars over market cap 0.92"
     consequence: Minor, but per share the share count drifts through the year and the two are not the same quantity.
   - signal: TAN
@@ -195,7 +195,7 @@ categories:
   items:
   - signal: A2ME, E2P, S2P, BEME, SIZE
     documented: >
-      FNW state the market capitalisation timing explicitly -- "as of December
+      FNW state the market capitalisation timing explicitly: "as of December
       t-1" for A2ME, E2P and BEME, "as of December" for S2P, "of the previous
       month" for SIZE. Table A.1 says only "market capitalization (prc x
       shrout)" with no timing at all.
@@ -204,12 +204,12 @@ categories:
     consequence: >
       The data does not follow FNW here, and A.1 is silent rather than wrong.
       But anyone building these from FNW, as the citation invites, would use
-      December and land a long way off -- Q falls from 0.98 to 0.61, E2P from
+      December and land a long way off: Q falls from 0.98 to 0.61, E2P from
       0.97 to 0.69.
   - signal: Q
     documented: >
       FNW write "the market value of equity (SHROUT times PRC) minus cash and
-      short-term investments (CEQ)" -- CEQ is common equity, not cash.
+      short-term investments (CEQ)". CEQ is common equity, not cash.
     implemented: Common equity, which is what CEQ means.
     evidence: null
     consequence: A typo in FNW that Table A.1 silently corrects. Recorded because it runs the other way.
@@ -257,7 +257,7 @@ categories:
     evidence: "on all 570 portfolios the same mapping gives 0.543 in sample and 0.411 leaving a characteristic family out; the direct rank regression gives 0.822 and 0.749 on the same portfolios"
     consequence: >
       Restricting to the extremes flatters three principal components
-      specifically -- the gap to a direct regression is 0.09 on the extremes
+      specifically: the gap to a direct regression is 0.09 on the extremes
       and 0.31 on all ten deciles. Most firms sit in the middle deciles.
   - signal: Time-split out-of-sample tests
     documented: Wedges are recomputed on subsamples of formation dates.
@@ -265,8 +265,8 @@ categories:
     evidence: >
       Carried over, early cohorts average -37 percentage points and late ones
       +33, a seventy-point flip that is purely the difference in realised
-      market returns across the cut. Re-solving it within each half -- 3.9 to
-      4.9 early against 2.4 to 2.9 late -- the flip disappears and root mean
+      market returns across the cut. Re-solving it within each half (3.9 to
+      4.9 early against 2.4 to 2.9 late), the flip disappears and root mean
       squared error falls from 37-77 points to 10-15.
     consequence: >
       Correlations are location-invariant so the paper's reported correlations
@@ -280,13 +280,13 @@ categories:
   - signal: The five momentum sorts
     documented: '"Cumulative return from 12 months to 2 months ago."'
     implemented: >
-      The panel stores, on row t, the return over months t-11 to t-1 -- one
+      The panel stores, on row t, the return over months t-11 to t-1, one
       month later than the name. The sort then lags every characteristic by a
       further month, so the signal a portfolio formed at t actually sorts on is
       the return from t-12 to t-2, exactly as documented.
     evidence: "storing the literal window instead drops agreement from 0.97 to 0.65, and for R_2_1 from 0.97 to 0.11"
     consequence: >
-      NOT an error. The economics is right and the stated definition is what
+      Not an error. The economics is right and the stated definition is what
       gets used; only the storage convention is undocumented. It matters
       enormously for anyone rebuilding the panel and not at all for the paper's
       results.
@@ -309,18 +309,18 @@ categories:
       (SHROUT)" citing Datar, Naik and Radcliffe (1998), who divide lagged
       volume by current shares. Spearman 1.0000 against the paper's panel.
     consequence: >
-      NOT an error. Table A.1 dropped the words "last month's"; the data
+      Not an error. Table A.1 dropped the words "last month's"; the data
       follows its source. Recorded because an earlier version of this log
       listed it under B.
   - signal: The panel's row alignment
     documented: null
     implemented: >
-      MainPart1.m slices the panel from one row *before* July 1926, so its rows
+      MainPart1.m slices the panel from one row before July 1926, so its rows
       are offset by a month relative to the obvious reading.
     evidence: >
       Comparing without noticing makes contemporaneous market equity look like
       a 3% match and lagged market equity a 91% match, which is backwards.
-      Implementing the lagged version accordingly made the sorts worse -- 50
-      verified characteristics down to 48, BEME from 0.97 to 0.84 -- which is
+      Implementing the lagged version accordingly made the sorts worse (50
+      verified characteristics down to 48, BEME from 0.97 to 0.84), which is
       what exposed the error.
     consequence: A trap for anyone comparing against the shipped panel, not a problem with the paper.

@@ -70,9 +70,8 @@ def discrepancy_section() -> str:
         out.append(r"\subsection*{" + esc(f"{cat['key']}. {cat['title']}") + "}")
         out.append(r"\emph{" + esc(cat["blurb"].strip()) + "}\n")
         for it in cat["items"]:
-            out.append(r"\paragraph{" + esc(it["signal"]) + "}" + "\\leavevmode" + r"\\[-6pt]")
-            out.append(r"\begin{description}[leftmargin=2.1cm,style=nextline]"
-                       .replace("[leftmargin=2.1cm,style=nextline]", ""))
+            out.append(r"\subsubsection*{" + esc(it["signal"]) + "}")
+            out.append(r"\begin{description}[leftmargin=2.4cm,labelwidth=2.2cm,font=\normalfont\bfseries,style=sameline]")
             if it.get("documented"):
                 out.append(r"\item[Documented:] " + esc(it["documented"].strip()))
             if it.get("implemented"):
@@ -102,15 +101,11 @@ def render(signals: list[dict], numbers: dict) -> str:
         return "--" if v is None else f"{v:.{d}f}"
 
     lines = [r"""\documentclass[11pt]{article}
-\usepackage[margin=2.2cm]{geometry}
-\usepackage{longtable,booktabs,amsmath,xcolor,microtype,enumitem}
-\usepackage[colorlinks=true,linkcolor=black,urlcolor=blue]{hyperref}
-\usepackage{sectsty}\allsectionsfont{\sffamily}
-\setlength{\parindent}{0pt}\setlength{\parskip}{4pt}
-\newcommand{\ok}{\textcolor{black!70}{verified}}
+\usepackage{pwdoc}
+\newcommand{\ok}{\textcolor{black!60}{verified}}
 \newcommand{\bad}{\textcolor{red!70!black}{unresolved}}
-\title{\sffamily Price wedge anomaly signals:\\construction log}
-\author{}\date{\today}
+\title{Price wedge anomaly signals\\[2pt]\large Construction log: formula, agreement with the paper, and rejected alternatives}
+\author{Signal log for the pricewedge.com pipeline}\date{\today}
 \begin{document}\maketitle
 
 \section*{How to read this}
@@ -138,7 +133,13 @@ data disagree, graded by whether the difference changes what a signal
 measures.
 
 \section*{Summary}
+{\small
 \begin{longtable}{llrrrl}
+\caption{All 57 characteristics: agreement with the paper's decile weights, wedge errors against Table 1, and status.}\\
+\toprule
+Signal & Group & Agreement & Long err. & Short err. & Status\\
+\midrule
+\endfirsthead
 \toprule
 Signal & Group & Agreement & Long err. & Short err. & Status\\
 \midrule
@@ -149,34 +150,34 @@ Signal & Group & Agreement & Long err. & Short err. & Status\\
                      f"{num(s['_agreement'],3)} & {num(s['_long_err'])} & "
                      f"{num(s['_short_err'])} & {status}\\\\")
     lines.append(r"""\bottomrule
-\end{longtable}
+\end{longtable}}
 """)
     lines.append(discrepancy_section())
-    lines.append(r"\section*{Construction, signal by signal}")
+    lines.append(r"\clearpage\section*{Construction, signal by signal}")
     for s in ok + bad:
-        lines.append(r"\subsection*{" + esc(s["id"]) + " --- " + esc(s.get("name","")) + "}")
-        meta = [f"\\textbf{{Group}} {esc(s.get('group',''))}",
-                f"\\textbf{{Source}} {esc(s.get('source','--'))}",
-                f"\\textbf{{Frequency}} {esc(s.get('frequency','--'))}",
-                f"\\textbf{{Agreement}} {num(s['_agreement'],3)}"]
-        lines.append(" \\quad ".join(meta) + r"\\[2pt]")
+        lines.append(r"\subsection*{" + esc(s["id"]) + r"\quad\normalfont\itshape " + esc(s.get("name","")) + "}")
+        lines.append(r"\begin{tabular}{@{}p{3.3cm}p{12.3cm}@{}}")
+        lines.append(f"\\textbf{{Source}} & {esc(s.get('source','--'))}\\\\")
+        lines.append(f"\\textbf{{Group; frequency}} & {esc(s.get('group',''))}; {esc(s.get('frequency','--'))}\\\\")
         if s.get("inputs"):
-            lines.append(r"\textbf{Inputs.} \texttt{" + esc(", ".join(s["inputs"])) + "}\n")
-        lines.append(r"\textbf{Formula.}" + "\n" + r"\begin{quote}" + "\n"
+            lines.append(r"\textbf{Inputs} & \texttt{" + esc(", ".join(s["inputs"])) + r"}\\")
+        lines.append(f"\\textbf{{Agreement}} & {num(s['_agreement'],3)} ({'verified' if (s['_agreement'] or 0) > THRESHOLD else 'unresolved'}); wedge error long {num(s['_long_err'])}, short {num(s['_short_err'])}\\\\")
+        lines.append(r"\end{tabular}\\[4pt]")
+        lines.append(r"\textbf{Formula}" + "\n" + r"\begin{quote}\small" + "\n"
                      + esc(s.get("formula","")).replace("\n", r"\\" + "\n")
                      + "\n" + r"\end{quote}")
         if s.get("notes"):
             lines.append(r"\textbf{Notes.} " + esc(s["notes"]) + "\n")
         if s.get("tried"):
-            lines.append(r"\textbf{Rejected alternatives.}")
-            lines.append(r"\begin{longtable}{p{10.5cm}rp{3.2cm}}")
+            lines.append(r"\textbf{Rejected alternatives}\\[2pt]")
+            lines.append(r"{\small\begin{longtable}{@{}p{9.6cm}rp{4.3cm}@{}}")
             lines.append(r"\toprule Variant & Agreement & Verdict\\\midrule\endhead")
             for t in s["tried"]:
                 sc = t.get("score")
                 lines.append(f"{esc(t['variant'])} & "
                              f"{'--' if sc is None else f'{sc:.3f}'} & "
                              f"{esc(t.get('verdict',''))}\\\\")
-            lines.append(r"\bottomrule\end{longtable}")
+            lines.append(r"\bottomrule\end{longtable}}")
     lines.append(r"\end{document}")
     return "\n".join(lines)
 
