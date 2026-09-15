@@ -69,14 +69,20 @@ def choose_ridge(X, y, chars) -> tuple[float, dict]:
 def main() -> int:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--tag", default="paper")
-    p.add_argument("--mapping", default="direct", choices=["direct", "pc3", "ff5"])
+    p.add_argument("--mapping", default="direct", choices=["direct", "pc3", "ff5", "stacked"],
+                   help="stacked: the direct regression on value- and equal-weighted deciles together, "
+                        "each with profiles of its own weighting (needs the _ew wedges and profiles)")
     p.add_argument("--ridge", type=float, default=None)
     args = p.parse_args()
 
     X, y, chars, names = portfolio_table(args.tag)
+    if args.mapping == "stacked":
+        Xe, ye, ce, ne = portfolio_table(f"{args.tag}_ew")
+        assert ne == names, "the equal-weighted profiles carry different characteristics"
+        X, y, chars = np.vstack([X, Xe]), np.concatenate([y, ye]), np.concatenate([chars, ce])
     print(f"{len(y)} portfolios, {len(names)} characteristics")
 
-    if args.mapping == "direct":
+    if args.mapping in ("direct", "stacked"):
         ridge = args.ridge
         if ridge is None:
             ridge, stats = choose_ridge(X, y, chars)

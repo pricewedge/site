@@ -142,6 +142,31 @@ The report's Recommendations section lists what to change in the method; the
 mapping default in the pipeline is still value-weighted wedges with
 value-weighted profiles until that discussion is settled.
 
+## The site specification (15 September 2026)
+
+Three decisions are recorded in `pipeline/doc/decisions.pdf`, with the
+evidence: (A) the firm-level number is the equal-weighted realised wedge of
+firms with the firm's profile, with the cap-weighted mean pinned to the market
+wedge (candidate 3, the stacked mapping); (B) signals as their original papers
+define them (Sloan accruals; monthly SUV and DTO per Garfinkel and FNW; FF48
+equal-weighted industry means with at least three firms; aPM dropped); (C) the
+full available sample, no sample options on the site. Sources are in
+`Dropbox/.../Website/Literature/` (indexed in `_index.md`).
+
+Build and evaluate the site series with:
+
+    build_panel.py --end 2025-12-31 --suffix _today --spec site
+    A="--panel ../raw/full_panel_today_site.parquet --factors ../raw/ff_monthly_today.parquet --end 202512"
+    portfolio_wedges.py --tag site $A --refresh;  portfolio_wedges.py --tag site $A --weighting equal --refresh
+    portfolio_profiles.py --tag site $A;          portfolio_profiles.py --tag site $A --weighting equal
+    firm_wedges.py --tag site --mapping stacked
+    realised_levels.py --tag site $A;  mapping_quality.py --tag site;  mapping_expost.py --tag site $A
+    group_cv.py site;  stability.py site
+
+`pwsite/garfinkel.py` holds the monthly SUV and DTO (the site's spec);
+`pwsite/lastday.py` holds what the paper's data does (last trading day).
+`pwsite/characteristics.ACCRUALS` switches the depreciation sign.
+
 ## The firm-level mapping
 
 Settled: regress portfolio wedges on portfolio characteristic ranks, ridge

@@ -39,7 +39,7 @@ from pwsite.wrds_source import CACHE                             # noqa: E402
 import pwsite.config as C                                        # noqa: E402
 
 TAG = sys.argv[1] if len(sys.argv) > 1 else "current"
-END = 202512 if TAG == "current" else 201712
+END = 202512 if TAG in ("current", "site") else 201712
 H = C.HORIZON_MONTHS
 RIDGE = 100.0
 DRAWS = 300
@@ -47,8 +47,8 @@ DRAWS = 300
 
 def main() -> int:
     # the "current" panel and its caches carry a _today suffix; the default files stop in 2017
-    panel = CACHE / ("full_panel_today.parquet" if TAG == "current" else "full_panel.parquet")
-    factors = CACHE / ("ff_monthly_today.parquet" if TAG == "current" else "ff_monthly.parquet")
+    panel = CACHE / {"current": "full_panel_today.parquet", "site": "full_panel_today_site.parquet"}.get(TAG, "full_panel.parquet")
+    factors = CACHE / ("ff_monthly_today.parquet" if TAG in ("current", "site") else "ff_monthly.parquet")
     g = build_grids(panel, factors, 196001, END)
     off = g.first - 1
     rm, rf = g.rm[off:], g.rf[off:]

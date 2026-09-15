@@ -46,6 +46,9 @@ import numpy as np
 import pandas as pd
 
 SPEC = json.loads((Path(__file__).parent / "spec" / "characteristics.json").read_text())
+# "paper": depreciation added to accruals, as the paper's data does; "sloan": subtracted, as Sloan (1996)
+# and Table A.1 say. build_panel.py sets it from --spec.
+ACCRUALS = "paper"
 ANNUAL_LAG_MONTHS = 6
 MONTHLY_LAG_MONTHS = 1
 
@@ -342,10 +345,14 @@ def annual_all(f: pd.DataFrame) -> pd.DataFrame:
     # inherited the same transcription rather than arriving at it separately.
     delta = lambda c: f[c] - lag[c]  # noqa: E731
     taxes = f["txp"].fillna(0) - lag["txp"].fillna(0)
-    out["OA"] = (
-        delta("act") - delta("che")
-        - (delta("lct") - delta("dlc") - taxes - f["dp"])
-    ) / lag["at"]
+    if ACCRUALS == "sloan":
+        # Sloan (1996) and Table A.1: accruals net of depreciation.
+        out["OA"] = (delta("act") - delta("che") - (delta("lct") - delta("dlc") - taxes) - f["dp"]) / lag["at"]
+    else:
+        out["OA"] = (
+            delta("act") - delta("che")
+            - (delta("lct") - delta("dlc") - taxes - f["dp"])
+        ) / lag["at"]
     out["AOA"] = out["OA"].abs()
 
     shares = f["csho"] * f["ajex"]

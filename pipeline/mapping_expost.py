@@ -69,12 +69,15 @@ def build_firm_wedges(tag: str, kinds: list[str]) -> dict[str, pd.DataFrame]:
 def main() -> int:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--tag", default="paper")
+    p.add_argument("--panel", default=None)
+    p.add_argument("--factors", default=None)
+    p.add_argument("--end", type=int, default=201712)
     args = p.parse_args()
 
     kinds = ["pc3", "pc10", "direct"]
     wedges = build_firm_wedges(args.tag, kinds)
 
-    g = build_grids()
+    g = build_grids(args.panel, args.factors, 196001, args.end)
     ret = g.grid("ret")
     months = g.months
     index = {m: i for i, m in enumerate(months)}

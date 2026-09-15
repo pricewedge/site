@@ -79,8 +79,13 @@ def main() -> int:
                         help="last month of the panel, e.g. 2025-12-31 for the site's current panel")
     parser.add_argument("--suffix", default="",
                         help="suffix for the cached pulls and the output, e.g. _today")
+    parser.add_argument("--spec", default="paper", choices=["paper", "site"],
+                        help="paper: the signals as the paper's data holds them; site: as their sources "
+                             "define them (Sloan accruals, monthly SUV and DTO, Fama-French 48 means, no aPM)")
     args = parser.parse_args()
     end, sfx = args.end, args.suffix
+    if args.spec == "site":
+        ch.ACCRUALS = "sloan"
 
     os.environ["WRDS_USERNAME"] = _username()
     print("pulling from WRDS")
@@ -116,7 +121,12 @@ def main() -> int:
     # filled with a differently defined stand-in.
     from pwsite.lastday import build as lastday_build, daily_years
     years_on_disk = daily_years()
-    if years_on_disk:
+    if years_on_disk and args.spec == "site":
+        from pwsite.garfinkel import build as garfinkel_build
+        print(f"  monthly SUV/DTO as Garfinkel and FNW define them, {years_on_disk[0]}-{years_on_disk[-1]}")
+        ends = garfinkel_build(monthly[["permno", "month", "primaryexch"]], years_on_disk)
+        panel = panel.drop(columns=["DTO", "SUV"]).merge(ends, on=["permno", "month"], how="left")
+    elif years_on_disk:
         print(f"  month-end DTO/SUV from the daily file, {years_on_disk[0]}-{years_on_disk[-1]}")
         ends = lastday_build(years_on_disk).rename(columns={"dto": "DTO", "suv": "SUV"})
         panel = panel.drop(columns=["DTO", "SUV"]).merge(ends, on=["permno", "month"],
@@ -162,11 +172,27 @@ def main() -> int:
     ordinary = ordinary_common(panel)
     # The adjustment uses the paper's own 27-industry scheme, learned from its
     # panels (see pwsite.industry.learned_industry), not Fama-French 48.
-    from pwsite.industry import adjust_learned
-    adjust_learned(panel, INDUSTRY_ADJUSTED, ordinary)
+    if args.spec == "site":
+        # Asness, Porter and Stevens (2000): the 48 Fama-French industries by SIC
+        # range, the equal-weighted industry mean, at least three firms; FNW build
+        # the profit-margin and asset-turnover adjustments the same way. aPM is
+        # not carried: its long-short is not identified.
+        pairs = {k: v for k, v in INDUSTRY_ADJUSTED.items() if k != "aPM"}
+        panel["industry"] = panel["ff48"]
+        for name, source in pairs.items():
+            x = panel[source].where(ordinary & (panel["industry"] > 0))
+            group = x.groupby([panel["month"], panel["industry"]])
+            mean = group.transform("mean"); count = group.transform("count")
+            panel[name] = (x - mean).where(count >= 3)
+        panel = panel.drop(columns=["aPM"], errors="ignore")
+    else:
+        from pwsite.industry import adjust_learned
+        adjust_learned(panel, INDUSTRY_ADJUSTED, ordinary)
 
     CACHE.mkdir(parents=True, exist_ok=True)
-    panel.to_parquet(CACHE / f"full_panel{sfx}.parquet", index=False)
+    out_name = f"full_panel{sfx}{'_site' if args.spec == 'site' else ''}.parquet"
+    panel.to_parquet(CACHE / out_name, index=False)
+    print(f"  wrote raw/{out_name}")
 
     from pwsite.spec_ids import ALL_CHARACTERISTICS
     built = [c for c in ALL_CHARACTERISTICS if c in panel.columns]
