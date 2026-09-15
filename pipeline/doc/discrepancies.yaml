@@ -164,15 +164,6 @@ categories:
     implemented: Every component required non-missing.
     evidence: "zero-filling 0.48, requiring all 0.96"
     consequence: Zero-filling reads as "this firm holds no tangible assets" and sends firms with incomplete filings to the bottom decile.
-  - signal: TNOVR
-    documented: '"Volume (vol) over shares outstanding (shrout)."'
-    implemented: The previous month's volume over the current month's shares outstanding.
-    evidence: "as documented 0.71, with the one-month lag 0.978; Spearman 1.0000 against the paper's panel"
-    consequence: >
-      A one-month misalignment of numerator and denominator. Harmless for most
-      firms, but a split or an issuance between the two months changes the
-      share count without the volume, so the signal halves or jumps for
-      exactly the firms whose turnover is in question.
   - signal: aBEME, aPM, aSAT, aSIZE
     documented: '"Industry level is defined as the Fama-French 48 industries."'
     implemented: >
@@ -309,6 +300,18 @@ categories:
     implemented: Stored in millions in the package and in thousands in CRSP, a factor of exactly 1000.
     evidence: null
     consequence: Value weighting is scale-invariant, so nothing is affected.
+  - signal: TNOVR
+    documented: '"Volume (vol) over shares outstanding (shrout)."'
+    implemented: The previous month's volume over the current month's shares outstanding.
+    evidence: >
+      Freyberger, Neuhierl and Weber, the paper's source for the list, define
+      LTurnover as "last month's volume (VOL) over shares outstanding
+      (SHROUT)" citing Datar, Naik and Radcliffe (1998), who divide lagged
+      volume by current shares. Spearman 1.0000 against the paper's panel.
+    consequence: >
+      NOT an error. Table A.1 dropped the words "last month's"; the data
+      follows its source. Recorded because an earlier version of this log
+      listed it under B.
   - signal: The panel's row alignment
     documented: null
     implemented: >

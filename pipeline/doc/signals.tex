@@ -169,13 +169,6 @@ Graded deliberately. Only category A claims something is wrong. B and C are docu
 \item[Evidence:] zero-filling 0.48, requiring all 0.96
 \item[Why it matters:] Zero-filling reads as "this firm holds no tangible assets" and sends firms with incomplete filings to the bottom decile.
 \end{description}
-\paragraph{TNOVR}\leavevmode\\[-6pt]
-\begin{description}
-\item[Documented:] "Volume (vol) over shares outstanding (shrout)."
-\item[Implemented:] The previous month's volume over the current month's shares outstanding.
-\item[Evidence:] as documented 0.71, with the one-month lag 0.978; Spearman 1.0000 against the paper's panel
-\item[Why it matters:] A one-month misalignment of numerator and denominator. Harmless for most firms, but a split or an issuance between the two months changes the share count without the volume, so the signal halves or jumps for exactly the firms whose turnover is in question.
-\end{description}
 \paragraph{aBEME, aPM, aSAT, aSIZE}\leavevmode\\[-6pt]
 \begin{description}
 \item[Documented:] "Industry level is defined as the Fama-French 48 industries."
@@ -264,6 +257,13 @@ Graded deliberately. Only category A claims something is wrong. B and C are docu
 \begin{description}
 \item[Implemented:] Stored in millions in the package and in thousands in CRSP, a factor of exactly 1000.
 \item[Why it matters:] Value weighting is scale-invariant, so nothing is affected.
+\end{description}
+\paragraph{TNOVR}\leavevmode\\[-6pt]
+\begin{description}
+\item[Documented:] "Volume (vol) over shares outstanding (shrout)."
+\item[Implemented:] The previous month's volume over the current month's shares outstanding.
+\item[Evidence:] Freyberger, Neuhierl and Weber, the paper's source for the list, define LTurnover as "last month's volume (VOL) over shares outstanding (SHROUT)" citing Datar, Naik and Radcliffe (1998), who divide lagged volume by current shares. Spearman 1.0000 against the paper's panel.
+\item[Why it matters:] NOT an error. Table A.1 dropped the words "last month's"; the data follows its source. Recorded because an earlier version of this log listed it under B.
 \end{description}
 \paragraph{The panel's row alignment}\leavevmode\\[-6pt]
 \begin{description}
@@ -444,7 +444,7 @@ the previous month's share volume over this month's shares outstanding, both fro
 the CRSP monthly file.\\
 
 \end{quote}
-\textbf{Notes.} RESOLVED against the paper's panel: Spearman 1.0000; agreement with the published decile weights 0.978 (a three-month average gave 0.79). The one-month lag of volume against the share count is what the data does; Table A.1 ("volume over shares outstanding") does not mention it and no reason for it suggests itself. Recorded under discrepancies, category B.
+\textbf{Notes.} RESOLVED against the paper's panel: Spearman 1.0000; agreement with the published decile weights 0.978 (a three-month average gave 0.79). The one-month lag of volume against the share count is what the data does; Table A.1 ("volume over shares outstanding") does not mention it and no reason for it suggests itself. Recorded under discrepancies, category B. SOURCE CHECK (15 September 2026): Datar, Naik and Radcliffe (1998) measure turnover as the average shares traded over the preceding three months over shares outstanding as of the period; Freyberger, Neuhierl and Weber define LTurnover as last month's volume over shares outstanding, which is exactly what the paper's panel holds. Table A.1 dropped 'last month's'. Not a deviation from the paper's own source; the earlier category-B entry is withdrawn.
 
 \textbf{Rejected alternatives.}
 \begin{longtable}{p{10.5cm}rp{3.2cm}}
@@ -470,7 +470,7 @@ with v\_d the day's share volume and r\_d its return. Then\\
 n the number of trading days in the month, at least 5.\\
 
 \end{quote}
-\textbf{Notes.} RESOLVED against the paper's own panel (t\_by\_n/SUV.mat): Spearman 0.9999, Pearson 0.9998, and the ratio of the panel's values to ours is 1.0000 at every quantile (n - 3 in the denominator gives 1.054, n gives 0.976; what remains is float32 rounding in our daily file). Agreement with the published decile weights 0.982; decile one 8.94\% against a published 8.94\%. This is not Garfinkel's measure and not what Table A.1 describes: there the regression is estimated on the previous month and the surprise is the current month's volume; in the data the regression is estimated on the current month and the surprise is the last trading day's. Recorded under discrepancies, category A.
+\textbf{Notes.} RESOLVED against the paper's own panel (t\_by\_n/SUV.mat): Spearman 0.9999, Pearson 0.9998, and the ratio of the panel's values to ours is 1.0000 at every quantile (n - 3 in the denominator gives 1.054, n gives 0.976; what remains is float32 rounding in our daily file). Agreement with the published decile weights 0.982; decile one 8.94\% against a published 8.94\%. This is not Garfinkel's measure and not what Table A.1 describes: there the regression is estimated on the previous month and the surprise is the current month's volume; in the data the regression is estimated on the current month and the surprise is the last trading day's. Recorded under discrepancies, category A. SOURCE CHECK (15 September 2026): Garfinkel (2009, eqs 4-6) defines a daily measure, the day's volume minus the fitted value from a regression of volume on |R|+ and |R|- estimated over a prior control window, divided by that regression's residual standard deviation; in his event study it is averaged over the event days. FNW make it monthly with the regression on the previous month. Neither singles out the last day. The site's version: daily residuals from month t-1's fit, averaged over month t.
 
 \textbf{Rejected alternatives.}
 \begin{longtable}{p{10.5cm}rp{3.2cm}}
@@ -499,7 +499,7 @@ No market turnover is subtracted, no Nasdaq volume scaling, no median, and no\\
 averaging over the month: the value on one day is the month's signal.\\
 
 \end{quote}
-\textbf{Notes.} RESOLVED against the paper's own panel (t\_by\_n/DTO.mat, shared by Andrea Tamoni in September 2026): Spearman 0.998, Pearson 0.997 (the panel's values are ours times 500, a units convention that leaves every rank unchanged); agreement with the published decile weights 0.985, decile one 6.42\% of market capitalisation against a published 6.50\%. This is not what Table A.1 describes -- "daily volume to shares outstanding minus the daily market turnover and detrended by the 180 trading day median", with Nasdaq volume scaled down -- and each documented element lowers the agreement (below). Recorded under discrepancies, category A.
+\textbf{Notes.} RESOLVED against the paper's own panel (t\_by\_n/DTO.mat, shared by Andrea Tamoni in September 2026): Spearman 0.998, Pearson 0.997 (the panel's values are ours times 500, a units convention that leaves every rank unchanged); agreement with the published decile weights 0.985, decile one 6.42\% of market capitalisation against a published 6.50\%. This is not what Table A.1 describes -- "daily volume to shares outstanding minus the daily market turnover and detrended by the 180 trading day median", with Nasdaq volume scaled down -- and each documented element lowers the agreement (below). Recorded under discrepancies, category A. SOURCE CHECK (15 September 2026): Garfinkel (2009, eq 3) defines daily market-adjusted turnover (firm turnover minus NYSE/AMEX turnover) minus its mean over a control period; FNW detrend by the firm's own 180-trading-day median and scale Nasdaq volume by 38\% after 1997 and 50\% before (Anderson and Dyl 2005). The site's version: FNW's daily series averaged over the month.
 
 \textbf{Rejected alternatives.}
 \begin{longtable}{p{10.5cm}rp{3.2cm}}

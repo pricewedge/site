@@ -225,7 +225,12 @@ signals:
   notes: 'RESOLVED against the paper''s panel: Spearman 1.0000; agreement with the published decile
     weights 0.978 (a three-month average gave 0.79). The one-month lag of volume against the share
     count is what the data does; Table A.1 ("volume over shares outstanding") does not mention
-    it and no reason for it suggests itself. Recorded under discrepancies, category B.'
+    it and no reason for it suggests itself. Recorded under discrepancies, category B. SOURCE
+    CHECK (15 September 2026): Datar, Naik and Radcliffe (1998) measure turnover as the average
+    shares traded over the preceding three months over shares outstanding as of the period; Freyberger,
+    Neuhierl and Weber define LTurnover as last month''s volume over shares outstanding, which
+    is exactly what the paper''s panel holds. Table A.1 dropped ''last month''s''. Not a deviation
+    from the paper''s own source; the earlier category-B entry is withdrawn.'
   tried:
   - variant: vol[t]/shrout[t], as documented
     score: 0.707
@@ -270,7 +275,12 @@ signals:
     is not Garfinkel''s measure and not what Table A.1 describes: there the regression is estimated
     on the previous month and the surprise is the current month''s volume; in the data the regression
     is estimated on the current month and the surprise is the last trading day''s. Recorded under
-    discrepancies, category A.'
+    discrepancies, category A. SOURCE CHECK (15 September 2026): Garfinkel (2009, eqs 4-6) defines
+    a daily measure, the day''s volume minus the fitted value from a regression of volume on |R|+
+    and |R|- estimated over a prior control window, divided by that regression''s residual standard
+    deviation; in his event study it is averaged over the event days. FNW make it monthly with
+    the regression on the previous month. Neither singles out the last day. The site''s version:
+    daily residuals from month t-1''s fit, averaged over month t.'
   tried:
   - variant: regression in volume levels rather than logs
     score: 0.08
@@ -325,7 +335,11 @@ signals:
     0.985, decile one 6.42% of market capitalisation against a published 6.50%. This is not what
     Table A.1 describes -- "daily volume to shares outstanding minus the daily market turnover
     and detrended by the 180 trading day median", with Nasdaq volume scaled down -- and each documented
-    element lowers the agreement (below). Recorded under discrepancies, category A.'
+    element lowers the agreement (below). Recorded under discrepancies, category A. SOURCE CHECK
+    (15 September 2026): Garfinkel (2009, eq 3) defines daily market-adjusted turnover (firm turnover
+    minus NYSE/AMEX turnover) minus its mean over a control period; FNW detrend by the firm''s
+    own 180-trading-day median and scale Nasdaq volume by 38% after 1997 and 50% before (Anderson
+    and Dyl 2005). The site''s version: FNW''s daily series averaged over the month.'
   tried:
   - variant: documented form, the 180-day median approximated by a rolling median of monthly means
     score: 0.367

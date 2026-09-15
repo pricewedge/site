@@ -7,7 +7,7 @@
 \setlength{\parskip}{4pt}
 \title{\sffamily Firm-level price wedges for pricewedge.com:\\design decisions and why they were made}
 \author{Christian Opp, with the replication pipeline}
-\date{15 September 2026 (decision A taken; B and C open)}
+\date{15 September 2026 (decision A taken; B: sources reviewed, industry benchmark awaiting two originals; C open)}
 \begin{document}\maketitle
 
 \section*{Why this document exists}
@@ -236,37 +236,113 @@ paper describes. For the site the question is not which is right in the
 replication sense (both are known now) but which the site should claim as
 the definition of its inputs.
 
-\subsection*{The six}
+\subsection*{The sources, signal by signal}
 
-\begin{longtable}{>{\raggedright\arraybackslash}p{2.3cm}>{\raggedright\arraybackslash}p{5.6cm}>{\raggedright\arraybackslash}p{5.6cm}}\toprule
-Signal & As the paper did it & As the paper describes it\\\midrule
-OA, AOA & Depreciation is \emph{added} to accruals (a bracket placed so that
-$-(\Delta lct - \Delta dlc - \Delta txp - dp)$ expands to $+dp$). Sort
-agreement with the documented version 0.29. & Accruals net of depreciation
-(Sloan 1996, Table A.1). Acknowledged by a coauthor as probably an
-oversight.\\
-SUV & The last trading day's standardised residual from a regression of
-daily volume on that day's positive and negative return, run within the
-calendar month: a one-day surprise. & Garfinkel's monthly standardised
-unexplained volume, regression on the previous month.\\
-DTO & The last trading day's turnover minus its own mean over the previous
-180 trading days; no market adjustment, no Nasdaq scaling, no median. &
-Market-adjusted daily turnover, detrended by the 180-day median, with
-Nasdaq volume scaled; a monthly measure.\\
-TNOVR & Previous month's volume over this month's shares outstanding. &
-Volume over shares outstanding.\\
-aBEME, aPM, aSAT, aSIZE & Demeaned within 27 industry groups of unknown
-origin, recovered from the paper's panels; SIC from CRSP's name history. &
-Demeaned within the 48 Fama-French industries.\\
-aPM & Present in the paper; its cell means cannot be rebuilt (they were
-computed over a wider firm set than the panels hold), and its long-short
-alpha is 0.00012 a month, so the long leg is not identified. & Same
-definition; the same problems apply.\\
+The rule adopted for this decision is that each signal is defined by the
+paper the anomaly comes from, read through Freyberger, Neuhierl and Weber
+(2020), whose appendix is the list the paper takes its characteristics from
+and the source of Table~A.1's wording. What was checked, from the original
+texts where they could be obtained (15 September 2026):
+
+\paragraph{Operating accruals (OA) and their absolute value (AOA).}
+Sloan (1996) defines accruals as the change in non-cash current assets minus
+the change in current liabilities other than debt in current liabilities and
+taxes payable, \emph{minus} depreciation, scaled by average total assets (the
+Chen--Zimmermann rendering of Sloan's equation). FNW state the same
+components, scaled by lagged total assets. The paper's data adds depreciation
+instead of subtracting it; the sort it produces agrees with the documented
+one at only 0.29. AOA is the absolute value of OA (Bandyopadhyay, Huang and
+Wirjanto 2010). \textbf{Settled: subtract depreciation, scale by lagged total
+assets as FNW do.} The scaling difference between Sloan and FNW is immaterial
+for a rank.
+
+\paragraph{Standardised unexplained volume (SUV).} Garfinkel (2009,
+equations 4--6) defines a \emph{daily} measure: $\mathrm{SUV}_{i,t} =
+\mathrm{UV}_{i,t}/S_{i}$, where $\mathrm{UV}_{i,t}$ is the day's volume
+minus $\hat\alpha_i + \hat\beta_1 |R_{i,t}|^{+} + \hat\beta_2 |R_{i,t}|^{-}$,
+the regression estimated over a control window that precedes the measurement
+day, and $S_i$ the standard deviation of that regression's residuals over the
+estimation window. In his event setting the measure is averaged over the
+event days. FNW turn it into a monthly characteristic with the regression
+estimated on the previous month and the unexplained volume taken in the
+current month, which is what Table~A.1 says. Neither source singles out one
+day. The paper's data is the last trading day's residual from a regression
+run within the same month. \textbf{Settled: for every trading day of month
+$t$, the standardised residual from the regression estimated on the days of
+month $t-1$; the characteristic is the mean over the days of month $t$.} The
+aggregation by the mean is the one choice not dictated by the sources; it is
+Garfinkel's own aggregation over his event window.
+
+\paragraph{Detrended turnover (DTO).} Garfinkel (2009, equation 3) defines
+daily market-adjusted turnover as the firm's volume over its shares minus
+the same ratio for all NYSE and AMEX stocks, and ``change in turnover'' as
+that quantity minus its \emph{mean} over a control period (twenty trading
+days). FNW's characteristic subtracts the daily market turnover and detrends
+by the firm's own 180-trading-day median, scaling Nasdaq volume down by 38\%
+after 1997 and by 50\% before, following Anderson and Dyl (2005), who
+document that dealer participation roughly doubles reported Nasdaq volume
+(a 38\% reduction in their 1997--2002 sample; practitioners use about 50\%
+before). The paper's data takes the last day's raw turnover minus its own
+180-day mean, with no market adjustment and no scaling. \textbf{Settled:
+FNW's definition, averaged over the days of the month: daily
+market-adjusted turnover minus its trailing 180-trading-day median, Nasdaq
+volume scaled as in Anderson and Dyl.} Garfinkel's own detrending window is
+an event-study control period and has no monthly analogue; FNW's 180-day
+median is the anomaly-literature version and the one the paper cites.
+
+\paragraph{Turnover (TNOVR).} Datar, Naik and Radcliffe (1998) measure
+turnover as the average number of shares traded over the preceding three
+months divided by shares outstanding as of the period, excluding stocks
+whose share count changed in those months. FNW's characteristic is
+``last month's volume over shares outstanding'': the one-month version,
+with the volume lagged relative to the share count exactly as in Datar, Naik
+and Radcliffe. The paper's data is last month's volume over this month's
+shares, which \emph{is} FNW's definition; Table~A.1 dropped the words ``last
+month's''. \textbf{Settled: no change.} The earlier classification of this
+signal as a documentation discrepancy is withdrawn; it was a misreading of
+the condensed appendix.
+
+\paragraph{Industry-adjusted book-to-market, size, profit margin and asset
+turnover (aBEME, aSIZE, aPM, aSAT).} FNW: the characteristic minus its
+average at the Fama-French 48 industry level, citing Asness, Porter and
+Stevens (2000) for book-to-market and size and Soliman (2008) for profit
+margin and asset turnover. The paper's data demeans within 27 industry
+groups of unknown origin, recovered from its panels, with the CRSP
+name-history SIC code. \textbf{Open: awaiting the original texts.} Both are
+behind access walls (SSRN and The Accounting Review). What to look for in
+them: the industry classification (SIC digits or Fama-French industries and
+how many), whether the benchmark is the industry mean or median, whether it
+is equal- or value-weighted, and any exclusions. Until then the default is
+FNW's rendering, the Fama-French 48 mean. Note that FNW's own ``ATO'' is
+Soliman's asset turnover (sales over lagged net operating assets) while
+``SAT'' is sales over total assets; the paper's aSAT adjusts the latter.
+
+\paragraph{aPM.} Same construction; in addition its cell means cannot be
+rebuilt (they were computed over a wider firm set than the panels hold) and
+its long-short alpha is 0.00012 a month, so the long leg is not identified.
+\textbf{Settled: dropped from the site's portfolios; the aPM sort is not a
+signal in any meaningful sense.}
+
+\paragraph{Conventions kept.} The panels revealed several implementation
+choices that the sources leave open and that do not change what a signal
+measures: the beta window (the firm's last 249 trading days), zero-volume
+days excluded from the volume dispersion, $n-1$ in the residual standard
+deviation, the day-level range-or-quote spread, dividends in dollars over
+market capitalisation. These are documented in \texttt{signals.pdf} and kept.
+
+\subsection*{Summary table}
+
+\begin{longtable}{>{\raggedright\arraybackslash}p{1.8cm}>{\raggedright\arraybackslash}p{4.3cm}>{\raggedright\arraybackslash}p{4.3cm}>{\raggedright\arraybackslash}p{3.2cm}}\toprule
+Signal & Original source & Paper's data & Site\\\midrule
+OA, AOA & Sloan (1996): minus depreciation & plus depreciation & Sloan, lagged assets\\
+SUV & Garfinkel (2009): daily standardised residual, prior-window regression & last day of a within-month regression & daily residuals from month $t-1$'s fit, mean over month $t$\\
+DTO & Garfinkel (2009): daily market-adjusted turnover minus control-period mean; FNW: minus 180-day median, Nasdaq scaled & last day's raw turnover minus 180-day mean, no market adjustment & FNW's, mean over the month\\
+TNOVR & Datar et al.\ (1998): 3-month average volume over current shares; FNW: last month's & last month's volume over current shares & unchanged (= FNW)\\
+aBEME, aSIZE & Asness et al.\ (2000); FNW: FF48 mean & 27 recovered groups & FF48 mean pending the original\\
+aSAT & Soliman (2008); FNW: FF48 mean & 27 recovered groups & FF48 mean pending the original\\
+aPM & Soliman (2008) & not reproducible; alpha zero & dropped\\
 \bottomrule
 \end{longtable}
-
-Both columns are implemented; \texttt{signals.pdf} carries every formula
-and every rejected alternative.
 
 \subsection*{The options}
 
